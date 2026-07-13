@@ -222,8 +222,8 @@ function App() {
   const getAhorroReal = (y: number, m: number) => computeMonth(transactions, `${y}-${String(m + 1).padStart(2, "0")}`).ahorroReal;
 
   const pending = useMemo(
-    () => computePendingPresets({ monthTx, recurring, recurringIncome, investmentConfig, assets }),
-    [monthTx, recurring, recurringIncome, investmentConfig, assets],
+    () => computePendingPresets({ monthTx, recurring, recurringIncome, investmentConfig, assets: isPremium ? assets : [] }),
+    [monthTx, recurring, recurringIncome, investmentConfig, assets, isPremium],
   );
 
   const changeMonth = (delta: number) => {
@@ -619,6 +619,8 @@ function App() {
 
       {showForm && (
         <NuevoMovimientoForm
+          isPremium={isPremium}
+          variableBudget={variableBudget}
           funds={fundsWithBalance}
           getAhorroLibreDisponibleParaMes={getAhorroLibreDisponibleParaMes}
           categories={categories}

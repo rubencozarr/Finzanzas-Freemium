@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Chip } from "./Chip";
+import { PremiumGate } from "./PremiumGate";
 import { AHORRO_LIBRE_ID, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
 import { fmt, monthKey } from "../lib/format";
@@ -14,6 +15,8 @@ export interface FormPreset {
 }
 
 interface NuevoMovimientoFormProps {
+  isPremium: boolean;
+  variableBudget: number;
   funds: FundWithBalance[];
   getAhorroLibreDisponibleParaMes: (mKey: string) => number;
   categories: Category[];
@@ -36,6 +39,8 @@ const TYPE_OPTIONS: [TransactionType, string][] = [
 ];
 
 export function NuevoMovimientoForm({
+  isPremium,
+  variableBudget,
   funds,
   getAhorroLibreDisponibleParaMes,
   categories,
@@ -114,6 +119,18 @@ export function NuevoMovimientoForm({
       : 0;
   const projectedCategoryTotal = spentInCategoryThisMonth + amt;
 
+  // Aviso de presupuesto para free: en vez del desglose por categoría (premium), se compara contra el
+  // presupuesto general de gasto variable. Mismo criterio que "variableOrdinario" en calculations.ts
+  // (excluye gastos financiados con ahorro), para que la cifra coincida con la que ya ve el usuario en
+  // Mensual/Movimientos.
+  const showGlobalBudgetNotice = !isPremium && type === "gasto" && currentCat?.type === "variable" && variableBudget > 0;
+  const spentVariableThisMonth = showGlobalBudgetNotice
+    ? monthTx
+        .filter((t) => t.type === "gasto" && !t.fixed && !t.fundedBy && (!editingTx || t.id !== editingTx.id))
+        .reduce((s, t) => s + t.amount, 0)
+    : 0;
+  const projectedVariableTotal = spentVariableThisMonth + amt;
+
   const fundedFund = fundingOptions.find((f) => f.id === fundedId);
   const fundedYaContaba = editingTx?.type === "gasto" && editingTx.fundedBy === fundedId ? editingTx.amount : 0;
   const fundedExcede = type === "gasto" && fundedByFund && !!fundedFund && amt > fundedFund.balance + fundedYaContaba;
@@ -146,7 +163,7 @@ export function NuevoMovimientoForm({
     if (retiroExcedeFondo) return;
     if (fundedExcede) return;
     if (type === "gasto" && !categoryId) return;
-    if (shortfall > 0) {
+    if (shortfall > 0 && isPremium) {
       setAskShortfall(true);
       return;
     }
@@ -352,7 +369,7 @@ export function NuevoMovimientoForm({
                 </div>
               </div>
             )}
-            {categoryBudget > 0 && (
+            {isPremium && categoryBudget > 0 && (
               <p
                 className={`text-xs rounded-md px-3 py-2 mb-3 ${projectedCategoryTotal > categoryBudget ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}
               >
@@ -361,6 +378,18 @@ export function NuevoMovimientoForm({
                   ? projectedCategoryTotal > categoryBudget
                     ? ` Con este gasto lo superarás en ${fmt(projectedCategoryTotal - categoryBudget)}.`
                     : ` Con este gasto quedarían ${fmt(categoryBudget - projectedCategoryTotal)} libres.`
+                  : ""}
+              </p>
+            )}
+            {showGlobalBudgetNotice && (
+              <p
+                className={`text-xs rounded-md px-3 py-2 mb-3 ${projectedVariableTotal > variableBudget ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}
+              >
+                Llevas {fmt(spentVariableThisMonth)} de {fmt(variableBudget)} en gasto variable este mes.
+                {amt > 0
+                  ? projectedVariableTotal > variableBudget
+                    ? ` Con este gasto lo superarás en ${fmt(projectedVariableTotal - variableBudget)}.`
+                    : ` Con este gasto quedarían ${fmt(variableBudget - projectedVariableTotal)} libres.`
                   : ""}
               </p>
             )}
@@ -392,12 +421,20 @@ export function NuevoMovimientoForm({
                 )}
               </>
             )}
-            {amt > 0 && !fundedByFund && remaining > 0 && amt > remaining && (
-              <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-2 mb-3 mt-3">
-                Este importe supera tu ahorro real disponible ({fmt(remaining)}). Al guardar te preguntaremos si quieres cubrir
-                la diferencia con un fondo o tu ahorro libre.
-              </p>
-            )}
+            {amt > 0 &&
+              !fundedByFund &&
+              remaining > 0 &&
+              amt > remaining &&
+              (isPremium ? (
+                <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-2 mb-3 mt-3">
+                  Este importe supera tu ahorro real disponible ({fmt(remaining)}). Al guardar te preguntaremos si quieres
+                  cubrir la diferencia con un fondo o tu ahorro libre.
+                </p>
+              ) : (
+                <div className="mb-3 mt-3">
+                  <PremiumGate message="Con Premium puedes cubrir la diferencia con tus fondos de ahorro" />
+                </div>
+              ))}
           </>
         )}
 
