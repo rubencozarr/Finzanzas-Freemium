@@ -10,6 +10,7 @@ import { useAssets } from "./hooks/useAssets";
 import { useInvestmentConfig } from "./hooks/useInvestmentConfig";
 import { useVariableBudget } from "./hooks/useVariableBudget";
 import { useOnboardingStatus } from "./hooks/useOnboardingStatus";
+import { useSubscription } from "./hooks/useSubscription";
 import {
   ahorroLibreDisponibleParaMes,
   ahorroLibreHasta,
@@ -78,6 +79,7 @@ function App() {
   const { assets, addAsset, renameAsset, updateAssetPct, removeAsset, refetch: refetchAssets } = useAssets(userId);
   const { investmentConfig, setGlobalPct, refetch: refetchInvestmentConfig } = useInvestmentConfig(userId);
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
+  const { isPremium, canCreateCategory } = useSubscription(userId);
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
@@ -575,6 +577,8 @@ function App() {
         )}
         {tab === "ajustes" && (
           <AjustesTab
+            isPremium={isPremium}
+            canCreateCategory={canCreateCategory}
             categories={categories}
             addCategory={addCategory}
             renameCategory={renameCategoryEverywhere}

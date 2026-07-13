@@ -4,11 +4,14 @@ import { CategoriasEditor } from "./CategoriasEditor";
 import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
 import { InvestmentEditor } from "./InvestmentEditor";
+import { PremiumGate } from "../../components/PremiumGate";
 import type { Asset, Category, CategoryType, InvestmentConfig, Recurring, RecurringIncome } from "../../types";
 
 type Section = "categorias" | "recurrentes" | "ingresos" | "inversion";
 
 interface AjustesTabProps {
+  isPremium: boolean;
+  canCreateCategory: (currentCount: number, type: CategoryType) => boolean;
   categories: Category[];
   addCategory: (type: CategoryType, name: string) => void;
   renameCategory: (id: string, name: string) => void;
@@ -48,6 +51,8 @@ interface AjustesTabProps {
 }
 
 export function AjustesTab({
+  isPremium,
+  canCreateCategory,
   categories,
   addCategory,
   renameCategory,
@@ -145,6 +150,8 @@ export function AjustesTab({
 
       {section === "categorias" && (
         <CategoriasEditor
+          isPremium={isPremium}
+          canCreateCategory={canCreateCategory}
           categories={categories}
           addCategory={addCategory}
           renameCategory={renameCategory}
@@ -176,17 +183,20 @@ export function AjustesTab({
           updateRecurringIncomeAmount={updateRecurringIncomeAmount}
         />
       )}
-      {section === "inversion" && (
-        <InvestmentEditor
-          assets={assets}
-          addAsset={addAsset}
-          renameAsset={renameAsset}
-          updateAssetPct={updateAssetPct}
-          removeAsset={removeAsset}
-          config={investmentConfig}
-          setGlobalPct={setGlobalPct}
-        />
-      )}
+      {section === "inversion" &&
+        (isPremium ? (
+          <InvestmentEditor
+            assets={assets}
+            addAsset={addAsset}
+            renameAsset={renameAsset}
+            updateAssetPct={updateAssetPct}
+            removeAsset={removeAsset}
+            config={investmentConfig}
+            setGlobalPct={setGlobalPct}
+          />
+        ) : (
+          <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
+        ))}
 
       <div className="border-t border-stone-200 mt-6 pt-4">
         <p className="text-xs text-stone-400 mb-3">Copia de seguridad de tus datos</p>

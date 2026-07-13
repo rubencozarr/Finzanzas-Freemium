@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
 import { fmt } from "../../lib/format";
+import { PremiumGate } from "../../components/PremiumGate";
 import type { Category, CategoryType } from "../../types";
 
 interface CategoriasEditorProps {
+  isPremium: boolean;
+  canCreateCategory: (currentCount: number, type: CategoryType) => boolean;
   categories: Category[];
   addCategory: (type: CategoryType, name: string) => void;
   renameCategory: (id: string, name: string) => void;
@@ -19,6 +22,8 @@ interface CategoriasEditorProps {
 }
 
 export function CategoriasEditor({
+  isPremium,
+  canCreateCategory,
   categories,
   addCategory,
   renameCategory,
@@ -79,6 +84,8 @@ export function CategoriasEditor({
   const addCat = (type: CategoryType) => {
     const name = newCatName[type].trim();
     if (!name) return;
+    const count = categories.filter((c) => c.type === type).length;
+    if (!canCreateCategory(count, type)) return;
     if (nameExists(name)) {
       setAddError((s) => ({ ...s, [type]: "Ya existe una categoría con este nombre." }));
       return;
@@ -138,6 +145,11 @@ export function CategoriasEditor({
                   <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-2.5 py-1.5">
                     Los presupuestos por categoría suman {fmt(sumaCat)}, pero tu presupuesto total es {fmt(variableBudget)}.
                   </p>
+                )}
+                {!isPremium && (
+                  <div className="mt-2">
+                    <PremiumGate message="Los presupuestos por categoría están disponibles con Premium" />
+                  </div>
                 )}
               </div>
             );
@@ -201,7 +213,7 @@ export function CategoriasEditor({
                   </button>
                 </div>
               </div>
-              {type === "variable" && (
+              {type === "variable" && isPremium && (
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs text-stone-500">Presupuesto mensual</span>
                   <input
@@ -215,57 +227,76 @@ export function CategoriasEditor({
                   />
                 </div>
               )}
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {cat.subcategories.map((sc) => (
-                  <span key={sc.id} className="flex items-center gap-1 bg-stone-100 text-xs rounded-full px-2 py-1">
-                    {sc.name}
-                    <button onClick={() => askRemoveSubcategory(cat, sc.id, sc.name)} className="text-stone-400 hover:text-rose-600">
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-1.5">
-                <input
-                  value={newSubName[cat.id] || ""}
-                  onChange={(e) => setNewSubName((s) => ({ ...s, [cat.id]: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") addSub(cat.id);
-                  }}
-                  placeholder="Nueva subcategoría"
-                  className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base"
-                />
-                <button onClick={() => addSub(cat.id)} className="bg-stone-800 text-white rounded-md px-2">
-                  <Plus size={13} />
-                </button>
-              </div>
+              {cat.subcategories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {cat.subcategories.map((sc) => (
+                    <span key={sc.id} className="flex items-center gap-1 bg-stone-100 text-xs rounded-full px-2 py-1">
+                      {sc.name}
+                      {isPremium && (
+                        <button onClick={() => askRemoveSubcategory(cat, sc.id, sc.name)} className="text-stone-400 hover:text-rose-600">
+                          <X size={11} />
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {isPremium && (
+                <div className="flex gap-1.5">
+                  <input
+                    value={newSubName[cat.id] || ""}
+                    onChange={(e) => setNewSubName((s) => ({ ...s, [cat.id]: e.target.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addSub(cat.id);
+                    }}
+                    placeholder="Nueva subcategoría"
+                    className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base"
+                  />
+                  <button onClick={() => addSub(cat.id)} className="bg-stone-800 text-white rounded-md px-2">
+                    <Plus size={13} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
-        <div className="flex gap-1.5 mt-2">
-          <input
-            value={newCatName[type]}
-            onChange={(e) => {
-              setNewCatName((s) => ({ ...s, [type]: e.target.value }));
-              setAddError((s) => ({ ...s, [type]: null }));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addCat(type);
-            }}
-            placeholder={`Nueva categoría ${type === "fixed" ? "fija" : "variable"}`}
-            className="flex-1 border border-stone-200 rounded-md px-2 py-1.5 text-base"
-          />
-          <button onClick={() => addCat(type)} className="bg-slate-800 text-white rounded-md px-2.5 text-xs">
-            <Plus size={14} />
-          </button>
-        </div>
-        {addError[type] && <p className="text-xs text-rose-600 mt-1">{addError[type]}</p>}
+        {canCreateCategory(list.length, type) ? (
+          <>
+            <div className="flex gap-1.5 mt-2">
+              <input
+                value={newCatName[type]}
+                onChange={(e) => {
+                  setNewCatName((s) => ({ ...s, [type]: e.target.value }));
+                  setAddError((s) => ({ ...s, [type]: null }));
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addCat(type);
+                }}
+                placeholder={`Nueva categoría ${type === "fixed" ? "fija" : "variable"}`}
+                className="flex-1 border border-stone-200 rounded-md px-2 py-1.5 text-base"
+              />
+              <button onClick={() => addCat(type)} className="bg-slate-800 text-white rounded-md px-2.5 text-xs">
+                <Plus size={14} />
+              </button>
+            </div>
+            {addError[type] && <p className="text-xs text-rose-600 mt-1">{addError[type]}</p>}
+          </>
+        ) : (
+          <div className="mt-2">
+            <PremiumGate message="Con Premium puedes crear categorías ilimitadas con subcategorías" />
+          </div>
+        )}
       </div>
     );
   };
 
   return (
     <div>
+      {!isPremium && (
+        <div className="mb-4">
+          <PremiumGate message="Las subcategorías están disponibles con Premium" />
+        </div>
+      )}
       {renderGroup("fixed", "Categorías fijas")}
       {renderGroup("variable", "Categorías variables")}
 
