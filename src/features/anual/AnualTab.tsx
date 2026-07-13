@@ -1,10 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, PiggyBank } from "lucide-react";
 import { StatCard } from "../../components/StatCard";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
 import { ChartsSection } from "../../components/ChartsSection";
 import { PremiumGate } from "../../components/PremiumGate";
-import { buildAssetYearBreakdown, type YearMonthData, type YearTotals } from "../../lib/calculations";
+import { YearComparisonCards } from "../../components/YearComparisonCards";
+import {
+  buildAssetYearBreakdown,
+  buildYearComparison,
+  yearTotalsThroughMonth,
+  type YearMonthData,
+  type YearTotals,
+} from "../../lib/calculations";
+import { MONTHS_FULL } from "../../lib/constants";
 import { fmt } from "../../lib/format";
 import type { Asset, Transaction } from "../../types";
 
@@ -20,6 +28,8 @@ interface AnualTabProps {
 }
 
 export function AnualTab({ isPremium, year, changeYear, data, totals, transactions, assets, variableBudget }: AnualTabProps) {
+  const [compareYear, setCompareYear] = useState<number | null>(null);
+
   const overviewDataAnual: DonutDatum[] = [
     { name: "Gasto fijo", value: totals.fixedOrdinario, color: "#94a3b8" },
     { name: "Gasto variable", value: totals.variableOrdinario, color: "#fb7185" },
@@ -30,6 +40,31 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
   const assetYearBreakdown = useMemo(
     () => (isPremium ? buildAssetYearBreakdown(transactions, assets, year) : []),
     [isPremium, transactions, assets, year],
+  );
+
+  const availableYears = useMemo(() => {
+    const years = new Set(transactions.map((t) => Number(t.date.slice(0, 4))));
+    years.delete(year);
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions, year]);
+
+  // Cuántos meses de `year` comparar: los 12 si ya es un año cerrado, o hasta el mes real de hoy si es
+  // el año en curso (así "enero-julio 2026" se compara con "enero-julio 2025", no con el año entero).
+  const today = new Date();
+  const cutoffMonthIdx = year < today.getFullYear() ? 11 : year > today.getFullYear() ? -1 : today.getMonth();
+  const monthsLabel = cutoffMonthIdx >= 11 ? "todo el año" : `${MONTHS_FULL[0]}-${MONTHS_FULL[cutoffMonthIdx]}`;
+
+  const comparisonTotals = useMemo(() => {
+    if (!compareYear || cutoffMonthIdx < 0) return null;
+    return {
+      current: yearTotalsThroughMonth(transactions, year, cutoffMonthIdx),
+      compare: yearTotalsThroughMonth(transactions, compareYear, cutoffMonthIdx),
+    };
+  }, [transactions, year, compareYear, cutoffMonthIdx]);
+
+  const comparisonChartData = useMemo(
+    () => (compareYear ? buildYearComparison(transactions, year, compareYear) : null),
+    [transactions, year, compareYear],
   );
 
   return (
@@ -63,9 +98,44 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
 
       {isPremium ? (
         <>
+          {availableYears.length > 0 && (
+            <div className="mb-4">
+              <label className="text-xs text-stone-500 mb-1.5 block">Comparar con</label>
+              <select
+                value={compareYear ?? ""}
+                onChange={(e) => setCompareYear(e.target.value ? Number(e.target.value) : null)}
+                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
+              >
+                <option value="">Sin comparar</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              {compareYear && comparisonTotals && (
+                <YearComparisonCards
+                  year={year}
+                  compareYear={compareYear}
+                  current={comparisonTotals.current}
+                  compare={comparisonTotals.compare}
+                  monthsLabel={monthsLabel}
+                />
+              )}
+            </div>
+          )}
+
           <CategoryOverviewDonut data={overviewDataAnual} title="De dónde ha salido tu dinero este año" ingresos={totals.ingresos} />
 
-          <ChartsSection data={data} variableBudget={variableBudget} assetBreakdown={assetYearBreakdown} totalInversion={totals.inversion} />
+          <ChartsSection
+            data={data}
+            variableBudget={variableBudget}
+            assetBreakdown={assetYearBreakdown}
+            totalInversion={totals.inversion}
+            year={year}
+            compareYear={compareYear}
+            compareData={comparisonChartData}
+          />
         </>
       ) : (
         <PremiumGate message="Desbloquea los gráficos anuales, el desglose por categorías y la comparativa entre años con Premium" />

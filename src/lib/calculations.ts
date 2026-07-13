@@ -244,6 +244,57 @@ export function yearTotals(data: YearMonthData[]): YearTotals {
   );
 }
 
+/** Totales de un año, pero solo de los primeros `monthIdxInclusive + 1` meses — para comparar "los
+ * mismos meses" entre dos años (p. ej. enero-julio de este año vs enero-julio del anterior). */
+export function yearTotalsThroughMonth(transactions: Transaction[], year: number, monthIdxInclusive: number): YearTotals {
+  return yearTotals(yearMonthsData(transactions, year).slice(0, monthIdxInclusive + 1));
+}
+
+export interface YearComparisonPoint {
+  mes: string;
+  ingresos: number | null;
+  gastos: number | null;
+  fixedOrdinario: number | null;
+  variableOrdinario: number | null;
+  acumulado: number | null;
+  tasaAhorro: number | null;
+  compareIngresos: number;
+  compareGastos: number;
+  compareFixedOrdinario: number;
+  compareVariableOrdinario: number;
+  compareAcumulado: number;
+  compareTasaAhorro: number;
+}
+
+/** Serie mensual de `year` combinada con la de `compareYear`, mes a mes por índice. Los meses de
+ * `year` posteriores al mes real de hoy (solo si `year` es el año en curso) se ponen a null, para que
+ * el año actual "termine" ahí en el gráfico en vez de caer a 0 por falta de datos futuros. El año
+ * comparado se muestra siempre completo. */
+export function buildYearComparison(transactions: Transaction[], year: number, compareYear: number): YearComparisonPoint[] {
+  const current = yearMonthsData(transactions, year);
+  const compare = yearMonthsData(transactions, compareYear);
+  const today = new Date();
+  const cutoff = year < today.getFullYear() ? 11 : year > today.getFullYear() ? -1 : today.getMonth();
+  return current.map((m, i) => {
+    const withinRange = i <= cutoff;
+    return {
+      mes: m.mes,
+      ingresos: withinRange ? m.ingresos : null,
+      gastos: withinRange ? m.gastos : null,
+      fixedOrdinario: withinRange ? m.fixedOrdinario : null,
+      variableOrdinario: withinRange ? m.variableOrdinario : null,
+      acumulado: withinRange ? m.acumulado : null,
+      tasaAhorro: withinRange ? m.tasaAhorro : null,
+      compareIngresos: compare[i].ingresos,
+      compareGastos: compare[i].gastos,
+      compareFixedOrdinario: compare[i].fixedOrdinario,
+      compareVariableOrdinario: compare[i].variableOrdinario,
+      compareAcumulado: compare[i].acumulado,
+      compareTasaAhorro: compare[i].tasaAhorro,
+    };
+  });
+}
+
 export interface TrendPoint {
   mes: string;
   value: number;

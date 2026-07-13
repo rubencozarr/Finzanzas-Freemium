@@ -19,7 +19,7 @@ import {
 import { ChartCard } from "./ChartCard";
 import { BudgetComplianceChart } from "./BudgetComplianceChart";
 import { fmt } from "../lib/format";
-import type { AssetYearBreakdown, YearMonthData } from "../lib/calculations";
+import type { AssetYearBreakdown, YearComparisonPoint, YearMonthData } from "../lib/calculations";
 
 const ASSET_COLORS = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#4f46e5"];
 
@@ -28,11 +28,15 @@ interface ChartsSectionProps {
   variableBudget: number;
   assetBreakdown: AssetYearBreakdown[];
   totalInversion: number;
+  year: number;
+  compareYear?: number | null;
+  compareData?: YearComparisonPoint[] | null;
 }
 
-export function ChartsSection({ data, variableBudget, assetBreakdown, totalInversion }: ChartsSectionProps) {
+export function ChartsSection({ data, variableBudget, assetBreakdown, totalInversion, year, compareYear, compareData }: ChartsSectionProps) {
   const [expanded, setExpanded] = useState(false);
   const assetDonutData = assetBreakdown.map((a, i) => ({ name: a.name, value: a.total, color: ASSET_COLORS[i % ASSET_COLORS.length] }));
+  const comparing = !!(compareYear && compareData);
 
   return (
     <div className="mb-5">
@@ -50,14 +54,35 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             height={180}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} unit="%" />
-                <Tooltip formatter={(v) => `${Number(v).toFixed(0)}%`} />
-                <ReferenceLine y={0} stroke="#c3c2b7" />
-                <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name="Tasa de ahorro" />
-              </LineChart>
+              {comparing ? (
+                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} unit="%" />
+                  <Tooltip formatter={(v) => `${Number(v).toFixed(0)}%`} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <ReferenceLine y={0} stroke="#c3c2b7" />
+                  <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name={String(year)} />
+                  <Line
+                    type="monotone"
+                    dataKey="compareTasaAhorro"
+                    stroke="#5eead4"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={{ r: 2 }}
+                    name={String(compareYear)}
+                  />
+                </LineChart>
+              ) : (
+                <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} unit="%" />
+                  <Tooltip formatter={(v) => `${Number(v).toFixed(0)}%`} />
+                  <ReferenceLine y={0} stroke="#c3c2b7" />
+                  <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name="Tasa de ahorro" />
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </ChartCard>
 
@@ -67,15 +92,45 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             height={200}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => fmt(Number(v))} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="ingresos" fill="#059669" name="Ingresos" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="gastos" fill="#e11d48" name="Gastos" radius={[3, 3, 0, 0]} />
-              </BarChart>
+              {comparing ? (
+                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="ingresos" stroke="#059669" strokeWidth={2} dot={{ r: 2 }} name={`Ingresos ${year}`} />
+                  <Line
+                    type="monotone"
+                    dataKey="compareIngresos"
+                    stroke="#6ee7b7"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={{ r: 2 }}
+                    name={`Ingresos ${compareYear}`}
+                  />
+                  <Line type="monotone" dataKey="gastos" stroke="#e11d48" strokeWidth={2} dot={{ r: 2 }} name={`Gastos ${year}`} />
+                  <Line
+                    type="monotone"
+                    dataKey="compareGastos"
+                    stroke="#fda4af"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={{ r: 2 }}
+                    name={`Gastos ${compareYear}`}
+                  />
+                </LineChart>
+              ) : (
+                <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="ingresos" fill="#059669" name="Ingresos" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="gastos" fill="#e11d48" name="Gastos" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </ChartCard>
 
@@ -85,13 +140,33 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             height={180}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => fmt(Number(v))} />
-                <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name="Ahorro libre consolidado" />
-              </LineChart>
+              {comparing ? (
+                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name={String(year)} />
+                  <Line
+                    type="monotone"
+                    dataKey="compareAcumulado"
+                    stroke="#fcd34d"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={{ r: 2 }}
+                    name={String(compareYear)}
+                  />
+                </LineChart>
+              ) : (
+                <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name="Ahorro libre consolidado" />
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </ChartCard>
 
@@ -101,15 +176,45 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             height={200}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => fmt(Number(v))} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="fixedOrdinario" fill="#64748b" name="Gasto fijo" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="variableOrdinario" fill="#fb7185" name="Gasto variable" radius={[3, 3, 0, 0]} />
-              </BarChart>
+              {comparing ? (
+                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="fixedOrdinario" stroke="#64748b" strokeWidth={2} dot={{ r: 2 }} name={`Fijo ${year}`} />
+                  <Line
+                    type="monotone"
+                    dataKey="compareFixedOrdinario"
+                    stroke="#cbd5e1"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={{ r: 2 }}
+                    name={`Fijo ${compareYear}`}
+                  />
+                  <Line type="monotone" dataKey="variableOrdinario" stroke="#fb7185" strokeWidth={2} dot={{ r: 2 }} name={`Variable ${year}`} />
+                  <Line
+                    type="monotone"
+                    dataKey="compareVariableOrdinario"
+                    stroke="#fecdd3"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    dot={{ r: 2 }}
+                    name={`Variable ${compareYear}`}
+                  />
+                </LineChart>
+              ) : (
+                <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="fixedOrdinario" fill="#64748b" name="Gasto fijo" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="variableOrdinario" fill="#fb7185" name="Gasto variable" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </ChartCard>
 
