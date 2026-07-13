@@ -44,37 +44,31 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
         </button>
       </div>
 
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <StatCard label="Ingresos año" value={totals.ingresos} tone="emerald" />
+        <StatCard label="Gastos año" value={totals.gastos} tone="rose" />
+        <div className="col-span-2 rounded-lg px-3 py-2.5 bg-teal-50">
+          <p className="text-xs font-semibold text-teal-800 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+            <PiggyBank size={13} /> Tu ahorro
+          </p>
+          <p className="text-xs text-stone-500 mb-0.5">Ahorro libre generado este año</p>
+          <p className="font-mono text-lg text-teal-800">{fmt(totals.ahorroReal)}</p>
+        </div>
+        <StatCard label="Invertido este año" value={totals.inversion} tone="indigo" />
+      </div>
+      <p className="text-xs text-stone-400 -mt-2 mb-4">
+        Estos datos son solo de {year}, comparables entre años. Tu posición patrimonial acumulada (cuánto tienes en total) la ves en Fondos e
+        inversión.
+      </p>
+
       {isPremium ? (
         <>
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <StatCard label="Ingresos año" value={totals.ingresos} tone="emerald" />
-            <StatCard label="Gastos año" value={totals.gastos} tone="rose" />
-            <div className="col-span-2 rounded-lg px-3 py-2.5 bg-teal-50">
-              <p className="text-xs font-semibold text-teal-800 uppercase tracking-wide mb-1 flex items-center gap-1.5">
-                <PiggyBank size={13} /> Tu ahorro
-              </p>
-              <p className="text-xs text-stone-500 mb-0.5">Ahorro libre generado este año</p>
-              <p className="font-mono text-lg text-teal-800">{fmt(totals.ahorroReal)}</p>
-            </div>
-            <StatCard label="Invertido este año" value={totals.inversion} tone="indigo" />
-          </div>
-          <p className="text-xs text-stone-400 -mt-2 mb-4">
-            Estos datos son solo de {year}, comparables entre años. Tu posición patrimonial acumulada (cuánto tienes en total) la ves en
-            Fondos e inversión.
-          </p>
-
           <CategoryOverviewDonut data={overviewDataAnual} title="De dónde ha salido tu dinero este año" ingresos={totals.ingresos} />
 
           <ChartsSection data={data} variableBudget={variableBudget} assetBreakdown={assetYearBreakdown} totalInversion={totals.inversion} />
         </>
       ) : (
-        <>
-          <p className="text-sm text-stone-600 mb-4">
-            Ingresado <span className="font-mono">{fmt(totals.ingresos)}</span> · Gastado <span className="font-mono">{fmt(totals.gastos)}</span>{" "}
-            en {year}
-          </p>
-          <PremiumGate message="Desbloquea gráficos, tendencias y comparativas anuales con Premium" />
-        </>
+        <PremiumGate message="Desbloquea los gráficos anuales, el desglose por categorías y la comparativa entre años con Premium" />
       )}
     </div>
   );
