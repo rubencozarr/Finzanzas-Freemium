@@ -27,7 +27,10 @@ export function useSubscription(userId: string | undefined) {
       return;
     }
     const { data, error } = await getSupabase().from("subscriptions").select("*").eq("user_id", userId).maybeSingle();
-    if (!error) setPlan(fromSubscriptionRow(data as SubscriptionRow | null));
+    // Fail-closed: si la consulta falla, se trata como free en vez de conservar el plan anterior en
+    // memoria (App no se desmonta al cambiar de cuenta en la misma pestaña, así que sin esto un error
+    // de red/RLS podría dejar "pegado" el plan premium de una sesión previa).
+    setPlan(error ? "free" : fromSubscriptionRow(data as SubscriptionRow | null));
     setFetchedForUserId(userId);
   }, [userId]);
 
