@@ -576,7 +576,16 @@ function App() {
           />
         )}
         {tab === "anual" && (
-          <AnualTab year={year} changeYear={changeYear} data={yearData} totals={yearStats} transactions={transactions} assets={assets} variableBudget={variableBudget} />
+          <AnualTab
+            isPremium={isPremium}
+            year={year}
+            changeYear={changeYear}
+            data={yearData}
+            totals={yearStats}
+            transactions={transactions}
+            assets={assets}
+            variableBudget={variableBudget}
+          />
         )}
         {tab === "ajustes" && (
           <AjustesTab
