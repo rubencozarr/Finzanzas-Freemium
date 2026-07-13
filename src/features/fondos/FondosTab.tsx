@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { Check, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { MONTHS_FULL } from "../../lib/constants";
@@ -11,7 +11,6 @@ interface FondosTabProps {
   isPremium: boolean;
   canCreateFund: (currentCount: number) => boolean;
   canNavigateToMonth: (monthDate: Date) => boolean;
-  toast: (msg: string) => void;
   funds: FundWithBalance[];
   transactions: Transaction[];
   addFund: (name: string) => void;
@@ -40,7 +39,6 @@ export function FondosTab({
   isPremium,
   canCreateFund,
   canNavigateToMonth,
-  toast,
   funds,
   transactions,
   addFund,
@@ -70,28 +68,6 @@ export function FondosTab({
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
   const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
   const [goalAmountInput, setGoalAmountInput] = useState("");
-
-  // Detecta cuándo un fondo ACABA DE cruzar su meta (antes por debajo, ahora igual o por encima) para
-  // felicitar solo una vez por cruce, en vez de en cada render. El primer render solo guarda la base
-  // sin comparar: así, si el usuario ya había alcanzado la meta en una sesión anterior, no se le
-  // vuelve a felicitar cada vez que abre la pestaña o recarga la página.
-  const prevBalancesRef = useRef<Record<string, number> | null>(null);
-  useEffect(() => {
-    if (isPremium) {
-      const prev = prevBalancesRef.current;
-      if (prev) {
-        const totalFondos = funds.reduce((s, f) => s + f.balance, 0);
-        funds.forEach((f) => {
-          if (f.goalAmount == null) return;
-          const wasBelow = (prev[f.id] ?? -Infinity) < f.goalAmount;
-          if (wasBelow && f.balance >= f.goalAmount) {
-            toast(`¡Has alcanzado tu meta de ${f.name}! Llevas ${fmt(totalFondos)} ahorrados en total entre todos tus fondos.`);
-          }
-        });
-      }
-    }
-    prevBalancesRef.current = Object.fromEntries(funds.map((f) => [f.id, f.balance]));
-  }, [isPremium, funds, toast]);
 
   const isCurrentMonth = selectedMonthKey === currentMonthKey;
   const isHistorical = selectedMonthKey < currentMonthKey;
@@ -274,9 +250,10 @@ export function FondosTab({
                     setEditingGoalFundId(f.id);
                     setGoalAmountInput("");
                   }}
-                  className="text-xs text-stone-400 hover:text-emerald-700 mb-2"
+                  className="flex items-center gap-1 text-xs text-stone-400 hover:text-emerald-700 hover:border-emerald-300 border border-dashed border-stone-200 rounded-md px-2 py-1 mb-2"
                 >
-                  Poner meta
+                  <Target size={12} />
+                  Poner meta de ahorro
                 </button>
               ) : (
                 (() => {

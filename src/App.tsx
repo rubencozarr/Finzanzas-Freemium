@@ -32,7 +32,7 @@ import {
   type OrphanGroup,
   type OrphanSubcategoryGroup,
 } from "./lib/calculations";
-import { monthKey, todayISO } from "./lib/format";
+import { fmt, monthKey, todayISO } from "./lib/format";
 import { buildBackup, downloadBackup, importBackup } from "./lib/backup";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
@@ -196,6 +196,30 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPremium, savingsMilestoneShown, userId, fundsWithBalance]);
+
+  // Aviso premium al alcanzar la meta de un fondo. Vive aquí (no en FondosTab) porque App no se
+  // desmonta al cambiar de pestaña: si esto estuviera en FondosTab, guardar la aportación desde
+  // Movimientos y volver a Fondos remontaría el componente y perdería el saldo anterior, sin poder
+  // detectar el cruce. Igual que el aviso de arriba, el primer render solo guarda la base sin
+  // comparar, para no felicitar de nuevo por metas ya alcanzadas en sesiones previas.
+  const prevFundBalancesRef = useRef<Record<string, number> | null>(null);
+  useEffect(() => {
+    if (isPremium) {
+      const prev = prevFundBalancesRef.current;
+      if (prev) {
+        const totalFondos = fundsWithBalance.reduce((s, f) => s + f.balance, 0);
+        fundsWithBalance.forEach((f) => {
+          if (f.goalAmount == null) return;
+          const wasBelow = (prev[f.id] ?? -Infinity) < f.goalAmount;
+          if (wasBelow && f.balance >= f.goalAmount) {
+            showToast(`¡Has alcanzado tu meta de ${f.name}! Llevas ${fmt(totalFondos)} ahorrados en total entre todos tus fondos.`);
+          }
+        });
+      }
+    }
+    prevFundBalancesRef.current = Object.fromEntries(fundsWithBalance.map((f) => [f.id, f.balance]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium, fundsWithBalance]);
 
   const assetsWithTotal = useMemo(() => computeAssetsWithTotal(assets, transactions), [assets, transactions]);
   const fundsForUsageDisplay = useMemo(
@@ -551,7 +575,6 @@ function App() {
             isPremium={isPremium}
             canCreateFund={canCreateFund}
             canNavigateToMonth={canNavigateToMonth}
-            toast={showToast}
             funds={fundsWithBalance}
             transactions={transactions}
             addFund={addFund}
