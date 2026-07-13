@@ -11,6 +11,7 @@ import { fmt } from "../../lib/format";
 import type { Asset, Category, FundWithBalance, Transaction } from "../../types";
 
 interface MensualTabProps {
+  isPremium: boolean;
   monthIdx: number;
   year: number;
   changeMonth: (delta: number) => void;
@@ -29,6 +30,7 @@ interface MensualTabProps {
 }
 
 export function MensualTab({
+  isPremium,
   monthIdx,
   year,
   changeMonth,
@@ -45,8 +47,18 @@ export function MensualTab({
   trend6Meses,
   onGoToAjustes,
 }: MensualTabProps) {
-  const fixedCats = useMemo(() => buildBreakdown(monthTx, categories, "fixedOrdinario"), [monthTx, categories]);
-  const variableCats = useMemo(() => buildBreakdown(monthTx, categories, "variableOrdinario"), [monthTx, categories]);
+  // En free, las subcategorías son premium-only desde el Bloque 1 (Ajustes), así que un usuario free
+  // nuevo nunca las tendrá; esto es refuerzo defensivo por si quedan de datos importados o un downgrade.
+  const stripSubcats = (b: ReturnType<typeof buildBreakdown>) =>
+    isPremium ? b : b.map((c) => ({ ...c, subcats: [], sinClasificar: 0 }));
+  const fixedCats = useMemo(
+    () => stripSubcats(buildBreakdown(monthTx, categories, "fixedOrdinario")),
+    [monthTx, categories, isPremium],
+  );
+  const variableCats = useMemo(
+    () => stripSubcats(buildBreakdown(monthTx, categories, "variableOrdinario")),
+    [monthTx, categories, isPremium],
+  );
   const fundUsage = useMemo(() => buildFundUsage(monthTx, transactions, funds), [monthTx, transactions, funds]);
   const assetCats = useMemo(() => buildAssetBreakdown(monthTx, assets), [monthTx, assets]);
 
@@ -111,7 +123,7 @@ export function MensualTab({
       <CategoryGroup title="Inversión" total={stats.inversion} pct={pctInversion} cats={assetCats} tone="inversion" showPct />
       <FundUsageGroup total={stats.gastosFinanciados} funds={fundUsage} />
 
-      <SparklineTrend data={trend6Meses} />
+      <SparklineTrend data={trend6Meses} isPremium={isPremium} />
     </div>
   );
 }

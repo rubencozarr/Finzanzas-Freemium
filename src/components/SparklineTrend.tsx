@@ -2,14 +2,16 @@ import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis } f
 import { fmt } from "../lib/format";
 import type { TrendPoint } from "../lib/calculations";
 
-export function SparklineTrend({ data }: { data: TrendPoint[] }) {
-  const mean = data.length ? data.reduce((s, d) => s + d.value, 0) / data.length : 0;
+export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPremium: boolean }) {
+  const visibleData = isPremium ? data : data.slice(-3);
+  const monthsLabel = isPremium ? "6 meses" : "3 meses";
+  const mean = visibleData.length ? visibleData.reduce((s, d) => s + d.value, 0) / visibleData.length : 0;
   return (
     <div className="mb-5">
-      <p className="text-sm font-medium mb-2">Tendencia de tu ahorro (últimos 6 meses)</p>
+      <p className="text-sm font-medium mb-2">Tendencia de tu ahorro (últimos {monthsLabel})</p>
       <div className="bg-white rounded-lg border border-stone-100 p-2" style={{ height: 120 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 10, left: 10, bottom: 0 }}>
+          <LineChart data={visibleData} margin={{ top: 8, right: 10, left: 10, bottom: 0 }}>
             <XAxis dataKey="mes" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
             <Tooltip formatter={(v) => fmt(Number(v))} />
             <ReferenceLine y={0} stroke="#d6d3d1" strokeWidth={1} label={{ value: "0", position: "left", fontSize: 9, fill: "#a8a29e" }} />
@@ -25,9 +27,10 @@ export function SparklineTrend({ data }: { data: TrendPoint[] }) {
         </ResponsiveContainer>
       </div>
       <p className="text-xs text-stone-400 mt-1.5">
-        Línea continua gris = 0€ (por debajo estás perdiendo dinero). Línea punteada verde = tu media de estos 6 meses ({fmt(mean)}). Si tu
-        línea sube mes a mes, vas mejorando.
+        Línea continua gris = 0€ (por debajo estás perdiendo dinero). Línea punteada verde = tu media de estos {monthsLabel} ({fmt(mean)}).
+        Si tu línea sube mes a mes, vas mejorando.
       </p>
+      {!isPremium && <p className="text-[11px] text-stone-400 mt-1">Ve los 6 meses completos con Premium</p>}
     </div>
   );
 }

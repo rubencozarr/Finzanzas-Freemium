@@ -557,6 +557,7 @@ function App() {
         )}
         {tab === "mensual" && (
           <MensualTab
+            isPremium={isPremium}
             monthIdx={monthIdx}
             year={year}
             changeMonth={changeMonth}
