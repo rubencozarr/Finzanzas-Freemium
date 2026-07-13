@@ -1,6 +1,11 @@
-import type { Category, TransactionType } from "../types";
+import type { Category, CategoryType, TransactionType } from "../types";
 
 export const AHORRO_LIBRE_ID = "ahorro_libre";
+
+// Límites del plan free (ver MASTER-PLAN-FREEMIUM.md, sección 4).
+export const FREE_MAX_FUNDS = 2;
+export const FREE_MAX_CATEGORIES: Record<CategoryType, number> = { fixed: 6, variable: 6 };
+export const FREE_HISTORY_MONTHS = 6;
 
 export const TYPE_META: Record<TransactionType, { color: string; sign: 1 | -1 }> = {
   ingreso: { color: "text-emerald-700", sign: 1 },

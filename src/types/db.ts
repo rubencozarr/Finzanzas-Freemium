@@ -88,3 +88,16 @@ export interface UserSettingsRow {
   onboarding_completed: boolean;
   updated_at: string;
 }
+
+export interface SubscriptionRow {
+  id: string;
+  user_id: string;
+  plan: "free" | "premium";
+  status: "active" | "cancelled" | "past_due";
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+}

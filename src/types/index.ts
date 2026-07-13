@@ -77,3 +77,5 @@ export interface AssetWithTotal extends Asset {
 export interface InvestmentConfig {
   globalPct: number;
 }
+
+export type SubscriptionPlan = "free" | "premium";

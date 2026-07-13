@@ -5,6 +5,7 @@ import type {
   InvestmentConfigRow,
   RecurringIncomeRow,
   RecurringRow,
+  SubscriptionRow,
   TransactionRow,
   UserSettingsRow,
   VariableBudgetRow,
@@ -16,6 +17,7 @@ import type {
   InvestmentConfig,
   Recurring,
   RecurringIncome,
+  SubscriptionPlan,
   Transaction,
 } from "../types";
 
@@ -129,4 +131,11 @@ export function fromVariableBudgetRow(row: VariableBudgetRow | null): number {
 
 export function fromUserSettingsRow(row: UserSettingsRow | null): boolean {
   return row?.onboarding_completed ?? false;
+}
+
+// Sin fila -> free. Plan "premium" con status distinto de "active" (cancelled/past_due) también
+// se trata como free: si el pago falló o se canceló, no debe seguir dando acceso premium.
+export function fromSubscriptionRow(row: SubscriptionRow | null): SubscriptionPlan {
+  if (!row) return "free";
+  return row.plan === "premium" && row.status === "active" ? "premium" : "free";
 }

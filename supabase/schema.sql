@@ -100,6 +100,25 @@ create table if not exists public.user_settings (
 );
 
 -- =========================================================
+-- SUBSCRIPTIONS (estado de suscripción freemium, una fila por usuario)
+-- REGLA: si un usuario no tiene fila aquí, se considera 'free'. No se crea
+-- fila automáticamente al registrarse; el hook useSubscription trata la
+-- ausencia de fila como plan free.
+-- =========================================================
+create table if not exists public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null unique references auth.users (id) on delete cascade,
+  plan text not null default 'free' check (plan in ('free', 'premium')),
+  status text not null default 'active' check (status in ('active', 'cancelled', 'past_due')),
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  current_period_start timestamptz,
+  current_period_end timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- =========================================================
 -- TRANSACTIONS (movimientos)
 -- Depende de funds, recurring y recurring_income: se crea al final.
 -- =========================================================
@@ -155,12 +174,13 @@ alter table public.assets enable row level security;
 alter table public.investment_config enable row level security;
 alter table public.variable_budget enable row level security;
 alter table public.user_settings enable row level security;
+alter table public.subscriptions enable row level security;
 
 do $$
 declare
   t text;
 begin
-  foreach t in array array['transactions', 'funds', 'categories', 'recurring', 'recurring_income', 'assets', 'investment_config', 'variable_budget', 'user_settings']
+  foreach t in array array['transactions', 'funds', 'categories', 'recurring', 'recurring_income', 'assets', 'investment_config', 'variable_budget', 'user_settings', 'subscriptions']
   loop
     execute format('drop policy if exists "select_own" on public.%I', t);
     execute format('drop policy if exists "insert_own" on public.%I', t);
@@ -181,3 +201,12 @@ end $$;
 -- las categorías por defecto descritas en la especificación
 -- (ver src/lib/constants.ts > DEFAULT_CATEGORIES una vez migrado).
 -- =========================================================
+
+-- =========================================================
+-- Marcar la cuenta del desarrollador como premium.
+-- Sustituye TU_USER_ID por tu auth.users.id (Authentication > Users en el
+-- dashboard de Supabase) y ejecuta una sola vez.
+-- =========================================================
+insert into public.subscriptions (user_id, plan, status)
+values ('93847357-cff2-4684-9081-2b2c0fba2c09', 'premium', 'active')
+on conflict (user_id) do update set plan = excluded.plan, status = excluded.status, updated_at = now();
