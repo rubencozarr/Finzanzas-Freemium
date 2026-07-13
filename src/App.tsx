@@ -36,6 +36,7 @@ import { fmt, monthKey, todayISO } from "./lib/format";
 import { buildBackup, downloadBackup, importBackup } from "./lib/backup";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
+import { MilestoneNotice } from "./components/MilestoneNotice";
 import { NuevoMovimientoForm, type FormPreset } from "./components/NuevoMovimientoForm";
 import { ApplyPresetsModal } from "./components/ApplyPresetsModal";
 import { ResolveOrphansModal } from "./components/ResolveOrphansModal";
@@ -110,6 +111,7 @@ function App() {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
   };
+  const [milestoneMsg, setMilestoneMsg] = useState<string | null>(null);
 
   // El estado del tutorial vive en Supabase (tabla user_settings), asociado al usuario y no al
   // navegador: así, si el mismo usuario entra desde otro dispositivo, no vuelve a verlo.
@@ -191,7 +193,7 @@ function App() {
     if (isPremium || savingsMilestoneShown || !userId) return;
     const totalFondos = fundsWithBalance.reduce((s, f) => s + f.balance, 0);
     if (totalFondos >= 500) {
-      showToast("¡Ya llevas 500€ ahorrados! Con Premium puedes poner metas a cada fondo y ver tu progreso.");
+      setMilestoneMsg("¡Ya llevas 500€ ahorrados! Con Premium puedes poner metas a cada fondo y ver tu progreso.");
       markSavingsMilestoneShown();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,7 +214,7 @@ function App() {
           if (f.goalAmount == null) return;
           const wasBelow = (prev[f.id] ?? -Infinity) < f.goalAmount;
           if (wasBelow && f.balance >= f.goalAmount) {
-            showToast(`¡Has alcanzado tu meta de ${f.name}! Llevas ${fmt(totalFondos)} ahorrados en total entre todos tus fondos.`);
+            setMilestoneMsg(`¡Has alcanzado tu meta de ${f.name}! Llevas ${fmt(totalFondos)} ahorrados en total entre todos tus fondos.`);
           }
         });
       }
@@ -746,6 +748,7 @@ function App() {
         <NavButton icon={<Settings2 size={18} />} label="Ajustes" active={tab === "ajustes"} onClick={() => setTab("ajustes")} tourId="nav-ajustes" />
       </nav>
       <Toast message={toastMsg} />
+      <MilestoneNotice message={milestoneMsg} onClose={() => setMilestoneMsg(null)} />
     </div>
   );
 }
