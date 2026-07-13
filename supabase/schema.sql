@@ -12,6 +12,8 @@ create table if not exists public.funds (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
+  -- Meta de ahorro opcional (premium). Null = sin meta, el fondo funciona igual que siempre.
+  goal_amount numeric(12, 2),
   created_at timestamptz not null default now()
 );
 
@@ -96,6 +98,8 @@ create table if not exists public.variable_budget (
 create table if not exists public.user_settings (
   user_id uuid primary key references auth.users (id) on delete cascade,
   onboarding_completed boolean not null default false,
+  -- Aviso de conversión free "ya llevas 500€ ahorrados": se muestra una sola vez.
+  savings_milestone_shown boolean not null default false,
   updated_at timestamptz not null default now()
 );
 

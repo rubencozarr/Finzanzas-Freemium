@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { MONTHS_FULL } from "../../lib/constants";
+import { fundAvgNetContribution } from "../../lib/calculations";
 import { fmt } from "../../lib/format";
-import type { AssetWithTotal, FundWithBalance } from "../../types";
+import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
 
 interface FondosTabProps {
   isPremium: boolean;
   canCreateFund: (currentCount: number) => boolean;
   canNavigateToMonth: (monthDate: Date) => boolean;
+  toast: (msg: string) => void;
   funds: FundWithBalance[];
+  transactions: Transaction[];
   addFund: (name: string) => void;
   renameFund: (id: string, name: string) => void;
   deleteFund: (fund: FundWithBalance) => void;
+  updateFundGoal: (id: string, amount: number | null) => void;
   assets: AssetWithTotal[];
   selectedMonthKey: string;
   currentMonthKey: string;
@@ -36,10 +40,13 @@ export function FondosTab({
   isPremium,
   canCreateFund,
   canNavigateToMonth,
+  toast,
   funds,
+  transactions,
   addFund,
   renameFund,
   deleteFund,
+  updateFundGoal,
   assets,
   selectedMonthKey,
   currentMonthKey,
@@ -61,6 +68,30 @@ export function FondosTab({
   const [editingFundId, setEditingFundId] = useState<string | null>(null);
   const [editFundName, setEditFundName] = useState("");
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
+  const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
+  const [goalAmountInput, setGoalAmountInput] = useState("");
+
+  // Detecta cuándo un fondo ACABA DE cruzar su meta (antes por debajo, ahora igual o por encima) para
+  // felicitar solo una vez por cruce, en vez de en cada render. El primer render solo guarda la base
+  // sin comparar: así, si el usuario ya había alcanzado la meta en una sesión anterior, no se le
+  // vuelve a felicitar cada vez que abre la pestaña o recarga la página.
+  const prevBalancesRef = useRef<Record<string, number> | null>(null);
+  useEffect(() => {
+    if (isPremium) {
+      const prev = prevBalancesRef.current;
+      if (prev) {
+        const totalFondos = funds.reduce((s, f) => s + f.balance, 0);
+        funds.forEach((f) => {
+          if (f.goalAmount == null) return;
+          const wasBelow = (prev[f.id] ?? -Infinity) < f.goalAmount;
+          if (wasBelow && f.balance >= f.goalAmount) {
+            toast(`¡Has alcanzado tu meta de ${f.name}! Llevas ${fmt(totalFondos)} ahorrados en total entre todos tus fondos.`);
+          }
+        });
+      }
+    }
+    prevBalancesRef.current = Object.fromEntries(funds.map((f) => [f.id, f.balance]));
+  }, [isPremium, funds, toast]);
 
   const isCurrentMonth = selectedMonthKey === currentMonthKey;
   const isHistorical = selectedMonthKey < currentMonthKey;
@@ -199,6 +230,89 @@ export function FondosTab({
                 <span className="font-mono text-sm text-teal-700 shrink-0">{fmt(f.balance)}</span>
               </div>
             )}
+            {isPremium &&
+              (editingGoalFundId === f.id ? (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={goalAmountInput}
+                    onChange={(e) => setGoalAmountInput(e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder="Importe meta (€)"
+                    className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base font-mono"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => {
+                      const amount = parseFloat(goalAmountInput);
+                      if (amount > 0) updateFundGoal(f.id, amount);
+                      setEditingGoalFundId(null);
+                    }}
+                    className="text-emerald-700 shrink-0"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button onClick={() => setEditingGoalFundId(null)} className="text-stone-400 shrink-0">
+                    <X size={16} />
+                  </button>
+                  {f.goalAmount != null && (
+                    <button
+                      onClick={() => {
+                        updateFundGoal(f.id, null);
+                        setEditingGoalFundId(null);
+                      }}
+                      className="text-stone-300 hover:text-rose-600 shrink-0"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ) : f.goalAmount == null ? (
+                <button
+                  onClick={() => {
+                    setEditingGoalFundId(f.id);
+                    setGoalAmountInput("");
+                  }}
+                  className="text-xs text-stone-400 hover:text-emerald-700 mb-2"
+                >
+                  Poner meta
+                </button>
+              ) : (
+                (() => {
+                  const reached = f.balance >= f.goalAmount!;
+                  const pct = Math.min(100, (f.balance / f.goalAmount!) * 100);
+                  const avgNet = fundAvgNetContribution(transactions, f.id, 3);
+                  const monthsToGoal = avgNet > 0 ? Math.ceil((f.goalAmount! - f.balance) / avgNet) : null;
+                  return (
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
+                        <span className="flex items-center gap-1">
+                          {reached && <Check size={12} className="text-emerald-600" />}
+                          {fmt(f.balance)} de {fmt(f.goalAmount!)}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setEditingGoalFundId(f.id);
+                            setGoalAmountInput(String(f.goalAmount));
+                          }}
+                          className="text-stone-300 hover:text-slate-700"
+                        >
+                          <Pencil size={11} />
+                        </button>
+                      </div>
+                      <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${reached ? "bg-emerald-500" : "bg-emerald-400"}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      {!reached && (
+                        <p className="text-[11px] text-stone-400 mt-1">
+                          A este ritmo lo alcanzas en {monthsToGoal != null ? `${monthsToGoal} mes${monthsToGoal === 1 ? "" : "es"}` : "—"}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()
+              ))}
             <div className="flex gap-2">
               <button onClick={() => onQuickMove(f, "aportacion")} className="flex-1 text-xs bg-teal-50 text-teal-800 rounded-md px-2.5 py-1.5">
                 Aportar

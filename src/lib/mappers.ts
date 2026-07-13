@@ -81,7 +81,7 @@ export function toTransactionUpdate(updates: Partial<Transaction>) {
 }
 
 export function fromFundRow(row: FundRow): Fund {
-  return { id: row.id, name: row.name };
+  return { id: row.id, name: row.name, goalAmount: row.goal_amount };
 }
 
 export function fromCategoryRow(row: CategoryRow): Category {
@@ -131,6 +131,10 @@ export function fromVariableBudgetRow(row: VariableBudgetRow | null): number {
 
 export function fromUserSettingsRow(row: UserSettingsRow | null): boolean {
   return row?.onboarding_completed ?? false;
+}
+
+export function fromSavingsMilestoneRow(row: UserSettingsRow | null): boolean {
+  return row?.savings_milestone_shown ?? false;
 }
 
 // Sin fila -> free. Plan "premium" con status distinto de "active" (cancelled/past_due) también

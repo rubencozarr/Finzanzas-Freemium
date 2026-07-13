@@ -11,6 +11,7 @@ import { useInvestmentConfig } from "./hooks/useInvestmentConfig";
 import { useVariableBudget } from "./hooks/useVariableBudget";
 import { useOnboardingStatus } from "./hooks/useOnboardingStatus";
 import { useSubscription } from "./hooks/useSubscription";
+import { useSavingsMilestone } from "./hooks/useSavingsMilestone";
 import {
   ahorroLibreDisponibleParaMes,
   ahorroLibreHasta,
@@ -56,7 +57,7 @@ function App() {
   const userId = user?.id;
 
   const { transactions, addTransaction, editTransaction, deleteTransaction, refetch: refetchTransactions } = useTransactions(userId);
-  const { funds, addFund, renameFund, deleteFund, refetch: refetchFunds } = useFunds(userId);
+  const { funds, addFund, renameFund, deleteFund, updateFundGoal, refetch: refetchFunds } = useFunds(userId);
   const {
     categories,
     addCategory,
@@ -80,6 +81,7 @@ function App() {
   const { investmentConfig, setGlobalPct, refetch: refetchInvestmentConfig } = useInvestmentConfig(userId);
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
   const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
+  const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
@@ -182,6 +184,19 @@ function App() {
   const currentMonthKey = monthKey(todayISO());
 
   const fundsWithBalance = useMemo(() => computeFundsWithBalance(funds, transactions), [funds, transactions]);
+
+  // Aviso de conversión free: la primera vez que el total ahorrado entre fondos llega a 500€, se avisa
+  // una sola vez (savings_milestone_shown en Supabase evita que vuelva a salir en sesiones futuras).
+  useEffect(() => {
+    if (isPremium || savingsMilestoneShown || !userId) return;
+    const totalFondos = fundsWithBalance.reduce((s, f) => s + f.balance, 0);
+    if (totalFondos >= 500) {
+      showToast("¡Ya llevas 500€ ahorrados! Con Premium puedes poner metas a cada fondo y ver tu progreso.");
+      markSavingsMilestoneShown();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium, savingsMilestoneShown, userId, fundsWithBalance]);
+
   const assetsWithTotal = useMemo(() => computeAssetsWithTotal(assets, transactions), [assets, transactions]);
   const fundsForUsageDisplay = useMemo(
     () => [ahorroLibrePseudoFund(transactions), ...fundsWithBalance],
@@ -536,10 +551,13 @@ function App() {
             isPremium={isPremium}
             canCreateFund={canCreateFund}
             canNavigateToMonth={canNavigateToMonth}
+            toast={showToast}
             funds={fundsWithBalance}
+            transactions={transactions}
             addFund={addFund}
             renameFund={renameFund}
             deleteFund={onDeleteFund}
+            updateFundGoal={updateFundGoal}
             assets={assetsWithTotal}
             selectedMonthKey={selectedMonthKey}
             currentMonthKey={currentMonthKey}

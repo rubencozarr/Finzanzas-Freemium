@@ -21,6 +21,7 @@ export interface Transaction {
 export interface Fund {
   id: string;
   name: string;
+  goalAmount?: number | null;
 }
 
 export interface FundWithBalance extends Fund {

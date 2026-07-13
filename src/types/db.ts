@@ -27,6 +27,7 @@ export interface FundRow {
   id: string;
   user_id: string;
   name: string;
+  goal_amount: number | null;
   created_at: string;
 }
 
@@ -86,6 +87,7 @@ export interface VariableBudgetRow {
 export interface UserSettingsRow {
   user_id: string;
   onboarding_completed: boolean;
+  savings_milestone_shown: boolean;
   updated_at: string;
 }
 

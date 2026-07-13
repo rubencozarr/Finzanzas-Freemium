@@ -40,6 +40,23 @@ export function fundsWithBalance(funds: Fund[], transactions: Transaction[]): Fu
   });
 }
 
+/** Media de aportaciones netas (aportación - retiro) a un fondo en los últimos `monthsCount` meses,
+ * contando el mes actual como el primero (mismo criterio que trendUltimos6Meses). Usada para estimar
+ * cuántos meses faltan para alcanzar la meta de ahorro de un fondo. */
+export function fundAvgNetContribution(transactions: Transaction[], fundId: string, monthsCount: number): number {
+  const now = new Date();
+  let total = 0;
+  for (let i = 0; i < monthsCount; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const monthTx = transactions.filter((t) => t.fundId === fundId && monthKey(t.date) === mKey);
+    const aportado = monthTx.filter((t) => t.type === "aportacion").reduce((s, t) => s + t.amount, 0);
+    const retirado = monthTx.filter((t) => t.type === "retiro").reduce((s, t) => s + t.amount, 0);
+    total += aportado - retirado;
+  }
+  return total / monthsCount;
+}
+
 export function fundsBalanceHasta(funds: Fund[], transactions: Transaction[], mKey: string): FundWithBalance[] {
   return funds.map((f) => {
     const rel = transactions.filter((t) => monthKey(t.date) <= mKey);
