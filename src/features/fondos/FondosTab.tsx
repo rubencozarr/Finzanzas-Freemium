@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
+import { PremiumGate } from "../../components/PremiumGate";
 import { MONTHS_FULL } from "../../lib/constants";
 import { fmt } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance } from "../../types";
 
 interface FondosTabProps {
+  isPremium: boolean;
+  canCreateFund: (currentCount: number) => boolean;
   funds: FundWithBalance[];
   addFund: (name: string) => void;
   renameFund: (id: string, name: string) => void;
@@ -29,6 +32,8 @@ interface FondosTabProps {
 }
 
 export function FondosTab({
+  isPremium,
+  canCreateFund,
   funds,
   addFund,
   renameFund,
@@ -134,25 +139,31 @@ export function FondosTab({
       </div>
 
       <p className="text-sm font-semibold mb-2">Fondos de ahorro</p>
-      <div className="flex gap-2 mb-4">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Nombre del fondo (ej. Viajes)"
-          className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
-        />
-        <button
-          onClick={() => {
-            if (newName.trim()) {
-              addFund(newName.trim());
-              setNewName("");
-            }
-          }}
-          className="bg-slate-800 text-white rounded-lg px-3 text-sm"
-        >
-          <Plus size={16} />
-        </button>
-      </div>
+      {canCreateFund(funds.length) ? (
+        <div className="flex gap-2 mb-4">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Nombre del fondo (ej. Viajes)"
+            className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
+          />
+          <button
+            onClick={() => {
+              if (newName.trim()) {
+                addFund(newName.trim());
+                setNewName("");
+              }
+            }}
+            className="bg-slate-800 text-white rounded-lg px-3 text-sm"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      ) : (
+        <div className="mb-4">
+          <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" />
+        </div>
+      )}
       <div className="space-y-3 mb-2">
         {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
         {fundsAtDate.map((f) => (
@@ -216,37 +227,43 @@ export function FondosTab({
       <p className="text-xs text-stone-400 mb-6">Si un gasto lo pagas con dinero de un fondo, márcalo como "pagado con ahorro" al crear ese gasto.</p>
 
       <p className="text-sm font-semibold mb-2">Inversión hasta {mesLabelSiempre}</p>
-      <p className="text-xs text-stone-400 mb-3">
-        Gestiona tus activos en{" "}
-        <button onClick={onGoToAjustes} className="underline text-indigo-700">
-          Ajustes → Inversión
-        </button>
-        .
-      </p>
-      <div className="space-y-3">
-        {assets.length === 0 && (
-          <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes activos. Configúralos en Ajustes → Inversión.</p>
-        )}
-        {assetsAtDate.map((a) => {
-          const pct = totalInvertidoAtDate ? (a.invertido / totalInvertidoAtDate) * 100 : 0;
-          return (
-            <div key={a.id} className="bg-white rounded-lg border border-stone-100 px-3 py-3">
-              <div className="flex justify-between items-baseline gap-2 mb-1">
-                <span className="text-sm font-medium min-w-0 truncate">{a.name}</span>
-                <span className="font-mono text-sm text-indigo-700 shrink-0">
-                  {fmt(a.invertido)} · {pct.toFixed(0)}%
-                </span>
-              </div>
-              <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-indigo-400" style={{ width: `${Math.min(100, pct)}%` }} />
-              </div>
-              <button onClick={() => onQuickInvest(a)} className="w-full text-xs bg-indigo-50 text-indigo-800 rounded-md px-2.5 py-1.5">
-                Invertir
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      {isPremium ? (
+        <>
+          <p className="text-xs text-stone-400 mb-3">
+            Gestiona tus activos en{" "}
+            <button onClick={onGoToAjustes} className="underline text-indigo-700">
+              Ajustes → Inversión
+            </button>
+            .
+          </p>
+          <div className="space-y-3">
+            {assets.length === 0 && (
+              <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes activos. Configúralos en Ajustes → Inversión.</p>
+            )}
+            {assetsAtDate.map((a) => {
+              const pct = totalInvertidoAtDate ? (a.invertido / totalInvertidoAtDate) * 100 : 0;
+              return (
+                <div key={a.id} className="bg-white rounded-lg border border-stone-100 px-3 py-3">
+                  <div className="flex justify-between items-baseline gap-2 mb-1">
+                    <span className="text-sm font-medium min-w-0 truncate">{a.name}</span>
+                    <span className="font-mono text-sm text-indigo-700 shrink-0">
+                      {fmt(a.invertido)} · {pct.toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden mb-2">
+                    <div className="h-full bg-indigo-400" style={{ width: `${Math.min(100, pct)}%` }} />
+                  </div>
+                  <button onClick={() => onQuickInvest(a)} className="w-full text-xs bg-indigo-50 text-indigo-800 rounded-md px-2.5 py-1.5">
+                    Invertir
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
+      )}
 
       {deleteConfirmFund && (
         <div className="fixed inset-0 bg-black/30 flex items-end justify-center z-20" onClick={() => setDeleteConfirmFund(null)}>

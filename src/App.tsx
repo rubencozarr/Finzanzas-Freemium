@@ -79,7 +79,7 @@ function App() {
   const { assets, addAsset, renameAsset, updateAssetPct, removeAsset, refetch: refetchAssets } = useAssets(userId);
   const { investmentConfig, setGlobalPct, refetch: refetchInvestmentConfig } = useInvestmentConfig(userId);
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
-  const { isPremium, canCreateCategory } = useSubscription(userId);
+  const { isPremium, canCreateCategory, canCreateFund } = useSubscription(userId);
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
@@ -531,6 +531,8 @@ function App() {
         )}
         {tab === "fondos" && (
           <FondosTab
+            isPremium={isPremium}
+            canCreateFund={canCreateFund}
             funds={fundsWithBalance}
             addFund={addFund}
             renameFund={renameFund}
