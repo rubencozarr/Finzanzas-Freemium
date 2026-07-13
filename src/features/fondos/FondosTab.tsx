@@ -9,6 +9,7 @@ import type { AssetWithTotal, FundWithBalance } from "../../types";
 interface FondosTabProps {
   isPremium: boolean;
   canCreateFund: (currentCount: number) => boolean;
+  canNavigateToMonth: (monthDate: Date) => boolean;
   funds: FundWithBalance[];
   addFund: (name: string) => void;
   renameFund: (id: string, name: string) => void;
@@ -34,6 +35,7 @@ interface FondosTabProps {
 export function FondosTab({
   isPremium,
   canCreateFund,
+  canNavigateToMonth,
   funds,
   addFund,
   renameFund,
@@ -91,6 +93,8 @@ export function FondosTab({
   return (
     <div>
       <MonthSwitcher
+        isPremium={isPremium}
+        canNavigateToMonth={canNavigateToMonth}
         monthIdx={monthIdx}
         year={year}
         changeMonth={changeMonth}

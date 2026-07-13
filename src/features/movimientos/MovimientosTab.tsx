@@ -45,6 +45,8 @@ function rowToneClass(t: Pick<DisplayTransactionItem, "type" | "fixed">): string
 }
 
 interface MovimientosTabProps {
+  isPremium: boolean;
+  canNavigateToMonth: (monthDate: Date) => boolean;
   monthIdx: number;
   year: number;
   changeMonth: (delta: number) => void;
@@ -69,6 +71,8 @@ interface MovimientosTabProps {
 }
 
 export function MovimientosTab({
+  isPremium,
+  canNavigateToMonth,
   monthIdx,
   year,
   changeMonth,
@@ -198,6 +202,8 @@ export function MovimientosTab({
       <div className="flex items-center justify-between mb-1">
         <div className="flex-1">
           <MonthSwitcher
+            isPremium={isPremium}
+            canNavigateToMonth={canNavigateToMonth}
             monthIdx={monthIdx}
             year={year}
             changeMonth={changeMonth}

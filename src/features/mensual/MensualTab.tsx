@@ -12,6 +12,7 @@ import type { Asset, Category, FundWithBalance, Transaction } from "../../types"
 
 interface MensualTabProps {
   isPremium: boolean;
+  canNavigateToMonth: (monthDate: Date) => boolean;
   monthIdx: number;
   year: number;
   changeMonth: (delta: number) => void;
@@ -31,6 +32,7 @@ interface MensualTabProps {
 
 export function MensualTab({
   isPremium,
+  canNavigateToMonth,
   monthIdx,
   year,
   changeMonth,
@@ -78,6 +80,8 @@ export function MensualTab({
   return (
     <div>
       <MonthSwitcher
+        isPremium={isPremium}
+        canNavigateToMonth={canNavigateToMonth}
         monthIdx={monthIdx}
         year={year}
         changeMonth={changeMonth}

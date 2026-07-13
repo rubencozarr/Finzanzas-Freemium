@@ -79,7 +79,7 @@ function App() {
   const { assets, addAsset, renameAsset, updateAssetPct, removeAsset, refetch: refetchAssets } = useAssets(userId);
   const { investmentConfig, setGlobalPct, refetch: refetchInvestmentConfig } = useInvestmentConfig(userId);
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
-  const { isPremium, canCreateCategory, canCreateFund } = useSubscription(userId);
+  const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
@@ -496,6 +496,8 @@ function App() {
       <main className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
         {tab === "movimientos" && (
           <MovimientosTab
+            isPremium={isPremium}
+            canNavigateToMonth={canNavigateToMonth}
             monthIdx={monthIdx}
             year={year}
             changeMonth={changeMonth}
@@ -533,6 +535,7 @@ function App() {
           <FondosTab
             isPremium={isPremium}
             canCreateFund={canCreateFund}
+            canNavigateToMonth={canNavigateToMonth}
             funds={fundsWithBalance}
             addFund={addFund}
             renameFund={renameFund}
@@ -558,6 +561,7 @@ function App() {
         {tab === "mensual" && (
           <MensualTab
             isPremium={isPremium}
+            canNavigateToMonth={canNavigateToMonth}
             monthIdx={monthIdx}
             year={year}
             changeMonth={changeMonth}

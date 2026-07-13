@@ -2,8 +2,11 @@ import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { MONTHS_ES, MONTHS_FULL } from "../lib/constants";
 import { round2 } from "../lib/format";
+import { PremiumGate } from "./PremiumGate";
 
 interface MonthSwitcherProps {
+  isPremium: boolean;
+  canNavigateToMonth: (monthDate: Date) => boolean;
   monthIdx: number;
   year: number;
   changeMonth: (delta: number) => void;
@@ -12,14 +15,30 @@ interface MonthSwitcherProps {
   getAhorroReal?: (year: number, monthIdx: number) => number;
 }
 
-export function MonthSwitcher({ monthIdx, year, changeMonth, changeYear, goToMonthIndex, getAhorroReal }: MonthSwitcherProps) {
+export function MonthSwitcher({
+  isPremium,
+  canNavigateToMonth,
+  monthIdx,
+  year,
+  changeMonth,
+  changeYear,
+  goToMonthIndex,
+  getAhorroReal,
+}: MonthSwitcherProps) {
   const [open, setOpen] = useState(false);
   const hasPicker = !!(changeYear && goToMonthIndex);
+
+  const canGoBack = canNavigateToMonth(new Date(year, monthIdx - 1, 1));
+  const canGoBackYear = canNavigateToMonth(new Date(year - 1, 11, 1));
 
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between">
-        <button onClick={() => changeMonth(-1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
+        <button
+          onClick={() => changeMonth(-1)}
+          disabled={!canGoBack}
+          className={`p-1.5 rounded-full ${canGoBack ? "hover:bg-stone-200 text-slate-600" : "text-stone-200"}`}
+        >
           <ChevronLeft size={18} />
         </button>
         {hasPicker ? (
@@ -36,10 +55,19 @@ export function MonthSwitcher({ monthIdx, year, changeMonth, changeYear, goToMon
           <ChevronRight size={18} />
         </button>
       </div>
+      {!isPremium && !canGoBack && (
+        <div className="mt-2">
+          <PremiumGate message="Con Premium tienes acceso a todo tu historial" />
+        </div>
+      )}
       {open && hasPicker && (
         <div className="mt-2 bg-white border border-stone-200 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2.5">
-            <button onClick={() => changeYear!(-1)} className="p-1 rounded-full hover:bg-stone-100 text-slate-500">
+            <button
+              onClick={() => changeYear!(-1)}
+              disabled={!canGoBackYear}
+              className={`p-1 rounded-full ${canGoBackYear ? "hover:bg-stone-100 text-slate-500" : "text-stone-200"}`}
+            >
               <ChevronLeft size={16} />
             </button>
             <span className="text-sm font-medium">{year}</span>
@@ -55,14 +83,17 @@ export function MonthSwitcher({ monthIdx, year, changeMonth, changeYear, goToMon
               const ahorro = round2(getAhorroReal ? getAhorroReal(year, i) : 0);
               const dot = ahorro > 0 ? "bg-teal-500" : ahorro < 0 ? "bg-rose-500" : "bg-amber-500";
               const active = i === monthIdx;
+              const accessible = canNavigateToMonth(new Date(year, i, 1));
               return (
                 <button
                   key={m}
+                  disabled={!accessible}
                   onClick={() => {
+                    if (!accessible) return;
                     goToMonthIndex!(i);
                     setOpen(false);
                   }}
-                  className={`flex flex-col items-center gap-1 rounded-lg py-2 text-xs ${active ? "bg-slate-800 text-white" : "bg-stone-50 text-slate-600"}`}
+                  className={`flex flex-col items-center gap-1 rounded-lg py-2 text-xs ${active ? "bg-slate-800 text-white" : "bg-stone-50 text-slate-600"} ${!accessible ? "opacity-40" : ""}`}
                 >
                   {m}
                   <span
