@@ -305,6 +305,142 @@ export function computePendingPresets(params: {
 }
 
 // ---------------------------------------------------------------------------
+// Insights automáticos de tendencia (Mensual, premium)
+// ---------------------------------------------------------------------------
+
+export type InsightType = "categoria_subida" | "presupuesto_racha" | "tasa_ahorro" | "gasto_variable_baja" | "racha_ahorro";
+
+export interface Insight {
+  type: InsightType;
+  text: string;
+  tone: "rose" | "amber" | "teal" | "emerald";
+}
+
+/** Gasto por categoría en un mes, sin contar lo pagado con ahorro (fundedBy): eso no sale del
+ * ingreso del mes, así que no debe distorsionar comparaciones de gasto mes a mes. */
+function categoryTotalsForMonth(transactions: Transaction[], categories: Category[], mKey: string): Record<string, number> {
+  const monthTx = transactions.filter((t) => monthKey(t.date) === mKey && t.type === "gasto" && !t.fundedBy);
+  const totals: Record<string, number> = {};
+  categories.forEach((cat) => {
+    totals[cat.id] = monthTx.filter((t) => matchesCategory(t, cat)).reduce((s, t) => s + t.amount, 0);
+  });
+  return totals;
+}
+
+function biggestCategoryIncrease(
+  transactions: Transaction[],
+  categories: Category[],
+  mKey: string,
+  prevKey: string,
+): { name: string; pct: number; deltaAmount: number } | null {
+  const current = categoryTotalsForMonth(transactions, categories, mKey);
+  const previous = categoryTotalsForMonth(transactions, categories, prevKey);
+  let best: { name: string; pct: number; deltaAmount: number } | null = null;
+  categories.forEach((cat) => {
+    const prev = previous[cat.id] || 0;
+    if (prev <= 0) return; // sin base del mes anterior no hay "% de subida" que tenga sentido
+    const deltaAmount = (current[cat.id] || 0) - prev;
+    const pct = (deltaAmount / prev) * 100;
+    if (pct > 25 && deltaAmount > 50 && (!best || deltaAmount > best.deltaAmount)) {
+      best = { name: cat.name, pct, deltaAmount };
+    }
+  });
+  return best;
+}
+
+function longestOverBudgetStreak(transactions: Transaction[], categories: Category[], mKey: string): { categoryName: string; months: number } | null {
+  const budgetCats = categories.filter((c) => c.type === "variable" && (c.budget || 0) > 0);
+  let best: { categoryName: string; months: number } | null = null;
+  budgetCats.forEach((cat) => {
+    let months = 0;
+    let cursor = mKey;
+    for (let i = 0; i < 24; i++) {
+      const total = transactions
+        .filter((t) => monthKey(t.date) === cursor && t.type === "gasto" && !t.fundedBy && matchesCategory(t, cat))
+        .reduce((s, t) => s + t.amount, 0);
+      if (total > (cat.budget || 0)) {
+        months++;
+        cursor = prevMonthKey(cursor);
+      } else break;
+    }
+    if (months >= 2 && (!best || months > best.months)) best = { categoryName: cat.name, months };
+  });
+  return best;
+}
+
+function positiveSavingsStreak(transactions: Transaction[], mKey: string): number {
+  let months = 0;
+  let cursor = mKey;
+  for (let i = 0; i < 24; i++) {
+    if (computeMonth(transactions, cursor).ahorroReal > 0) {
+      months++;
+      cursor = prevMonthKey(cursor);
+    } else break;
+  }
+  return months;
+}
+
+export function buildMonthlyInsights(transactions: Transaction[], categories: Category[], year: number, monthIdx: number): Insight[] {
+  const mKey = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
+  const prevKey = prevMonthKey(mKey);
+  const stats = computeMonth(transactions, mKey);
+  const prevStats = computeMonth(transactions, prevKey);
+
+  const hasIncomeThisMonth = stats.ingresos > 0;
+  const hasIncomeSomeOtherMonth = transactions.some((t) => t.type === "ingreso" && monthKey(t.date) !== mKey);
+  if (!hasIncomeThisMonth || !hasIncomeSomeOtherMonth) return [];
+
+  const insights: Insight[] = [];
+
+  const catIncrease = biggestCategoryIncrease(transactions, categories, mKey, prevKey);
+  if (catIncrease) {
+    insights.push({
+      type: "categoria_subida",
+      tone: "rose",
+      text: `${catIncrease.name} subió un ${catIncrease.pct.toFixed(0)}% respecto al mes pasado (+${fmt(catIncrease.deltaAmount)})`,
+    });
+  }
+
+  const streak = longestOverBudgetStreak(transactions, categories, mKey);
+  if (streak) {
+    insights.push({
+      type: "presupuesto_racha",
+      tone: "amber",
+      text: `Llevas ${streak.months} meses superando tu presupuesto de ${streak.categoryName}`,
+    });
+  }
+
+  if (prevStats.ingresos > 0) {
+    const tasa = (stats.ahorroTotal / stats.ingresos) * 100;
+    const tasaPrev = (prevStats.ahorroTotal / prevStats.ingresos) * 100;
+    const diff = tasa - tasaPrev;
+    insights.push({
+      type: "tasa_ahorro",
+      tone: Math.abs(diff) > 5 ? (diff > 0 ? "emerald" : "rose") : "teal",
+      text: `Tu tasa de ahorro este mes: ${tasa.toFixed(0)}% (vs ${tasaPrev.toFixed(0)}% el anterior)`,
+    });
+  }
+
+  if (prevStats.variableOrdinario > 0) {
+    const pctDown = ((prevStats.variableOrdinario - stats.variableOrdinario) / prevStats.variableOrdinario) * 100;
+    if (pctDown > 15) {
+      insights.push({
+        type: "gasto_variable_baja",
+        tone: "emerald",
+        text: `Tu gasto variable bajó un ${pctDown.toFixed(0)}% respecto al mes pasado`,
+      });
+    }
+  }
+
+  const rachaAhorro = positiveSavingsStreak(transactions, mKey);
+  if (rachaAhorro >= 3) {
+    insights.push({ type: "racha_ahorro", tone: "emerald", text: `Llevas ${rachaAhorro} meses consecutivos ahorrando` });
+  }
+
+  return insights.slice(0, 3);
+}
+
+// ---------------------------------------------------------------------------
 // Desgloses por categoría / fondo / activo (para Mensual y Anual)
 // ---------------------------------------------------------------------------
 
