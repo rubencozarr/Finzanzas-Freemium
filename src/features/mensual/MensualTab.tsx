@@ -65,8 +65,8 @@ export function MensualTab({
   const fundUsage = useMemo(() => buildFundUsage(monthTx, transactions, funds), [monthTx, transactions, funds]);
   const assetCats = useMemo(() => buildAssetBreakdown(monthTx, assets), [monthTx, assets]);
   const insights = useMemo(
-    () => (isPremium ? buildMonthlyInsights(transactions, categories, year, monthIdx) : []),
-    [isPremium, transactions, categories, year, monthIdx],
+    () => buildMonthlyInsights(transactions, categories, year, monthIdx, isPremium),
+    [transactions, categories, year, monthIdx, isPremium],
   );
 
   const pctFijo = stats.ingresos ? (stats.fixedOrdinario / stats.ingresos) * 100 : 0;
@@ -112,7 +112,7 @@ export function MensualTab({
 
       <CategoryOverviewDonut data={overviewData} title="De dónde ha salido tu dinero este mes" ingresos={stats.ingresos} />
 
-      <MonthlyInsights insights={insights} />
+      <MonthlyInsights insights={insights} isPremium={isPremium} />
 
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-stone-500">Desglose por categoría</p>

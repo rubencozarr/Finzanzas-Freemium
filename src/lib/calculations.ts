@@ -380,7 +380,15 @@ function positiveSavingsStreak(transactions: Transaction[], mKey: string): numbe
   return months;
 }
 
-export function buildMonthlyInsights(transactions: Transaction[], categories: Category[], year: number, monthIdx: number): Insight[] {
+/** Todos los insights son premium salvo "tasa_ahorro", que se muestra también en free (con un aviso
+ * discreto en la propia tarjeta, ver MonthlyInsights.tsx) a modo de anzuelo hacia el resto. */
+export function buildMonthlyInsights(
+  transactions: Transaction[],
+  categories: Category[],
+  year: number,
+  monthIdx: number,
+  isPremium: boolean,
+): Insight[] {
   const mKey = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
   const prevKey = prevMonthKey(mKey);
   const stats = computeMonth(transactions, mKey);
@@ -392,22 +400,24 @@ export function buildMonthlyInsights(transactions: Transaction[], categories: Ca
 
   const insights: Insight[] = [];
 
-  const catIncrease = biggestCategoryIncrease(transactions, categories, mKey, prevKey);
-  if (catIncrease) {
-    insights.push({
-      type: "categoria_subida",
-      tone: "rose",
-      text: `${catIncrease.name} subió un ${catIncrease.pct.toFixed(0)}% respecto al mes pasado (+${fmt(catIncrease.deltaAmount)})`,
-    });
-  }
+  if (isPremium) {
+    const catIncrease = biggestCategoryIncrease(transactions, categories, mKey, prevKey);
+    if (catIncrease) {
+      insights.push({
+        type: "categoria_subida",
+        tone: "rose",
+        text: `${catIncrease.name} subió un ${catIncrease.pct.toFixed(0)}% respecto al mes pasado (+${fmt(catIncrease.deltaAmount)})`,
+      });
+    }
 
-  const streak = longestOverBudgetStreak(transactions, categories, mKey);
-  if (streak) {
-    insights.push({
-      type: "presupuesto_racha",
-      tone: "amber",
-      text: `Llevas ${streak.months} meses superando tu presupuesto de ${streak.categoryName}`,
-    });
+    const streak = longestOverBudgetStreak(transactions, categories, mKey);
+    if (streak) {
+      insights.push({
+        type: "presupuesto_racha",
+        tone: "amber",
+        text: `Llevas ${streak.months} meses superando tu presupuesto de ${streak.categoryName}`,
+      });
+    }
   }
 
   if (prevStats.ingresos > 0) {
@@ -421,7 +431,7 @@ export function buildMonthlyInsights(transactions: Transaction[], categories: Ca
     });
   }
 
-  if (prevStats.variableOrdinario > 0) {
+  if (isPremium && prevStats.variableOrdinario > 0) {
     const pctDown = ((prevStats.variableOrdinario - stats.variableOrdinario) / prevStats.variableOrdinario) * 100;
     if (pctDown > 15) {
       insights.push({
@@ -432,9 +442,11 @@ export function buildMonthlyInsights(transactions: Transaction[], categories: Ca
     }
   }
 
-  const rachaAhorro = positiveSavingsStreak(transactions, mKey);
-  if (rachaAhorro >= 3) {
-    insights.push({ type: "racha_ahorro", tone: "emerald", text: `Llevas ${rachaAhorro} meses consecutivos ahorrando` });
+  if (isPremium) {
+    const rachaAhorro = positiveSavingsStreak(transactions, mKey);
+    if (rachaAhorro >= 3) {
+      insights.push({ type: "racha_ahorro", tone: "emerald", text: `Llevas ${rachaAhorro} meses consecutivos ahorrando` });
+    }
   }
 
   return insights.slice(0, 3);
