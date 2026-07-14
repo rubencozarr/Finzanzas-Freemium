@@ -1,15 +1,27 @@
+import { useState } from "react";
+import { X } from "lucide-react";
 import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { fmt } from "../lib/format";
 import type { TrendPoint } from "../lib/calculations";
 
 export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPremium: boolean }) {
+  const [resetKey, setResetKey] = useState(0);
   const visibleData = isPremium ? data : data.slice(-3);
   const monthsLabel = isPremium ? "6 meses" : "3 meses";
   const mean = visibleData.length ? visibleData.reduce((s, d) => s + d.value, 0) / visibleData.length : 0;
   return (
     <div className="mb-5">
-      <p className="text-sm font-medium mb-2">Tendencia de tu ahorro (últimos {monthsLabel})</p>
-      <div className="bg-white rounded-lg border border-stone-100 p-2" style={{ height: 120 }}>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-medium">Tendencia de tu ahorro (últimos {monthsLabel})</p>
+        <button
+          onClick={() => setResetKey((k) => k + 1)}
+          title="Cerrar detalle del gráfico"
+          className="text-stone-300 hover:text-slate-700 shrink-0"
+        >
+          <X size={14} />
+        </button>
+      </div>
+      <div key={resetKey} className="bg-white rounded-lg border border-stone-100 p-2" style={{ height: 120 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={visibleData} margin={{ top: 8, right: 10, left: 10, bottom: 0 }}>
             <XAxis dataKey="mes" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />

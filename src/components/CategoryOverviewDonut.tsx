@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { X } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { fmt } from "../lib/format";
 
@@ -14,14 +16,24 @@ interface CategoryOverviewDonutProps {
 }
 
 export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOverviewDonutProps) {
+  const [resetKey, setResetKey] = useState(0);
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total <= 0) return null;
 
   return (
     <div className="bg-white rounded-lg border border-stone-100 p-4 mb-5">
-      <p className="text-sm font-medium mb-3">{title}</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-medium">{title}</p>
+        <button
+          onClick={() => setResetKey((k) => k + 1)}
+          title="Cerrar detalle del gráfico"
+          className="text-stone-300 hover:text-slate-700 shrink-0"
+        >
+          <X size={14} />
+        </button>
+      </div>
       <div className="flex items-center gap-4">
-        <div style={{ width: 120, height: 120 }} className="shrink-0 relative">
+        <div key={resetKey} style={{ width: 120, height: 120 }} className="shrink-0 relative">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={data} dataKey="value" nameKey="name" innerRadius={36} outerRadius={58} paddingAngle={2} stroke="none">
