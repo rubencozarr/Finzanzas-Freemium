@@ -37,6 +37,22 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
     { name: "Uso de ahorro", value: totals.gastosFinanciados, color: "#f59e0b" },
   ].filter((d) => d.value > 0);
 
+  // Año completo del año comparado (no restringido a los mismos meses transcurridos: un donut muestra
+  // proporciones, no importes acumulados, así que no hace falta la comparación "mismos meses" que sí
+  // necesitan las tarjetas de arriba).
+  const compareYearTotals = useMemo(
+    () => (compareYear ? yearTotalsThroughMonth(transactions, compareYear, 11) : null),
+    [transactions, compareYear],
+  );
+  const compareOverviewData: DonutDatum[] = compareYearTotals
+    ? [
+        { name: "Gasto fijo", value: compareYearTotals.fixedOrdinario, color: "#94a3b8" },
+        { name: "Gasto variable", value: compareYearTotals.variableOrdinario, color: "#fb7185" },
+        { name: "Inversión", value: compareYearTotals.inversion, color: "#818cf8" },
+        { name: "Uso de ahorro", value: compareYearTotals.gastosFinanciados, color: "#f59e0b" },
+      ].filter((d) => d.value > 0)
+    : [];
+
   const assetYearBreakdown = useMemo(
     () => (isPremium ? buildAssetYearBreakdown(transactions, assets, year) : []),
     [isPremium, transactions, assets, year],
@@ -125,7 +141,20 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
             </div>
           )}
 
-          <CategoryOverviewDonut data={overviewDataAnual} title="De dónde ha salido tu dinero este año" ingresos={totals.ingresos} />
+          {compareYear ? (
+            <>
+              <CategoryOverviewDonut data={overviewDataAnual} title={`De dónde ha salido tu dinero — ${year}`} ingresos={totals.ingresos} />
+              {compareYearTotals && (
+                <CategoryOverviewDonut
+                  data={compareOverviewData}
+                  title={`De dónde ha salido tu dinero — ${compareYear}`}
+                  ingresos={compareYearTotals.ingresos}
+                />
+              )}
+            </>
+          ) : (
+            <CategoryOverviewDonut data={overviewDataAnual} title="De dónde ha salido tu dinero este año" ingresos={totals.ingresos} />
+          )}
 
           <ChartsSection
             data={data}
