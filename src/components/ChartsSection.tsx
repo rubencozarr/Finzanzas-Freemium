@@ -23,6 +23,47 @@ import type { AssetYearBreakdown, YearComparisonPoint, YearMonthData } from "../
 
 const ASSET_COLORS = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#4f46e5"];
 
+interface AssetDonutDatum {
+  name: string;
+  value: number;
+  color: string;
+}
+
+function AssetDonut({ data, total, animate }: { data: AssetDonutDatum[]; total: number; animate: boolean }) {
+  return (
+    <div className="flex items-center gap-4 py-2">
+      <div style={{ width: 100, height: 100 }} className="shrink-0 relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={data} dataKey="value" nameKey="name" innerRadius={30} outerRadius={48} paddingAngle={2} stroke="none" isAnimationActive={animate}>
+              {data.map((d, i) => (
+                <Cell key={i} fill={d.color} />
+              ))}
+            </Pie>
+            <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="font-mono text-[10px] font-semibold text-slate-700">{fmt(total)}</span>
+        </div>
+      </div>
+      <div className="flex-1 space-y-1.5 min-w-0">
+        {data.map((d) => (
+          <div key={d.name} className="flex items-center justify-between text-xs gap-2">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
+              <span className="truncate">{d.name}</span>
+            </span>
+            <span className="font-mono text-stone-600 shrink-0">
+              {fmt(d.value)} · {total ? ((d.value / total) * 100).toFixed(0) : 0}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface ChartsSectionProps {
   data: YearMonthData[];
   variableBudget: number;
@@ -31,12 +72,35 @@ interface ChartsSectionProps {
   year: number;
   compareYear?: number | null;
   compareData?: YearComparisonPoint[] | null;
+  compareAssetBreakdown?: AssetYearBreakdown[];
+  compareTotalInversion?: number;
 }
 
-export function ChartsSection({ data, variableBudget, assetBreakdown, totalInversion, year, compareYear, compareData }: ChartsSectionProps) {
+export function ChartsSection({
+  data,
+  variableBudget,
+  assetBreakdown,
+  totalInversion,
+  year,
+  compareYear,
+  compareData,
+  compareAssetBreakdown = [],
+  compareTotalInversion = 0,
+}: ChartsSectionProps) {
   const [expanded, setExpanded] = useState(false);
-  const assetDonutData = assetBreakdown.map((a, i) => ({ name: a.name, value: a.total, color: ASSET_COLORS[i % ASSET_COLORS.length] }));
   const comparing = !!(compareYear && compareData);
+
+  // Mismo activo -> mismo color en ambos donuts, aunque el orden (por total invertido, mayor a menor)
+  // difiera entre años: se asigna por nombre a partir de la unión de ambos años, no por índice de cada
+  // array por separado.
+  const allAssetNames = Array.from(new Set([...assetBreakdown.map((a) => a.name), ...compareAssetBreakdown.map((a) => a.name)]));
+  const colorByAssetName = Object.fromEntries(allAssetNames.map((name, i) => [name, ASSET_COLORS[i % ASSET_COLORS.length]]));
+  const assetDonutData: AssetDonutDatum[] = assetBreakdown.map((a) => ({ name: a.name, value: a.total, color: colorByAssetName[a.name] }));
+  const compareAssetDonutData: AssetDonutDatum[] = compareAssetBreakdown.map((a) => ({
+    name: a.name,
+    value: a.total,
+    color: colorByAssetName[a.name],
+  }));
 
   return (
     <div className="mb-5">
@@ -306,50 +370,31 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             )}
           </ChartCard>
 
-          {assetDonutData.length > 0 && (
-            <ChartCard title="Inversión por activo" explanation="Cómo se reparte lo que has invertido este año entre tus distintos activos.">
-              {(animate) => (
-                <div className="flex items-center gap-4 py-2">
-                  <div style={{ width: 100, height: 100 }} className="shrink-0 relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={assetDonutData}
-                          dataKey="value"
-                          nameKey="name"
-                          innerRadius={30}
-                          outerRadius={48}
-                          paddingAngle={2}
-                          stroke="none"
-                          isAnimationActive={animate}
-                        >
-                          {assetDonutData.map((d, i) => (
-                            <Cell key={i} fill={d.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="font-mono text-[10px] font-semibold text-slate-700">{fmt(totalInversion)}</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-1.5 min-w-0">
-                    {assetDonutData.map((d) => (
-                      <div key={d.name} className="flex items-center justify-between text-xs gap-2">
-                        <span className="flex items-center gap-1.5 min-w-0">
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
-                          <span className="truncate">{d.name}</span>
-                        </span>
-                        <span className="font-mono text-stone-600 shrink-0">
-                          {fmt(d.value)} · {totalInversion ? ((d.value / totalInversion) * 100).toFixed(0) : 0}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {comparing ? (
+            <>
+              {assetDonutData.length > 0 && (
+                <ChartCard
+                  title={`Inversión por activo — ${year}`}
+                  explanation="Cómo se reparte lo que has invertido este año entre tus distintos activos."
+                >
+                  {(animate) => <AssetDonut data={assetDonutData} total={totalInversion} animate={animate} />}
+                </ChartCard>
               )}
-            </ChartCard>
+              {compareAssetDonutData.length > 0 && (
+                <ChartCard
+                  title={`Inversión por activo — ${compareYear}`}
+                  explanation={`Cómo se repartió lo invertido en ${compareYear} entre tus distintos activos.`}
+                >
+                  {(animate) => <AssetDonut data={compareAssetDonutData} total={compareTotalInversion} animate={animate} />}
+                </ChartCard>
+              )}
+            </>
+          ) : (
+            assetDonutData.length > 0 && (
+              <ChartCard title="Inversión por activo" explanation="Cómo se reparte lo que has invertido este año entre tus distintos activos.">
+                {(animate) => <AssetDonut data={assetDonutData} total={totalInversion} animate={animate} />}
+              </ChartCard>
+            )
           )}
         </div>
       )}

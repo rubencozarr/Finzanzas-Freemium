@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ChevronLeft, ChevronRight, PiggyBank } from "lucide-react";
 import { StatCard } from "../../components/StatCard";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
@@ -25,11 +25,22 @@ interface AnualTabProps {
   transactions: Transaction[];
   assets: Asset[];
   variableBudget: number;
+  compareYear: number | null;
+  onCompareYearChange: (year: number | null) => void;
 }
 
-export function AnualTab({ isPremium, year, changeYear, data, totals, transactions, assets, variableBudget }: AnualTabProps) {
-  const [compareYear, setCompareYear] = useState<number | null>(null);
-
+export function AnualTab({
+  isPremium,
+  year,
+  changeYear,
+  data,
+  totals,
+  transactions,
+  assets,
+  variableBudget,
+  compareYear,
+  onCompareYearChange,
+}: AnualTabProps) {
   const overviewDataAnual: DonutDatum[] = [
     { name: "Gasto fijo", value: totals.fixedOrdinario, color: "#94a3b8" },
     { name: "Gasto variable", value: totals.variableOrdinario, color: "#fb7185" },
@@ -56,6 +67,10 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
   const assetYearBreakdown = useMemo(
     () => (isPremium ? buildAssetYearBreakdown(transactions, assets, year) : []),
     [isPremium, transactions, assets, year],
+  );
+  const compareAssetYearBreakdown = useMemo(
+    () => (isPremium && compareYear ? buildAssetYearBreakdown(transactions, assets, compareYear) : []),
+    [isPremium, compareYear, transactions, assets],
   );
 
   const availableYears = useMemo(() => {
@@ -119,7 +134,7 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
               <label className="text-xs text-stone-500 mb-1.5 block">Comparar con</label>
               <select
                 value={compareYear ?? ""}
-                onChange={(e) => setCompareYear(e.target.value ? Number(e.target.value) : null)}
+                onChange={(e) => onCompareYearChange(e.target.value ? Number(e.target.value) : null)}
                 className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
               >
                 <option value="">Sin comparar</option>
@@ -164,6 +179,8 @@ export function AnualTab({ isPremium, year, changeYear, data, totals, transactio
             year={year}
             compareYear={compareYear}
             compareData={comparisonChartData}
+            compareAssetBreakdown={compareAssetYearBreakdown}
+            compareTotalInversion={compareYearTotals?.inversion ?? 0}
           />
         </>
       ) : (

@@ -86,6 +86,10 @@ function App() {
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
+  // Vive en App (no en AnualTab) para que sobreviva a salir y volver a la pestaña Anual: AnualTab solo
+  // se renderiza cuando tab === "anual", así que un estado local ahí se perdía cada vez que el usuario
+  // iba a Mensual a mirar un mes y volvía.
+  const [compareYear, setCompareYear] = useState<number | null>(null);
   const goToAjustes = (section?: string) => {
     setAjustesSection(section || "categorias");
     setTab("ajustes");
@@ -632,6 +636,8 @@ function App() {
             transactions={transactions}
             assets={assets}
             variableBudget={variableBudget}
+            compareYear={compareYear}
+            onCompareYearChange={setCompareYear}
           />
         )}
         {tab === "ajustes" && (
