@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { X } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { fmt } from "../lib/format";
 
@@ -16,34 +15,39 @@ interface CategoryOverviewDonutProps {
 }
 
 export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOverviewDonutProps) {
+  // Primer toque en el donut lo abre (comportamiento normal de Recharts), segundo toque lo cierra
+  // (remonta el gráfico). Ver el mismo patrón, con la misma explicación, en ChartCard.tsx.
   const [resetKey, setResetKey] = useState(0);
+  const [open, setOpen] = useState(false);
+  const handleTap = () => {
+    if (open) {
+      setResetKey((k) => k + 1);
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
+  };
+
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total <= 0) return null;
 
   return (
     <div className="bg-white rounded-lg border border-stone-100 p-4 mb-5">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-medium">{title}</p>
-        <button
-          onClick={() => setResetKey((k) => k + 1)}
-          title="Cerrar detalle del gráfico"
-          className="text-stone-300 hover:text-slate-700 shrink-0"
-        >
-          <X size={14} />
-        </button>
-      </div>
+      <p className="text-sm font-medium mb-3">{title}</p>
       <div className="flex items-center gap-4">
-        <div key={resetKey} style={{ width: 120, height: 120 }} className="shrink-0 relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={data} dataKey="value" nameKey="name" innerRadius={36} outerRadius={58} paddingAngle={2} stroke="none">
-                {data.map((d, i) => (
-                  <Cell key={i} fill={d.color} />
-                ))}
-              </Pie>
-              <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-            </PieChart>
-          </ResponsiveContainer>
+        <div onClick={handleTap} style={{ width: 120, height: 120 }} className="shrink-0 relative">
+          <div key={resetKey} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={data} dataKey="value" nameKey="name" innerRadius={36} outerRadius={58} paddingAngle={2} stroke="none">
+                  {data.map((d, i) => (
+                    <Cell key={i} fill={d.color} />
+                  ))}
+                </Pie>
+                <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-[8px] text-stone-400 leading-tight">Total</span>
             <span className="font-mono text-[11px] font-semibold text-slate-700 leading-tight">{fmt(total)}</span>
