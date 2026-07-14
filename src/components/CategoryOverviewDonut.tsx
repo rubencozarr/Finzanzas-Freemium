@@ -1,6 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { fmt } from "../lib/format";
-import { useTapOutsideReset } from "../hooks/useTapOutsideReset";
 
 export interface DonutDatum {
   name: string;
@@ -15,7 +14,6 @@ interface CategoryOverviewDonutProps {
 }
 
 export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOverviewDonutProps) {
-  const { containerRef, resetKey } = useTapOutsideReset<HTMLDivElement>();
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total <= 0) return null;
 
@@ -23,19 +21,17 @@ export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOvervie
     <div className="bg-white rounded-lg border border-stone-100 p-4 mb-5">
       <p className="text-sm font-medium mb-3">{title}</p>
       <div className="flex items-center gap-4">
-        <div ref={containerRef} style={{ width: 120, height: 120 }} className="shrink-0 relative">
-          <div key={resetKey} className="w-full h-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={data} dataKey="value" nameKey="name" innerRadius={36} outerRadius={58} paddingAngle={2} stroke="none">
-                  {data.map((d, i) => (
-                    <Cell key={i} fill={d.color} />
-                  ))}
-                </Pie>
-                <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        <div style={{ width: 120, height: 120 }} className="shrink-0 relative">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={data} dataKey="value" nameKey="name" innerRadius={36} outerRadius={58} paddingAngle={2} stroke="none">
+                {data.map((d, i) => (
+                  <Cell key={i} fill={d.color} />
+                ))}
+              </Pie>
+              <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+            </PieChart>
+          </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-[8px] text-stone-400 leading-tight">Total</span>
             <span className="font-mono text-[11px] font-semibold text-slate-700 leading-tight">{fmt(total)}</span>
