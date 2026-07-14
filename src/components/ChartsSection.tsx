@@ -223,7 +223,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
           )}
 
           <ChartCard title="Cumplimiento de presupuesto de variable" explanation="En cuántos meses te has mantenido dentro del presupuesto general de gasto variable.">
-            <BudgetComplianceChart data={data} variableBudget={variableBudget} />
+            <BudgetComplianceChart data={data} variableBudget={variableBudget} year={year} compareYear={compareYear} compareData={compareData} />
           </ChartCard>
 
           {assetDonutData.length > 0 && (
