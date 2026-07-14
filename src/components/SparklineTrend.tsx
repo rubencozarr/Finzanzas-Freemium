@@ -37,7 +37,7 @@ export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPrem
                 strokeDasharray="4 3"
                 label={{ value: "media", position: "right", fontSize: 9, fill: "#0f766e" }}
               />
-              <Line type="monotone" dataKey="value" stroke="#0f766e" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="value" stroke="#0f766e" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={resetKey === 0} />
             </LineChart>
           </ResponsiveContainer>
         </div>

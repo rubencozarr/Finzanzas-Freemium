@@ -4,7 +4,9 @@ interface ChartCardProps {
   title: string;
   explanation: string;
   height?: number;
-  children: ReactNode;
+  // Función en vez de ReactNode plano: así el gráfico puede desactivar su animación de entrada al
+  // reabrirse (ver comentario más abajo), sin que ChartsSection tenga que gestionar su propio estado.
+  children: (animate: boolean) => ReactNode;
 }
 
 export function ChartCard({ title, explanation, height, children }: ChartCardProps) {
@@ -13,6 +15,11 @@ export function ChartCard({ title, explanation, height, children }: ChartCardPro
   // en el gráfico lo abre (comportamiento normal de Recharts), segundo toque en cualquier parte del
   // mismo gráfico lo cierra (remonta el gráfico, cambiando su key). Estado local, sin escuchar toques
   // fuera de este componente.
+  //
+  // El remonte por sí solo hace que Recharts repita la animación de entrada (barras/líneas creciendo
+  // desde cero) cada vez que se cierra el tooltip, no solo la primera vez que se ve el gráfico. `animate`
+  // solo es true en el montaje inicial (resetKey === 0); a partir del primer cierre se desactiva la
+  // animación de las gráficas via isAnimationActive, para que solo se anime la primera vez.
   const [resetKey, setResetKey] = useState(0);
   const [open, setOpen] = useState(false);
   const handleTap = () => {
@@ -32,7 +39,7 @@ export function ChartCard({ title, explanation, height, children }: ChartCardPro
         style={height ? { height } : undefined}
       >
         <div key={resetKey} className="w-full h-full">
-          {children}
+          {children(resetKey === 0)}
         </div>
       </div>
       <p className="text-xs text-stone-400 mt-1.5">{explanation}</p>

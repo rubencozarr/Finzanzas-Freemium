@@ -39,7 +39,16 @@ export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOvervie
           <div key={resetKey} className="w-full h-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={data} dataKey="value" nameKey="name" innerRadius={36} outerRadius={58} paddingAngle={2} stroke="none">
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={36}
+                  outerRadius={58}
+                  paddingAngle={2}
+                  stroke="none"
+                  isAnimationActive={resetKey === 0}
+                >
                   {data.map((d, i) => (
                     <Cell key={i} fill={d.color} />
                   ))}

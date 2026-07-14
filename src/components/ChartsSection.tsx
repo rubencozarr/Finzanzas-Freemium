@@ -53,67 +53,102 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             explanation="Qué % de tus ingresos ahorras cada mes. Es la referencia más directa de si tu gestión mejora o empeora."
             height={180}
           >
-            <ResponsiveContainer width="100%" height="100%">
-              {comparing ? (
-                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip trigger="click" formatter={(v) => `${Number(v).toFixed(0)}%`} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <ReferenceLine y={0} stroke="#c3c2b7" />
-                  <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name={String(year)} />
-                  <Line
-                    type="monotone"
-                    dataKey="compareTasaAhorro"
-                    stroke="#5eead4"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    dot={{ r: 2 }}
-                    name={String(compareYear)}
-                  />
-                </LineChart>
-              ) : (
-                <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip trigger="click" formatter={(v) => `${Number(v).toFixed(0)}%`} />
-                  <ReferenceLine y={0} stroke="#c3c2b7" />
-                  <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name="Tasa de ahorro" />
-                </LineChart>
-              )}
-            </ResponsiveContainer>
+            {(animate) => (
+              <ResponsiveContainer width="100%" height="100%">
+                {comparing ? (
+                  <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} unit="%" />
+                    <Tooltip trigger="click" formatter={(v) => `${Number(v).toFixed(0)}%`} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <ReferenceLine y={0} stroke="#c3c2b7" />
+                    <Line
+                      type="monotone"
+                      dataKey="tasaAhorro"
+                      stroke="#0f766e"
+                      strokeWidth={2}
+                      dot={{ r: 2 }}
+                      name={String(year)}
+                      isAnimationActive={animate}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="compareTasaAhorro"
+                      stroke="#5eead4"
+                      strokeWidth={2}
+                      strokeDasharray="4 3"
+                      dot={{ r: 2 }}
+                      name={String(compareYear)}
+                      isAnimationActive={animate}
+                    />
+                  </LineChart>
+                ) : (
+                  <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} unit="%" />
+                    <Tooltip trigger="click" formatter={(v) => `${Number(v).toFixed(0)}%`} />
+                    <ReferenceLine y={0} stroke="#c3c2b7" />
+                    <Line
+                      type="monotone"
+                      dataKey="tasaAhorro"
+                      stroke="#0f766e"
+                      strokeWidth={2}
+                      dot={{ r: 2 }}
+                      name="Tasa de ahorro"
+                      isAnimationActive={animate}
+                    />
+                  </LineChart>
+                )}
+              </ResponsiveContainer>
+            )}
           </ChartCard>
 
           {comparing ? (
             <>
               <ChartCard title={`Ingresos ${year} vs ${compareYear}`} explanation="Compara tus ingresos mes a mes entre los dos años." height={160}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="ingresos" fill="#059669" name={String(year)} radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="compareIngresos" fill="#6ee7b7" name={String(compareYear)} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {(animate) => (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Bar dataKey="ingresos" fill="#059669" name={String(year)} radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                      <Bar
+                        dataKey="compareIngresos"
+                        fill="#6ee7b7"
+                        name={String(compareYear)}
+                        radius={[3, 3, 0, 0]}
+                        isAnimationActive={animate}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </ChartCard>
 
               <ChartCard title={`Gastos ${year} vs ${compareYear}`} explanation="Compara tus gastos totales mes a mes entre los dos años." height={160}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="gastos" fill="#e11d48" name={String(year)} radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="compareGastos" fill="#fda4af" name={String(compareYear)} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {(animate) => (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Bar dataKey="gastos" fill="#e11d48" name={String(year)} radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                      <Bar
+                        dataKey="compareGastos"
+                        fill="#fda4af"
+                        name={String(compareYear)}
+                        radius={[3, 3, 0, 0]}
+                        isAnimationActive={animate}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </ChartCard>
             </>
           ) : (
@@ -122,17 +157,19 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
               explanation="Si las barras de gastos se acercan o superan a las de ingresos con frecuencia, es la primera señal de alerta."
               height={200}
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="ingresos" fill="#059669" name="Ingresos" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="gastos" fill="#e11d48" name="Gastos" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {(animate) => (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="ingresos" fill="#059669" name="Ingresos" radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                    <Bar dataKey="gastos" fill="#e11d48" name="Gastos" radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </ChartCard>
           )}
 
@@ -141,65 +178,104 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             explanation="Tu saldo real acumulado. Si esta línea baja de forma sostenida, estás usando ahorro más rápido de lo que generas."
             height={180}
           >
-            <ResponsiveContainer width="100%" height="100%">
-              {comparing ? (
-                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name={String(year)} />
-                  <Line
-                    type="monotone"
-                    dataKey="compareAcumulado"
-                    stroke="#fcd34d"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    dot={{ r: 2 }}
-                    name={String(compareYear)}
-                  />
-                </LineChart>
-              ) : (
-                <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                  <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name="Ahorro libre consolidado" />
-                </LineChart>
-              )}
-            </ResponsiveContainer>
+            {(animate) => (
+              <ResponsiveContainer width="100%" height="100%">
+                {comparing ? (
+                  <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Line
+                      type="monotone"
+                      dataKey="acumulado"
+                      stroke="#d97706"
+                      strokeWidth={2}
+                      dot={{ r: 2 }}
+                      name={String(year)}
+                      isAnimationActive={animate}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="compareAcumulado"
+                      stroke="#fcd34d"
+                      strokeWidth={2}
+                      strokeDasharray="4 3"
+                      dot={{ r: 2 }}
+                      name={String(compareYear)}
+                      isAnimationActive={animate}
+                    />
+                  </LineChart>
+                ) : (
+                  <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                    <Line
+                      type="monotone"
+                      dataKey="acumulado"
+                      stroke="#d97706"
+                      strokeWidth={2}
+                      dot={{ r: 2 }}
+                      name="Ahorro libre consolidado"
+                      isAnimationActive={animate}
+                    />
+                  </LineChart>
+                )}
+              </ResponsiveContainer>
+            )}
           </ChartCard>
 
           {comparing ? (
             <>
               <ChartCard title={`Gasto fijo ${year} vs ${compareYear}`} explanation="Compara tu gasto fijo mes a mes entre los dos años." height={160}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="fixedOrdinario" fill="#64748b" name={String(year)} radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="compareFixedOrdinario" fill="#cbd5e1" name={String(compareYear)} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {(animate) => (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Bar dataKey="fixedOrdinario" fill="#64748b" name={String(year)} radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                      <Bar
+                        dataKey="compareFixedOrdinario"
+                        fill="#cbd5e1"
+                        name={String(compareYear)}
+                        radius={[3, 3, 0, 0]}
+                        isAnimationActive={animate}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </ChartCard>
 
-              <ChartCard title={`Gasto variable ${year} vs ${compareYear}`} explanation="Compara tu gasto variable mes a mes entre los dos años." height={160}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="variableOrdinario" fill="#fb7185" name={String(year)} radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="compareVariableOrdinario" fill="#fecdd3" name={String(compareYear)} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <ChartCard
+                title={`Gasto variable ${year} vs ${compareYear}`}
+                explanation="Compara tu gasto variable mes a mes entre los dos años."
+                height={160}
+              >
+                {(animate) => (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Bar dataKey="variableOrdinario" fill="#fb7185" name={String(year)} radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                      <Bar
+                        dataKey="compareVariableOrdinario"
+                        fill="#fecdd3"
+                        name={String(compareYear)}
+                        radius={[3, 3, 0, 0]}
+                        isAnimationActive={animate}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </ChartCard>
             </>
           ) : (
@@ -208,56 +284,71 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
               explanation="Si el variable crece de forma sostenida mientras el fijo no se mueve, suele ser la señal más temprana de descontrol."
               height={200}
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="fixedOrdinario" fill="#64748b" name="Gasto fijo" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="variableOrdinario" fill="#fb7185" name="Gasto variable" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {(animate) => (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="fixedOrdinario" fill="#64748b" name="Gasto fijo" radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                    <Bar dataKey="variableOrdinario" fill="#fb7185" name="Gasto variable" radius={[3, 3, 0, 0]} isAnimationActive={animate} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </ChartCard>
           )}
 
           <ChartCard title="Cumplimiento de presupuesto de variable" explanation="En cuántos meses te has mantenido dentro del presupuesto general de gasto variable.">
-            <BudgetComplianceChart data={data} variableBudget={variableBudget} year={year} compareYear={compareYear} compareData={compareData} />
+            {() => (
+              <BudgetComplianceChart data={data} variableBudget={variableBudget} year={year} compareYear={compareYear} compareData={compareData} />
+            )}
           </ChartCard>
 
           {assetDonutData.length > 0 && (
             <ChartCard title="Inversión por activo" explanation="Cómo se reparte lo que has invertido este año entre tus distintos activos.">
-              <div className="flex items-center gap-4 py-2">
-                <div style={{ width: 100, height: 100 }} className="shrink-0 relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={assetDonutData} dataKey="value" nameKey="name" innerRadius={30} outerRadius={48} paddingAngle={2} stroke="none">
-                        {assetDonutData.map((d, i) => (
-                          <Cell key={i} fill={d.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="font-mono text-[10px] font-semibold text-slate-700">{fmt(totalInversion)}</span>
+              {(animate) => (
+                <div className="flex items-center gap-4 py-2">
+                  <div style={{ width: 100, height: 100 }} className="shrink-0 relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={assetDonutData}
+                          dataKey="value"
+                          nameKey="name"
+                          innerRadius={30}
+                          outerRadius={48}
+                          paddingAngle={2}
+                          stroke="none"
+                          isAnimationActive={animate}
+                        >
+                          {assetDonutData.map((d, i) => (
+                            <Cell key={i} fill={d.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="font-mono text-[10px] font-semibold text-slate-700">{fmt(totalInversion)}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-1.5 min-w-0">
+                    {assetDonutData.map((d) => (
+                      <div key={d.name} className="flex items-center justify-between text-xs gap-2">
+                        <span className="flex items-center gap-1.5 min-w-0">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
+                          <span className="truncate">{d.name}</span>
+                        </span>
+                        <span className="font-mono text-stone-600 shrink-0">
+                          {fmt(d.value)} · {totalInversion ? ((d.value / totalInversion) * 100).toFixed(0) : 0}%
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="flex-1 space-y-1.5 min-w-0">
-                  {assetDonutData.map((d) => (
-                    <div key={d.name} className="flex items-center justify-between text-xs gap-2">
-                      <span className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
-                        <span className="truncate">{d.name}</span>
-                      </span>
-                      <span className="font-mono text-stone-600 shrink-0">
-                        {fmt(d.value)} · {totalInversion ? ((d.value / totalInversion) * 100).toFixed(0) : 0}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
             </ChartCard>
           )}
         </div>
