@@ -59,7 +59,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip formatter={(v) => `${Number(v).toFixed(0)}%`} />
+                  <Tooltip trigger="click" formatter={(v) => `${Number(v).toFixed(0)}%`} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <ReferenceLine y={0} stroke="#c3c2b7" />
                   <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name={String(year)} />
@@ -78,7 +78,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip formatter={(v) => `${Number(v).toFixed(0)}%`} />
+                  <Tooltip trigger="click" formatter={(v) => `${Number(v).toFixed(0)}%`} />
                   <ReferenceLine y={0} stroke="#c3c2b7" />
                   <Line type="monotone" dataKey="tasaAhorro" stroke="#0f766e" strokeWidth={2} dot={{ r: 2 }} name="Tasa de ahorro" />
                 </LineChart>
@@ -94,7 +94,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                     <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                     <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="ingresos" fill="#059669" name={String(year)} radius={[3, 3, 0, 0]} />
                     <Bar dataKey="compareIngresos" fill="#6ee7b7" name={String(compareYear)} radius={[3, 3, 0, 0]} />
@@ -108,7 +108,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                     <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                     <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="gastos" fill="#e11d48" name={String(year)} radius={[3, 3, 0, 0]} />
                     <Bar dataKey="compareGastos" fill="#fda4af" name={String(compareYear)} radius={[3, 3, 0, 0]} />
@@ -127,7 +127,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="ingresos" fill="#059669" name="Ingresos" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="gastos" fill="#e11d48" name="Gastos" radius={[3, 3, 0, 0]} />
@@ -147,7 +147,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name={String(year)} />
                   <Line
@@ -165,7 +165,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                   <Line type="monotone" dataKey="acumulado" stroke="#d97706" strokeWidth={2} dot={{ r: 2 }} name="Ahorro libre consolidado" />
                 </LineChart>
               )}
@@ -180,7 +180,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                     <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                     <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="fixedOrdinario" fill="#64748b" name={String(year)} radius={[3, 3, 0, 0]} />
                     <Bar dataKey="compareFixedOrdinario" fill="#cbd5e1" name={String(compareYear)} radius={[3, 3, 0, 0]} />
@@ -194,7 +194,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                     <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                     <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="variableOrdinario" fill="#fb7185" name={String(year)} radius={[3, 3, 0, 0]} />
                     <Bar dataKey="compareVariableOrdinario" fill="#fecdd3" name={String(compareYear)} radius={[3, 3, 0, 0]} />
@@ -213,7 +213,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="fixedOrdinario" fill="#64748b" name="Gasto fijo" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="variableOrdinario" fill="#fb7185" name="Gasto variable" radius={[3, 3, 0, 0]} />
@@ -237,7 +237,7 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                           <Cell key={i} fill={d.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(v) => fmt(Number(v))} />
+                      <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

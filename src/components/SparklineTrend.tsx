@@ -13,7 +13,7 @@ export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPrem
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={visibleData} margin={{ top: 8, right: 10, left: 10, bottom: 0 }}>
             <XAxis dataKey="mes" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-            <Tooltip formatter={(v) => fmt(Number(v))} />
+            <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
             <ReferenceLine y={0} stroke="#d6d3d1" strokeWidth={1} label={{ value: "0", position: "left", fontSize: 9, fill: "#a8a29e" }} />
             <ReferenceLine
               y={mean}

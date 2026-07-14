@@ -29,7 +29,7 @@ export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOvervie
                   <Cell key={i} fill={d.color} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v) => fmt(Number(v))} />
+              <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
