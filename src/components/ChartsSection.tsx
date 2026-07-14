@@ -86,41 +86,43 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard
-            title="Ingresos vs gastos por mes"
-            explanation="Si las barras de gastos se acercan o superan a las de ingresos con frecuencia, es la primera señal de alerta."
-            height={200}
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              {comparing ? (
-                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="ingresos" stroke="#059669" strokeWidth={2} dot={{ r: 2 }} name={`Ingresos ${year}`} />
-                  <Line
-                    type="monotone"
-                    dataKey="compareIngresos"
-                    stroke="#6ee7b7"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    dot={{ r: 2 }}
-                    name={`Ingresos ${compareYear}`}
-                  />
-                  <Line type="monotone" dataKey="gastos" stroke="#e11d48" strokeWidth={2} dot={{ r: 2 }} name={`Gastos ${year}`} />
-                  <Line
-                    type="monotone"
-                    dataKey="compareGastos"
-                    stroke="#fda4af"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    dot={{ r: 2 }}
-                    name={`Gastos ${compareYear}`}
-                  />
-                </LineChart>
-              ) : (
+          {comparing ? (
+            <>
+              <ChartCard title={`Ingresos ${year} vs ${compareYear}`} explanation="Compara tus ingresos mes a mes entre los dos años." height={160}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="ingresos" fill="#059669" name={String(year)} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="compareIngresos" fill="#6ee7b7" name={String(compareYear)} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <ChartCard title={`Gastos ${year} vs ${compareYear}`} explanation="Compara tus gastos totales mes a mes entre los dos años." height={160}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="gastos" fill="#e11d48" name={String(year)} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="compareGastos" fill="#fda4af" name={String(compareYear)} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </>
+          ) : (
+            <ChartCard
+              title="Ingresos vs gastos por mes"
+              explanation="Si las barras de gastos se acercan o superan a las de ingresos con frecuencia, es la primera señal de alerta."
+              height={200}
+            >
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
@@ -130,9 +132,9 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <Bar dataKey="ingresos" fill="#059669" name="Ingresos" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="gastos" fill="#e11d48" name="Gastos" radius={[3, 3, 0, 0]} />
                 </BarChart>
-              )}
-            </ResponsiveContainer>
-          </ChartCard>
+              </ResponsiveContainer>
+            </ChartCard>
+          )}
 
           <ChartCard
             title="Ahorro libre consolidado, mes a mes"
@@ -170,41 +172,43 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard
-            title="Evolución de gasto fijo vs variable"
-            explanation="Si el variable crece de forma sostenida mientras el fijo no se mueve, suele ser la señal más temprana de descontrol."
-            height={200}
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              {comparing ? (
-                <LineChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="fixedOrdinario" stroke="#64748b" strokeWidth={2} dot={{ r: 2 }} name={`Fijo ${year}`} />
-                  <Line
-                    type="monotone"
-                    dataKey="compareFixedOrdinario"
-                    stroke="#cbd5e1"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    dot={{ r: 2 }}
-                    name={`Fijo ${compareYear}`}
-                  />
-                  <Line type="monotone" dataKey="variableOrdinario" stroke="#fb7185" strokeWidth={2} dot={{ r: 2 }} name={`Variable ${year}`} />
-                  <Line
-                    type="monotone"
-                    dataKey="compareVariableOrdinario"
-                    stroke="#fecdd3"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    dot={{ r: 2 }}
-                    name={`Variable ${compareYear}`}
-                  />
-                </LineChart>
-              ) : (
+          {comparing ? (
+            <>
+              <ChartCard title={`Gasto fijo ${year} vs ${compareYear}`} explanation="Compara tu gasto fijo mes a mes entre los dos años." height={160}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="fixedOrdinario" fill="#64748b" name={String(year)} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="compareFixedOrdinario" fill="#cbd5e1" name={String(compareYear)} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <ChartCard title={`Gasto variable ${year} vs ${compareYear}`} explanation="Compara tu gasto variable mes a mes entre los dos años." height={160}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={compareData!} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="variableOrdinario" fill="#fb7185" name={String(year)} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="compareVariableOrdinario" fill="#fecdd3" name={String(compareYear)} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </>
+          ) : (
+            <ChartCard
+              title="Evolución de gasto fijo vs variable"
+              explanation="Si el variable crece de forma sostenida mientras el fijo no se mueve, suele ser la señal más temprana de descontrol."
+              height={200}
+            >
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
@@ -214,9 +218,9 @@ export function ChartsSection({ data, variableBudget, assetBreakdown, totalInver
                   <Bar dataKey="fixedOrdinario" fill="#64748b" name="Gasto fijo" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="variableOrdinario" fill="#fb7185" name="Gasto variable" radius={[3, 3, 0, 0]} />
                 </BarChart>
-              )}
-            </ResponsiveContainer>
-          </ChartCard>
+              </ResponsiveContainer>
+            </ChartCard>
+          )}
 
           <ChartCard title="Cumplimiento de presupuesto de variable" explanation="En cuántos meses te has mantenido dentro del presupuesto general de gasto variable.">
             <BudgetComplianceChart data={data} variableBudget={variableBudget} />
