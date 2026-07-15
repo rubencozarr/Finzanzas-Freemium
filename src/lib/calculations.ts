@@ -203,6 +203,12 @@ export function yearMonthsData(transactions: Transaction[], year: number): YearM
   return Array.from({ length: 12 }, (_, i) => {
     const mKey = `${year}-${String(i + 1).padStart(2, "0")}`;
     const s = computeMonth(transactions, mKey);
+    // "acumulado" es el ahorro libre CONSOLIDADO de ese mes (lo generado en meses anteriores, sin
+    // contar todavía lo que sobra este mismo mes) — el mismo valor que ahorroLibreDisponibleParaMes()
+    // le mostraría a FondosTab si navegases a este mes. Por eso se guarda el snapshot ANTES de sumar la
+    // contribución del propio mes: sumarla antes convertiría esto en "ahorro libre total a fin de mes"
+    // (consolidado + en curso), que es un concepto distinto aunque tenga el mismo nombre en el gráfico.
+    const consolidadoEsteMes = acumulado;
     acumulado += s.ahorroReal - s.gastosFinanciadosLibre;
     return {
       mes: MONTHS_ES[i],
@@ -214,7 +220,7 @@ export function yearMonthsData(transactions: Transaction[], year: number): YearM
       inversion: s.inversion,
       ahorroReal: s.ahorroReal,
       tasaAhorro: s.ingresos ? (s.ahorroReal / s.ingresos) * 100 : 0,
-      acumulado,
+      acumulado: consolidadoEsteMes,
     };
   });
 }
