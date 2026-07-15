@@ -37,6 +37,9 @@ export function CategoriasEditor({
   variableBudget,
   updateVariableBudget,
 }: CategoriasEditorProps) {
+  const fixedCount = categories.filter((c) => c.type === "fixed").length;
+  const variableCount = categories.filter((c) => c.type === "variable").length;
+
   const [newSubName, setNewSubName] = useState<Record<string, string>>({});
   const [newCatName, setNewCatName] = useState<Record<CategoryType, string>>({ fixed: "", variable: "" });
   const [addError, setAddError] = useState<Record<CategoryType, string | null>>({ fixed: null, variable: null });
@@ -286,6 +289,11 @@ export function CategoriasEditor({
       {!isPremium && (
         <div className="mb-4">
           <PremiumGate message="Con Premium: categorías ilimitadas, subcategorías y presupuestos por categoría." />
+        </div>
+      )}
+      {!isPremium && (!canCreateCategory(fixedCount, "fixed") || !canCreateCategory(variableCount, "variable")) && (
+        <div className="mb-4">
+          <PremiumGate message="Con Premium puedes crear categorías ilimitadas con subcategorías" />
         </div>
       )}
       {renderGroup("fixed", "Categorías fijas")}
