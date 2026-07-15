@@ -2,6 +2,7 @@ import { isLocalBackend } from "./env";
 import { writeLocal } from "./localStore";
 import { getSupabase } from "./supabaseClient";
 import { todayISO } from "./format";
+import { AHORRO_LIBRE_ID } from "./constants";
 import type { Asset, Category, Fund, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../types";
 
 export interface BackupData {
@@ -55,69 +56,98 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
   await run(supabase.from("investment_config").delete().eq("user_id", userId));
   await run(supabase.from("variable_budget").delete().eq("user_id", userId));
 
-  // Insertar conservando los ids originales, para no romper las referencias cruzadas
-  // (fundId, categoryId, recurringId, recurringIncomeId, splitId).
+  // Generar ids nuevos para todo lo que tiene clave primaria propia, en vez de reutilizar los del
+  // backup: esas claves son globales (no van acompañadas de user_id en la tabla), así que si el backup
+  // viene de OTRA cuenta que sigue existiendo en la base de datos (p. ej. importar el export de una
+  // cuenta premium en una cuenta free), reutilizar esos mismos ids choca con las filas originales
+  // ("duplicate key value violates unique constraint"). Se recuerda el mapeo id-antiguo -> id-nuevo
+  // para reescribir las referencias cruzadas (categoryId, fundId, recurringId, recurringIncomeId).
+  // subcategory_id no se remapea: las subcategorías viven en el jsonb de la categoría (sin FK real,
+  // ver comentario en schema.sql) y ese jsonb se copia tal cual, así que sus ids internos no cambian.
+  const categoryIdMap = new Map<string, string>();
+  const fundIdMap = new Map<string, string>();
+  const recurringIdMap = new Map<string, string>();
+  const recurringIncomeIdMap = new Map<string, string>();
+
   if (raw.categories?.length) {
     await run(
       supabase.from("categories").insert(
-        raw.categories.map((c) => ({
-          id: c.id,
-          user_id: userId,
-          type: c.type,
-          name: c.name,
-          subcategories: c.subcategories,
-          budget: c.budget ?? null,
-          sort_order: c.sortOrder,
-          is_active: c.isActive ?? true,
-        })),
+        raw.categories.map((c) => {
+          const id = crypto.randomUUID();
+          categoryIdMap.set(c.id, id);
+          return {
+            id,
+            user_id: userId,
+            type: c.type,
+            name: c.name,
+            subcategories: c.subcategories,
+            budget: c.budget ?? null,
+            sort_order: c.sortOrder,
+            is_active: c.isActive ?? true,
+          };
+        }),
       ),
     );
   }
   if (raw.funds?.length) {
     await run(
       supabase.from("funds").insert(
-        raw.funds.map((f) => ({
-          id: f.id,
-          user_id: userId,
-          name: f.name,
-          goal_amount: f.goalAmount ?? null,
-          is_active: f.isActive ?? true,
-        })),
+        raw.funds.map((f) => {
+          const id = crypto.randomUUID();
+          fundIdMap.set(f.id, id);
+          return {
+            id,
+            user_id: userId,
+            name: f.name,
+            goal_amount: f.goalAmount ?? null,
+            is_active: f.isActive ?? true,
+          };
+        }),
       ),
     );
   }
   if (raw.recurring?.length) {
     await run(
       supabase.from("recurring").insert(
-        raw.recurring.map((r) => ({
-          id: r.id,
-          user_id: userId,
-          category_id: r.categoryId,
-          subcategory: r.subcategory,
-          amount: r.amount,
-          note: r.note,
-          day: r.day,
-        })),
+        raw.recurring.map((r) => {
+          const id = crypto.randomUUID();
+          recurringIdMap.set(r.id, id);
+          return {
+            id,
+            user_id: userId,
+            category_id: categoryIdMap.get(r.categoryId) ?? r.categoryId,
+            subcategory: r.subcategory,
+            amount: r.amount,
+            note: r.note,
+            day: r.day,
+          };
+        }),
       ),
     );
   }
   if (raw.recurringIncome?.length) {
     await run(
       supabase.from("recurring_income").insert(
-        raw.recurringIncome.map((r) => ({
-          id: r.id,
-          user_id: userId,
-          income_cat: r.incomeCat,
-          name: r.name,
-          amount: r.amount,
-          note: r.note,
-          day: r.day,
-        })),
+        raw.recurringIncome.map((r) => {
+          const id = crypto.randomUUID();
+          recurringIncomeIdMap.set(r.id, id);
+          return {
+            id,
+            user_id: userId,
+            income_cat: r.incomeCat,
+            name: r.name,
+            amount: r.amount,
+            note: r.note,
+            day: r.day,
+          };
+        }),
       ),
     );
   }
   if (raw.assets?.length) {
-    await run(supabase.from("assets").insert(raw.assets.map((a) => ({ id: a.id, user_id: userId, name: a.name, pct: a.pct }))));
+    await run(
+      supabase.from("assets").insert(raw.assets.map((a) => ({ id: crypto.randomUUID(), user_id: userId, name: a.name, pct: a.pct }))),
+    );
   }
   if (raw.investmentConfig) {
     await run(supabase.from("investment_config").insert({ user_id: userId, global_pct: raw.investmentConfig.globalPct }));
@@ -129,22 +159,22 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
     await run(
       supabase.from("transactions").insert(
         raw.transactions.map((t) => ({
-          id: t.id,
+          id: crypto.randomUUID(),
           user_id: userId,
           type: t.type,
           amount: t.amount,
           date: t.date,
           category: t.category,
-          category_id: t.categoryId ?? null,
+          category_id: t.categoryId ? (categoryIdMap.get(t.categoryId) ?? null) : null,
           subcategory: t.subcategory ?? null,
           subcategory_id: t.subcategoryId ?? null,
           note: t.note ?? "",
           fixed: t.fixed ?? null,
-          fund_id: t.fundId ?? null,
-          funded_by: t.fundedBy ?? null,
+          fund_id: t.fundId ? (fundIdMap.get(t.fundId) ?? null) : null,
+          funded_by: t.fundedBy ? (t.fundedBy === AHORRO_LIBRE_ID ? t.fundedBy : (fundIdMap.get(t.fundedBy) ?? null)) : null,
           split_id: t.splitId ?? null,
-          recurring_id: t.recurringId ?? null,
-          recurring_income_id: t.recurringIncomeId ?? null,
+          recurring_id: t.recurringId ? (recurringIdMap.get(t.recurringId) ?? null) : null,
+          recurring_income_id: t.recurringIncomeId ? (recurringIncomeIdMap.get(t.recurringIncomeId) ?? null) : null,
         })),
       ),
     );
