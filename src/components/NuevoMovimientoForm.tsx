@@ -354,37 +354,45 @@ export function NuevoMovimientoForm({
           <>
             <div className="mb-3">
               <p className="text-xs text-stone-500 mb-1.5">Fijos</p>
-              <div className="flex flex-wrap gap-1.5">
-                {fixedCats.map((c) => (
-                  <Chip
-                    key={c.id}
-                    tone="fixed"
-                    label={c.name}
-                    active={categoryId === c.id}
-                    onClick={() => {
-                      setCategoryId(c.id);
-                      setSubcategory("");
-                    }}
-                  />
-                ))}
-              </div>
+              {fixedCats.length === 0 ? (
+                <p className="text-xs text-stone-400">No tienes ninguna categoría fija activada. Actívala en Ajustes.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {fixedCats.map((c) => (
+                    <Chip
+                      key={c.id}
+                      tone="fixed"
+                      label={c.name}
+                      active={categoryId === c.id}
+                      onClick={() => {
+                        setCategoryId(c.id);
+                        setSubcategory("");
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <div className="mb-3">
               <p className="text-xs text-stone-500 mb-1.5">Variables</p>
-              <div className="flex flex-wrap gap-1.5">
-                {variableCats.map((c) => (
-                  <Chip
-                    key={c.id}
-                    tone="variable"
-                    label={c.name}
-                    active={categoryId === c.id}
-                    onClick={() => {
-                      setCategoryId(c.id);
-                      setSubcategory("");
-                    }}
-                  />
-                ))}
-              </div>
+              {variableCats.length === 0 ? (
+                <p className="text-xs text-stone-400">No tienes ninguna categoría variable activada. Actívala en Ajustes.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {variableCats.map((c) => (
+                    <Chip
+                      key={c.id}
+                      tone="variable"
+                      label={c.name}
+                      active={categoryId === c.id}
+                      onClick={() => {
+                        setCategoryId(c.id);
+                        setSubcategory("");
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             {currentCat && currentCat.subcategories.length > 0 && (
               <div className="mb-3">
