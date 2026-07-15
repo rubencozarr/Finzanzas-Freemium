@@ -28,6 +28,7 @@ export interface FundRow {
   user_id: string;
   name: string;
   goal_amount: number | null;
+  is_active: boolean;
   created_at: string;
 }
 

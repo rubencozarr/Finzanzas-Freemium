@@ -14,6 +14,9 @@ create table if not exists public.funds (
   name text not null,
   -- Meta de ahorro opcional (premium). Null = sin meta, el fondo funciona igual que siempre.
   goal_amount numeric(12, 2),
+  -- Solo relevante para free con más de FREE_MAX_FUNDS fondos (downgrade/importación): controla a
+  -- cuáles se puede aportar. En premium se ignora, todos los fondos son utilizables siempre.
+  is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 

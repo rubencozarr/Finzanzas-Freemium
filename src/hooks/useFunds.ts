@@ -111,5 +111,22 @@ export function useFunds(userId: string | undefined) {
     [refetch],
   );
 
-  return { funds, loading, error, addFund, renameFund, deleteFund, updateFundGoal, refetch };
+  const updateFundActive = useCallback(
+    async (id: string, active: boolean) => {
+      if (isLocalBackend) {
+        setFunds((prev) => {
+          const next = prev.map((f) => (f.id === id ? { ...f, isActive: active } : f));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("funds").update({ is_active: active }).eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
+  return { funds, loading, error, addFund, renameFund, deleteFund, updateFundGoal, updateFundActive, refetch };
 }

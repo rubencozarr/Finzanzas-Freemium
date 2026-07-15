@@ -58,7 +58,7 @@ function App() {
   const userId = user?.id;
 
   const { transactions, addTransaction, editTransaction, deleteTransaction, refetch: refetchTransactions } = useTransactions(userId);
-  const { funds, addFund, renameFund, deleteFund, updateFundGoal, refetch: refetchFunds } = useFunds(userId);
+  const { funds, addFund, renameFund, deleteFund, updateFundGoal, updateFundActive, refetch: refetchFunds } = useFunds(userId);
   const {
     categories,
     addCategory,
@@ -587,6 +587,7 @@ function App() {
             renameFund={renameFund}
             deleteFund={onDeleteFund}
             updateFundGoal={updateFundGoal}
+            updateFundActive={updateFundActive}
             assets={assetsWithTotal}
             selectedMonthKey={selectedMonthKey}
             currentMonthKey={currentMonthKey}

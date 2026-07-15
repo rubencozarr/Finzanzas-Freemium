@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
-import { MONTHS_FULL } from "../../lib/constants";
+import { FREE_MAX_FUNDS, MONTHS_FULL } from "../../lib/constants";
 import { fundAvgNetContribution } from "../../lib/calculations";
 import { fmt } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
@@ -17,6 +17,7 @@ interface FondosTabProps {
   renameFund: (id: string, name: string) => void;
   deleteFund: (fund: FundWithBalance) => void;
   updateFundGoal: (id: string, amount: number | null) => void;
+  updateFundActive: (id: string, active: boolean) => void;
   assets: AssetWithTotal[];
   selectedMonthKey: string;
   currentMonthKey: string;
@@ -45,6 +46,7 @@ export function FondosTab({
   renameFund,
   deleteFund,
   updateFundGoal,
+  updateFundActive,
   assets,
   selectedMonthKey,
   currentMonthKey,
@@ -68,6 +70,12 @@ export function FondosTab({
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
   const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
   const [goalAmountInput, setGoalAmountInput] = useState("");
+
+  // Downgrade/importación: un free con más de 2 fondos puede ver y retirar de todos, pero solo aportar
+  // a los que marque como "activos" (máx. FREE_MAX_FUNDS). Con ≤2 fondos (el caso normal en free, ya
+  // que no se puede crear un 3º) esto no aparece: todos sus fondos son utilizables sin más.
+  const showActiveToggle = !isPremium && funds.length > FREE_MAX_FUNDS;
+  const activeCount = funds.filter((f) => f.isActive).length;
 
   const isCurrentMonth = selectedMonthKey === currentMonthKey;
   const isHistorical = selectedMonthKey < currentMonthKey;
@@ -206,6 +214,21 @@ export function FondosTab({
                 <span className="font-mono text-sm text-teal-700 shrink-0">{fmt(f.balance)}</span>
               </div>
             )}
+            {showActiveToggle && (
+              <button
+                onClick={() => updateFundActive(f.id, !f.isActive)}
+                disabled={!f.isActive && activeCount >= FREE_MAX_FUNDS}
+                className={`text-[11px] px-2 py-0.5 rounded-full border mb-2 ${
+                  f.isActive
+                    ? "bg-teal-50 text-teal-700 border-teal-200"
+                    : activeCount >= FREE_MAX_FUNDS
+                      ? "text-stone-300 border-stone-100"
+                      : "text-stone-400 border-stone-200"
+                }`}
+              >
+                {f.isActive ? "Fondo activo ✓" : "Marcar como activo"}
+              </button>
+            )}
             {isPremium &&
               (editingGoalFundId === f.id ? (
                 <div className="flex items-center gap-1.5 mb-2">
@@ -290,32 +313,44 @@ export function FondosTab({
                   );
                 })()
               ))}
-            <div className="flex gap-2">
-              <button onClick={() => onQuickMove(f, "aportacion")} className="flex-1 text-xs bg-teal-50 text-teal-800 rounded-md px-2.5 py-1.5">
-                Aportar
-              </button>
-              <button onClick={() => onQuickMove(f, "retiro")} className="flex-1 text-xs bg-amber-50 text-amber-800 rounded-md px-2.5 py-1.5">
-                Retirar
-              </button>
-              <button
-                onClick={() => {
-                  setEditingFundId(f.id);
-                  setEditFundName(f.name);
-                }}
-                className="text-stone-300 hover:text-slate-700"
-              >
-                <Pencil size={14} />
-              </button>
-              <button
-                onClick={() => {
-                  if (f.balance === 0) deleteFund(f);
-                  else setDeleteConfirmFund(f);
-                }}
-                className="text-stone-300 hover:text-rose-600"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
+            {(() => {
+              const canContribute = isPremium || funds.length <= FREE_MAX_FUNDS || !!f.isActive;
+              return (
+                <>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => onQuickMove(f, "aportacion")}
+                      disabled={!canContribute}
+                      className={`flex-1 text-xs rounded-md px-2.5 py-1.5 ${canContribute ? "bg-teal-50 text-teal-800" : "bg-stone-100 text-stone-300"}`}
+                    >
+                      Aportar
+                    </button>
+                    <button onClick={() => onQuickMove(f, "retiro")} className="flex-1 text-xs bg-amber-50 text-amber-800 rounded-md px-2.5 py-1.5">
+                      Retirar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingFundId(f.id);
+                        setEditFundName(f.name);
+                      }}
+                      className="text-stone-300 hover:text-slate-700"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (f.balance === 0) deleteFund(f);
+                        else setDeleteConfirmFund(f);
+                      }}
+                      className="text-stone-300 hover:text-rose-600"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  {!canContribute && <p className="text-[11px] text-stone-400 mt-1.5">Selecciona este fondo como activo para aportar</p>}
+                </>
+              );
+            })()}
           </div>
         ))}
       </div>
