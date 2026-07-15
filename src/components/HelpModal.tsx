@@ -30,7 +30,7 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "¿Qué es el ahorro libre en curso?",
     answer:
-      "Es lo que te ha sobrado este mes. Todavía puede cambiar (porque el mes no ha terminado). Cuando el mes cierre, ese dinero se sumará al consolidado.",
+      "Es el ahorro libre del mes actual. Todavía puede cambiar (porque el mes no ha terminado). Cuando el mes cierre, ese dinero se sumará al consolidado.",
   },
   {
     question: "¿Cómo funcionan los fondos de ahorro?",
