@@ -101,8 +101,6 @@ export function FondosTab({
   // Así se evita seguir rotando fondos ya usados sin bloquear el resto de la selección disponible.
   const fundContributedThisMonth = (fundId: string) =>
     transactions.some((t) => t.type === "aportacion" && t.fundId === fundId && monthKey(t.date) === currentMonthKey);
-  const allActiveSlotsLocked =
-    showActiveToggle && activeCount >= FREE_MAX_FUNDS && funds.filter((f) => f.isActive).every((f) => fundContributedThisMonth(f.id));
 
   const isCurrentMonth = selectedMonthKey === currentMonthKey;
   const isHistorical = selectedMonthKey < currentMonthKey;
@@ -210,7 +208,7 @@ export function FondosTab({
           <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" />
         </div>
       )}
-      {showActiveToggle && !allActiveSlotsLocked && (
+      {showActiveToggle && (
         <div className="mb-3">
           <p className="text-xs text-stone-400">
             Elige tus {FREE_MAX_FUNDS} fondos activos para aportaciones. Una vez hagas la primera aportación del mes, la
