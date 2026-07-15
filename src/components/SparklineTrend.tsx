@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Crown } from "lucide-react";
 import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { fmt } from "../lib/format";
 import type { TrendPoint } from "../lib/calculations";
@@ -22,7 +23,7 @@ export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPrem
   const mean = visibleData.length ? visibleData.reduce((s, d) => s + d.value, 0) / visibleData.length : 0;
   return (
     <div className="mb-5">
-      <p className="text-sm font-medium mb-2">Tendencia de tu ahorro (últimos {monthsLabel})</p>
+      <p className="text-sm font-medium mb-2">Tendencia de ahorro libre mensual (últimos {monthsLabel})</p>
       <div onClick={handleTap} className="bg-white rounded-lg border border-stone-100 p-2" style={{ height: 120 }}>
         <div key={resetKey} className="w-full h-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -46,7 +47,12 @@ export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPrem
         Línea continua gris = 0€ (por debajo estás perdiendo dinero). Línea punteada verde = tu media de estos {monthsLabel} ({fmt(mean)}).
         Si tu línea sube mes a mes, vas mejorando.
       </p>
-      {!isPremium && <p className="text-[11px] text-stone-400 mt-1">Ve los 6 meses completos con Premium</p>}
+      {!isPremium && (
+        <p className="flex items-center gap-1 text-[11px] text-stone-400 mt-1">
+          <Crown size={11} className="text-amber-500 shrink-0" />
+          Ve los 6 meses completos con Premium
+        </p>
+      )}
     </div>
   );
 }
