@@ -4,7 +4,7 @@ import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { FREE_MAX_FUNDS, MONTHS_FULL } from "../../lib/constants";
 import { fundAvgNetContribution } from "../../lib/calculations";
-import { fmt } from "../../lib/format";
+import { fmt, formatMonthYear, isFutureLock } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
 
 interface FondosTabProps {
@@ -18,6 +18,7 @@ interface FondosTabProps {
   deleteFund: (fund: FundWithBalance) => void;
   updateFundGoal: (id: string, amount: number | null) => void;
   updateFundActive: (id: string, active: boolean) => void;
+  fundsLockedUntil: string | null;
   assets: AssetWithTotal[];
   selectedMonthKey: string;
   currentMonthKey: string;
@@ -47,6 +48,7 @@ export function FondosTab({
   deleteFund,
   updateFundGoal,
   updateFundActive,
+  fundsLockedUntil,
   assets,
   selectedMonthKey,
   currentMonthKey,
@@ -76,6 +78,7 @@ export function FondosTab({
   // que no se puede crear un 3º) esto no aparece: todos sus fondos son utilizables sin más.
   const showActiveToggle = !isPremium && funds.length > FREE_MAX_FUNDS;
   const activeCount = funds.filter((f) => f.isActive).length;
+  const isFundsLocked = isFutureLock(fundsLockedUntil);
 
   const isCurrentMonth = selectedMonthKey === currentMonthKey;
   const isHistorical = selectedMonthKey < currentMonthKey;
@@ -183,6 +186,20 @@ export function FondosTab({
           <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" />
         </div>
       )}
+      {showActiveToggle && (
+        <div className="mb-3">
+          {isFundsLocked ? (
+            <PremiumGate
+              message={`Tu selección está fijada hasta ${formatMonthYear(fundsLockedUntil!)}. Con Premium puedes usar todos tus fondos sin límite.`}
+            />
+          ) : (
+            <p className="text-xs text-stone-400">
+              Elige tus {FREE_MAX_FUNDS} fondos activos. Una vez hagas la primera aportación del mes, la selección se mantendrá
+              hasta el mes siguiente.
+            </p>
+          )}
+        </div>
+      )}
       <div className="space-y-3 mb-2">
         {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
         {fundsAtDate.map((f) => (
@@ -217,14 +234,14 @@ export function FondosTab({
             {showActiveToggle && (
               <button
                 onClick={() => updateFundActive(f.id, !f.isActive)}
-                disabled={!f.isActive && activeCount >= FREE_MAX_FUNDS}
+                disabled={isFundsLocked || (!f.isActive && activeCount >= FREE_MAX_FUNDS)}
                 className={`text-[11px] px-2 py-0.5 rounded-full border mb-2 ${
                   f.isActive
                     ? "bg-teal-50 text-teal-700 border-teal-200"
                     : activeCount >= FREE_MAX_FUNDS
                       ? "text-stone-300 border-stone-100"
                       : "text-stone-400 border-stone-200"
-                }`}
+                } ${isFundsLocked ? "opacity-50" : ""}`}
               >
                 {f.isActive ? "Fondo activo ✓" : "Marcar como activo"}
               </button>

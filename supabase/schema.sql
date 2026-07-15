@@ -107,6 +107,11 @@ create table if not exists public.user_settings (
   onboarding_completed boolean not null default false,
   -- Aviso de conversión free "ya llevas 500€ ahorrados": se muestra una sola vez.
   savings_milestone_shown boolean not null default false,
+  -- Bloqueo mensual de la selección de fondos/categorías activas (free con más elementos que su
+  -- límite, por downgrade o importación): se fija al usar la selección por primera vez en el mes
+  -- (primera aportación / primer gasto), al día 1 del mes siguiente. Null = sin bloquear.
+  active_funds_locked_until date,
+  active_categories_locked_until date,
   updated_at timestamptz not null default now()
 );
 

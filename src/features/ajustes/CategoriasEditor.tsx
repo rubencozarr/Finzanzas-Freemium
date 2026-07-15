@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
-import { fmt } from "../../lib/format";
+import { fmt, formatMonthYear, isFutureLock } from "../../lib/format";
 import { PremiumGate } from "../../components/PremiumGate";
 import { FREE_MAX_CATEGORIES } from "../../lib/constants";
 import type { Category, CategoryType } from "../../types";
@@ -17,6 +17,7 @@ interface CategoriasEditorProps {
   removeSubcategory: (categoryId: string, subcategoryId: string) => void;
   moveCategory: (id: string, direction: -1 | 1) => void;
   updateCategoryActive: (id: string, active: boolean) => void;
+  categoriesLockedUntil: string | null;
   getCategoryUsageCount: (categoryId: string) => number;
   getSubcategoryUsageCount: (categoryId: string, subcategoryId: string) => number;
   variableBudget: number;
@@ -35,11 +36,13 @@ export function CategoriasEditor({
   removeSubcategory,
   moveCategory,
   updateCategoryActive,
+  categoriesLockedUntil,
   getCategoryUsageCount,
   getSubcategoryUsageCount,
   variableBudget,
   updateVariableBudget,
 }: CategoriasEditorProps) {
+  const isCategoriesLocked = isFutureLock(categoriesLockedUntil);
   const [newSubName, setNewSubName] = useState<Record<string, string>>({});
   const [newCatName, setNewCatName] = useState<Record<CategoryType, string>>({ fixed: "", variable: "" });
   const [addError, setAddError] = useState<Record<CategoryType, string | null>>({ fixed: null, variable: null });
@@ -157,6 +160,20 @@ export function CategoriasEditor({
               </div>
             );
           })()}
+        {showActiveToggle && (
+          <div className="mb-3">
+            {isCategoriesLocked ? (
+              <PremiumGate
+                message={`Tu selección está fijada hasta ${formatMonthYear(categoriesLockedUntil!)}. Con Premium puedes usar todas tus categorías sin límite.`}
+              />
+            ) : (
+              <p className="text-xs text-stone-400">
+                Elige tus {FREE_MAX_CATEGORIES[type]} categorías activas de cada tipo. Una vez registres el primer gasto del mes,
+                la selección se mantendrá hasta el mes siguiente.
+              </p>
+            )}
+          </div>
+        )}
         <div className="space-y-3">
           {list.map((cat, i) => (
             <div key={cat.id} className="border border-stone-100 rounded-lg p-2.5 bg-white">
@@ -219,14 +236,14 @@ export function CategoriasEditor({
               {showActiveToggle && (
                 <button
                   onClick={() => updateCategoryActive(cat.id, !cat.isActive)}
-                  disabled={!cat.isActive && activeCount >= FREE_MAX_CATEGORIES[type]}
+                  disabled={isCategoriesLocked || (!cat.isActive && activeCount >= FREE_MAX_CATEGORIES[type])}
                   className={`text-[11px] px-2 py-0.5 rounded-full border mb-2 ${
                     cat.isActive
                       ? "bg-teal-50 text-teal-700 border-teal-200"
                       : activeCount >= FREE_MAX_CATEGORIES[type]
                         ? "text-stone-300 border-stone-100"
                         : "text-stone-400 border-stone-200"
-                  }`}
+                  } ${isCategoriesLocked ? "opacity-50" : ""}`}
                 >
                   {cat.isActive ? "Categoría activa ✓" : "Marcar como activa"}
                 </button>

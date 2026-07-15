@@ -12,6 +12,8 @@ import { useVariableBudget } from "./hooks/useVariableBudget";
 import { useOnboardingStatus } from "./hooks/useOnboardingStatus";
 import { useSubscription } from "./hooks/useSubscription";
 import { useSavingsMilestone } from "./hooks/useSavingsMilestone";
+import { useActiveSelectionLocks } from "./hooks/useActiveSelectionLocks";
+import { FREE_MAX_CATEGORIES, FREE_MAX_FUNDS } from "./lib/constants";
 import {
   ahorroLibreDisponibleParaMes,
   ahorroLibreHasta,
@@ -32,7 +34,7 @@ import {
   type OrphanGroup,
   type OrphanSubcategoryGroup,
 } from "./lib/calculations";
-import { fmt, monthKey, todayISO } from "./lib/format";
+import { fmt, isFutureLock, monthKey, todayISO } from "./lib/format";
 import { buildBackup, downloadBackup, importBackup } from "./lib/backup";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
@@ -49,7 +51,7 @@ import { FondosTab } from "./features/fondos/FondosTab";
 import { MensualTab } from "./features/mensual/MensualTab";
 import { AnualTab } from "./features/anual/AnualTab";
 import { AjustesTab } from "./features/ajustes/AjustesTab";
-import type { AssetWithTotal, FundWithBalance, Transaction } from "./types";
+import type { AssetWithTotal, FundWithBalance, Transaction, TransactionType } from "./types";
 
 type Tab = "movimientos" | "fondos" | "mensual" | "anual" | "ajustes";
 
@@ -58,7 +60,16 @@ function App() {
   const userId = user?.id;
 
   const { transactions, addTransaction, editTransaction, deleteTransaction, refetch: refetchTransactions } = useTransactions(userId);
-  const { funds, addFund, renameFund, deleteFund, updateFundGoal, updateFundActive, refetch: refetchFunds } = useFunds(userId);
+  const {
+    funds,
+    addFund,
+    renameFund,
+    deleteFund,
+    updateFundGoal,
+    updateFundActive,
+    loading: fundsLoading,
+    refetch: refetchFunds,
+  } = useFunds(userId);
   const {
     categories,
     addCategory,
@@ -69,6 +80,7 @@ function App() {
     removeSubcategory,
     moveCategory,
     updateCategoryActive,
+    loading: categoriesLoading,
     refetch: refetchCategories,
   } = useCategories(userId);
   const { recurring, addRecurring, removeRecurring, updateRecurringAmount, refetch: refetchRecurring } = useRecurring(userId);
@@ -84,6 +96,57 @@ function App() {
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
   const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
   const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
+  const {
+    fundsLockedUntil,
+    categoriesLockedUntil,
+    loading: locksLoading,
+    lockFundsUntilNextMonth,
+    lockCategoriesUntilNextMonth,
+    clearFundsLock,
+    clearCategoriesLock,
+  } = useActiveSelectionLocks(userId);
+
+  // Downgrade/importación: un free puede heredar más fondos/categorías "activos" que su límite (los
+  // datos importados o los de una cuenta que antes era premium llegan con is_active = true). En cuanto
+  // se detecta ese estado se desactivan todos y se libera el bloqueo, para que el usuario elija su
+  // selección desde cero dentro del límite. Autolimitado: en cuanto la desactivación se aplica, el
+  // recuento de activos baja del límite y el efecto deja de disparar.
+  useEffect(() => {
+    if (isPremium || fundsLoading || locksLoading) return;
+    const activeFunds = funds.filter((f) => f.isActive);
+    if (funds.length <= FREE_MAX_FUNDS || activeFunds.length <= FREE_MAX_FUNDS) return;
+    activeFunds.forEach((f) => updateFundActive(f.id, false));
+    if (fundsLockedUntil) clearFundsLock();
+  }, [isPremium, fundsLoading, locksLoading, funds, fundsLockedUntil, updateFundActive, clearFundsLock]);
+
+  useEffect(() => {
+    if (isPremium || categoriesLoading || locksLoading) return;
+    const overLimitTypes = (["fixed", "variable"] as const).filter((type) => {
+      const list = categories.filter((c) => c.type === type);
+      return list.length > FREE_MAX_CATEGORIES[type] && list.filter((c) => c.isActive).length > FREE_MAX_CATEGORIES[type];
+    });
+    if (overLimitTypes.length === 0) return;
+    overLimitTypes.forEach((type) => {
+      categories.filter((c) => c.type === type && c.isActive).forEach((c) => updateCategoryActive(c.id, false));
+    });
+    if (categoriesLockedUntil) clearCategoriesLock();
+  }, [isPremium, categoriesLoading, locksLoading, categories, categoriesLockedUntil, updateCategoryActive, clearCategoriesLock]);
+
+  // Dispara el bloqueo mensual al USAR la selección de activos por primera vez en el mes (solo al
+  // crear movimientos nuevos, no al editar). No hace nada si ya está bloqueado (isFutureLock) o si el
+  // usuario no supera el límite del plan (el mecanismo de "activos" ni siquiera aplica en ese caso).
+  const maybeLockActiveSelection = async (tx: { type: TransactionType; fundId?: string | null; categoryId?: string | null }) => {
+    if (isPremium || locksLoading) return;
+    if (tx.type === "aportacion" && tx.fundId && funds.length > FREE_MAX_FUNDS && !isFutureLock(fundsLockedUntil)) {
+      if (funds.find((f) => f.id === tx.fundId)?.isActive) await lockFundsUntilNextMonth();
+    }
+    if (tx.type === "gasto" && tx.categoryId && !isFutureLock(categoriesLockedUntil)) {
+      const cat = categories.find((c) => c.id === tx.categoryId);
+      if (cat && cat.isActive && categories.filter((c) => c.type === cat.type).length > FREE_MAX_CATEGORIES[cat.type]) {
+        await lockCategoriesUntilNextMonth();
+      }
+    }
+  };
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
@@ -363,6 +426,7 @@ function App() {
         fundedBy: null,
         recurringId: tpl.id,
       });
+      await maybeLockActiveSelection({ type: "gasto", categoryId: cat?.id ?? null });
     }
     for (const it of investment) {
       const asset = assets.find((a) => a.id === it.id);
@@ -589,6 +653,7 @@ function App() {
             deleteFund={onDeleteFund}
             updateFundGoal={updateFundGoal}
             updateFundActive={updateFundActive}
+            fundsLockedUntil={fundsLockedUntil}
             assets={assetsWithTotal}
             selectedMonthKey={selectedMonthKey}
             currentMonthKey={currentMonthKey}
@@ -655,6 +720,7 @@ function App() {
             removeSubcategory={removeSubcategory}
             moveCategory={moveCategory}
             updateCategoryActive={updateCategoryActive}
+            categoriesLockedUntil={categoriesLockedUntil}
             getCategoryUsageCount={getCategoryUsageCount}
             getSubcategoryUsageCount={getSubcategoryUsageCount}
             variableBudget={variableBudget}
@@ -706,6 +772,7 @@ function App() {
               showToast("Movimiento actualizado");
             } else {
               await addTransaction(tx);
+              await maybeLockActiveSelection(tx);
               showToast("Movimiento guardado");
             }
             setShowForm(false);
