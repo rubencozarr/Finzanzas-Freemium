@@ -29,7 +29,12 @@ export function useFunds(userId: string | undefined) {
       .from("funds")
       .select("*")
       .eq("user_id", userId)
-      .order("created_at", { ascending: true });
+      // Desempate por id: los fondos importados de golpe (misma importación) comparten el mismo
+      // created_at, así que sin un segundo criterio de orden Postgres puede devolverlos en un orden
+      // distinto cada vez que uno de ellos se actualiza (p. ej. al marcarlo como activo), dando la
+      // sensación de que la lista "salta" de posición.
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
     if (error) setError(error.message);
     else setFunds(((data as FundRow[]) ?? []).map(fromFundRow));
     setLoading(false);
