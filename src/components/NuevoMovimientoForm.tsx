@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Crown, X } from "lucide-react";
 import { Chip } from "./Chip";
 import { PremiumGate } from "./PremiumGate";
 import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, FREE_MAX_FUNDS, INCOME_CATS } from "../lib/constants";
@@ -37,6 +37,31 @@ const TYPE_OPTIONS: [TransactionType, string][] = [
   ["retiro", "Retirar"],
   ["inversion", "Invertir"],
 ];
+
+// Corona sobre el botón "Invertir" cuando es free (mismo patrón que FundLockBadge en FondosTab.tsx):
+// toca para abrir/cerrar el tooltip. stopPropagation evita que el toque también intente seleccionar
+// el tipo "inversion" en el botón que cubre.
+function InvestmentLockBadge() {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="absolute -top-1.5 -right-1.5">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        className="text-amber-500 hover:text-amber-600 bg-white rounded-full"
+      >
+        <Crown size={14} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-10 w-36 bg-slate-800 text-white text-[11px] rounded-lg px-2.5 py-2 shadow-lg">
+          Para invertir necesitas Premium
+        </div>
+      )}
+    </span>
+  );
+}
 
 export function NuevoMovimientoForm({
   isPremium,
@@ -283,16 +308,21 @@ export function NuevoMovimientoForm({
             ))}
           </div>
           <div data-tour="type-funds" className="grid grid-cols-3 gap-1.5 flex-[3]">
-            {TYPE_OPTIONS.slice(2).map(([v, l]) => (
-              <button
-                key={v}
-                disabled={!!editingTx}
-                onClick={() => setType(v)}
-                className={`text-xs rounded-md py-2 border disabled:opacity-40 ${type === v ? "bg-slate-800 text-white border-slate-800" : "border-stone-200 text-stone-500"}`}
-              >
-                {l}
-              </button>
-            ))}
+            {TYPE_OPTIONS.slice(2).map(([v, l]) => {
+              const investmentBlocked = v === "inversion" && !isPremium;
+              return (
+                <div key={v} className="relative">
+                  <button
+                    disabled={!!editingTx || investmentBlocked}
+                    onClick={() => setType(v)}
+                    className={`w-full text-xs rounded-md py-2 border disabled:opacity-40 ${type === v ? "bg-slate-800 text-white border-slate-800" : "border-stone-200 text-stone-500"}`}
+                  >
+                    {l}
+                  </button>
+                  {investmentBlocked && <InvestmentLockBadge />}
+                </div>
+              );
+            })}
           </div>
         </div>
         {editingTx && (
