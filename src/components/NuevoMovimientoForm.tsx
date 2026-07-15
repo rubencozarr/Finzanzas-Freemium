@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { Chip } from "./Chip";
 import { PremiumGate } from "./PremiumGate";
-import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, INCOME_CATS } from "../lib/constants";
+import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, FREE_MAX_FUNDS, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
 import { fmt, monthKey } from "../lib/format";
 import type { NewTransaction } from "../hooks/useTransactions";
@@ -110,6 +110,22 @@ export function NuevoMovimientoForm({
       ? allVariableCats.filter((c) => c.isActive)
       : allVariableCats;
   const selectedFund = funds.find((f) => f.id === fundId);
+  // Solo se puede aportar a fondos activos si el free tiene más fondos que el límite (mismo mecanismo
+  // que en FondosTab.tsx). Retirar y "pagado con ahorro" (fundingOptions, más abajo) nunca se
+  // restringen: el usuario debe poder acceder a su dinero siempre, esté el fondo activo o no.
+  const contributableFunds = !isPremium && funds.length > FREE_MAX_FUNDS ? funds.filter((f) => f.isActive) : funds;
+  const fundOptionsForType = type === "aportacion" ? contributableFunds : funds;
+
+  // Si el usuario cambia a "Aportar" con un fondo ya seleccionado que no es activo (o al abrir el
+  // formulario directamente en ese estado), se corrige a la primera opción válida. No se toca mientras
+  // se edita un movimiento existente: el fondo ya asignado se conserva aunque ahora esté inactivo.
+  useEffect(() => {
+    if (editingTx || type !== "aportacion") return;
+    if (!fundOptionsForType.some((f) => f.id === fundId)) {
+      setFundId(fundOptionsForType[0]?.id ?? "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
 
   const amt = parseFloat(amount) || 0;
   const remaining = ahorroRealDisponible ?? 0;
@@ -290,7 +306,10 @@ export function NuevoMovimientoForm({
             <p className="text-xs text-stone-500 mb-1.5">Fondo</p>
             <div className="flex flex-wrap gap-1.5">
               {funds.length === 0 && <span className="text-xs text-stone-400">Crea un fondo primero en la pestaña Fondos</span>}
-              {funds.map((f) => (
+              {funds.length > 0 && fundOptionsForType.length === 0 && (
+                <span className="text-xs text-stone-400">No tienes ningún fondo activo. Actívalo en la pestaña Fondos.</span>
+              )}
+              {fundOptionsForType.map((f) => (
                 <Chip key={f.id} label={`${f.name} · ${fmt(f.balance)}`} active={fundId === f.id} onClick={() => setFundId(f.id)} />
               ))}
             </div>

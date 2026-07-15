@@ -194,8 +194,8 @@ export function FondosTab({
             />
           ) : (
             <p className="text-xs text-stone-400">
-              Elige tus {FREE_MAX_FUNDS} fondos activos. Una vez hagas la primera aportación del mes, la selección se mantendrá
-              hasta el mes siguiente.
+              Elige tus {FREE_MAX_FUNDS} fondos activos para aportaciones. Una vez hagas la primera aportación del mes, la
+              selección se mantendrá hasta el mes siguiente.
             </p>
           )}
         </div>
