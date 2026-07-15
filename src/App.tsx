@@ -96,28 +96,20 @@ function App() {
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
   const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
   const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
-  const {
-    fundsLockedUntil,
-    categoriesLockedUntil,
-    loading: locksLoading,
-    lockFundsUntilNextMonth,
-    lockCategoriesUntilNextMonth,
-    clearFundsLock,
-    clearCategoriesLock,
-  } = useActiveSelectionLocks(userId);
+  const { categoriesLockedUntil, loading: locksLoading, lockCategoriesUntilNextMonth, clearCategoriesLock } =
+    useActiveSelectionLocks(userId);
 
   // Downgrade/importación: un free puede heredar más fondos/categorías "activos" que su límite (los
   // datos importados o los de una cuenta que antes era premium llegan con is_active = true). En cuanto
-  // se detecta ese estado se desactivan todos y se libera el bloqueo, para que el usuario elija su
-  // selección desde cero dentro del límite. Autolimitado: en cuanto la desactivación se aplica, el
-  // recuento de activos baja del límite y el efecto deja de disparar.
+  // se detecta ese estado se desactivan todos, para que el usuario elija su selección desde cero dentro
+  // del límite. Autolimitado: en cuanto la desactivación se aplica, el recuento de activos baja del
+  // límite y el efecto deja de disparar.
   useEffect(() => {
-    if (isPremium || fundsLoading || locksLoading) return;
+    if (isPremium || fundsLoading) return;
     const activeFunds = funds.filter((f) => f.isActive);
     if (funds.length <= FREE_MAX_FUNDS || activeFunds.length <= FREE_MAX_FUNDS) return;
     activeFunds.forEach((f) => updateFundActive(f.id, false));
-    if (fundsLockedUntil) clearFundsLock();
-  }, [isPremium, fundsLoading, locksLoading, funds, fundsLockedUntil, updateFundActive, clearFundsLock]);
+  }, [isPremium, fundsLoading, funds, updateFundActive]);
 
   useEffect(() => {
     if (isPremium || categoriesLoading || locksLoading) return;
@@ -132,14 +124,11 @@ function App() {
     if (categoriesLockedUntil) clearCategoriesLock();
   }, [isPremium, categoriesLoading, locksLoading, categories, categoriesLockedUntil, updateCategoryActive, clearCategoriesLock]);
 
-  // Dispara el bloqueo mensual al USAR la selección de activos por primera vez en el mes (solo al
-  // crear movimientos nuevos, no al editar). No hace nada si ya está bloqueado (isFutureLock) o si el
-  // usuario no supera el límite del plan (el mecanismo de "activos" ni siquiera aplica en ese caso).
+  // Dispara el bloqueo mensual de categorías activas al crear un gasto nuevo (no al editar). Fondos ya
+  // no usa este mecanismo: su bloqueo se deriva directamente de las transacciones del mes en
+  // FondosTab.tsx (por fondo, no de forma global), así que no hace falta escribir nada aquí.
   const maybeLockActiveSelection = async (tx: { type: TransactionType; fundId?: string | null; categoryId?: string | null }) => {
     if (isPremium || locksLoading) return;
-    if (tx.type === "aportacion" && tx.fundId && funds.length > FREE_MAX_FUNDS && !isFutureLock(fundsLockedUntil)) {
-      if (funds.find((f) => f.id === tx.fundId)?.isActive) await lockFundsUntilNextMonth();
-    }
     if (tx.type === "gasto" && tx.categoryId && !isFutureLock(categoriesLockedUntil)) {
       const cat = categories.find((c) => c.id === tx.categoryId);
       if (cat && cat.isActive && categories.filter((c) => c.type === cat.type).length > FREE_MAX_CATEGORIES[cat.type]) {
@@ -653,7 +642,6 @@ function App() {
             deleteFund={onDeleteFund}
             updateFundGoal={updateFundGoal}
             updateFundActive={updateFundActive}
-            fundsLockedUntil={fundsLockedUntil}
             assets={assetsWithTotal}
             selectedMonthKey={selectedMonthKey}
             currentMonthKey={currentMonthKey}

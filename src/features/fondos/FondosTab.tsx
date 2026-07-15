@@ -4,7 +4,7 @@ import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { FREE_MAX_FUNDS, MONTHS_FULL } from "../../lib/constants";
 import { fundAvgNetContribution } from "../../lib/calculations";
-import { fmt, formatMonthYear, isFutureLock } from "../../lib/format";
+import { firstOfNextMonthISO, fmt, formatMonthYear, monthKey } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
 
 interface FondosTabProps {
@@ -18,7 +18,6 @@ interface FondosTabProps {
   deleteFund: (fund: FundWithBalance) => void;
   updateFundGoal: (id: string, amount: number | null) => void;
   updateFundActive: (id: string, active: boolean) => void;
-  fundsLockedUntil: string | null;
   assets: AssetWithTotal[];
   selectedMonthKey: string;
   currentMonthKey: string;
@@ -68,7 +67,6 @@ export function FondosTab({
   deleteFund,
   updateFundGoal,
   updateFundActive,
-  fundsLockedUntil,
   assets,
   selectedMonthKey,
   currentMonthKey,
@@ -98,7 +96,13 @@ export function FondosTab({
   // que no se puede crear un 3º) esto no aparece: todos sus fondos son utilizables sin más.
   const showActiveToggle = !isPremium && funds.length > FREE_MAX_FUNDS;
   const activeCount = funds.filter((f) => f.isActive).length;
-  const isFundsLocked = isFutureLock(fundsLockedUntil);
+  // El bloqueo es por fondo, no global: un fondo activo al que ya se ha aportado este mes no se puede
+  // desactivar, pero el otro hueco (si no se ha usado todavía) sigue libre para activar/desactivar.
+  // Así se evita seguir rotando fondos ya usados sin bloquear el resto de la selección disponible.
+  const fundContributedThisMonth = (fundId: string) =>
+    transactions.some((t) => t.type === "aportacion" && t.fundId === fundId && monthKey(t.date) === currentMonthKey);
+  const allActiveSlotsLocked =
+    showActiveToggle && activeCount >= FREE_MAX_FUNDS && funds.filter((f) => f.isActive).every((f) => fundContributedThisMonth(f.id));
 
   const isCurrentMonth = selectedMonthKey === currentMonthKey;
   const isHistorical = selectedMonthKey < currentMonthKey;
@@ -206,7 +210,7 @@ export function FondosTab({
           <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" />
         </div>
       )}
-      {showActiveToggle && !isFundsLocked && (
+      {showActiveToggle && !allActiveSlotsLocked && (
         <div className="mb-3">
           <p className="text-xs text-stone-400">
             Elige tus {FREE_MAX_FUNDS} fondos activos para aportaciones. Una vez hagas la primera aportación del mes, la
@@ -216,7 +220,9 @@ export function FondosTab({
       )}
       <div className="space-y-3 mb-2">
         {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
-        {fundsAtDate.map((f) => (
+        {fundsAtDate.map((f) => {
+          const fundLocked = showActiveToggle && f.isActive && fundContributedThisMonth(f.id);
+          return (
           <div key={f.id} className="bg-white rounded-lg border border-stone-100 px-3 py-3">
             {editingFundId === f.id ? (
               <div className="flex gap-2 mb-2">
@@ -243,7 +249,7 @@ export function FondosTab({
               <div className="flex justify-between items-baseline gap-2 mb-2">
                 <span className="flex items-center gap-1 min-w-0">
                   <span className="text-sm font-medium truncate">{f.name}</span>
-                  {showActiveToggle && isFundsLocked && f.isActive && <FundLockBadge lockedUntil={fundsLockedUntil!} />}
+                  {fundLocked && <FundLockBadge lockedUntil={firstOfNextMonthISO()} />}
                 </span>
                 <span className="font-mono text-sm text-teal-700 shrink-0">{fmt(f.balance)}</span>
               </div>
@@ -251,14 +257,14 @@ export function FondosTab({
             {showActiveToggle && (
               <button
                 onClick={() => updateFundActive(f.id, !f.isActive)}
-                disabled={isFundsLocked || (!f.isActive && activeCount >= FREE_MAX_FUNDS)}
+                disabled={fundLocked || (!f.isActive && activeCount >= FREE_MAX_FUNDS)}
                 className={`text-[11px] px-2 py-0.5 rounded-full border mb-2 ${
                   f.isActive
                     ? "bg-teal-50 text-teal-700 border-teal-200"
                     : activeCount >= FREE_MAX_FUNDS
                       ? "text-stone-300 border-stone-100"
                       : "text-stone-400 border-stone-200"
-                } ${isFundsLocked ? "opacity-50" : ""}`}
+                } ${fundLocked ? "opacity-50" : ""}`}
               >
                 {f.isActive ? "Fondo activo ✓" : "Marcar como activo"}
               </button>
@@ -386,7 +392,8 @@ export function FondosTab({
               );
             })()}
           </div>
-        ))}
+          );
+        })}
       </div>
       <p className="text-xs text-stone-400 mb-6">Si un gasto lo pagas con dinero de un fondo, márcalo como "pagado con ahorro" al crear ese gasto.</p>
 
