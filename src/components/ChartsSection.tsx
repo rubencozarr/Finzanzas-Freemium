@@ -139,9 +139,8 @@ export function ChartsSection({
                     <Line
                       type="monotone"
                       dataKey="compareTasaAhorro"
-                      stroke="#5eead4"
+                      stroke="#4f46e5"
                       strokeWidth={2}
-                      strokeDasharray="4 3"
                       dot={{ r: 2 }}
                       name={String(compareYear)}
                       isAnimationActive={animate}
@@ -254,7 +253,7 @@ export function ChartsSection({
                     <Line
                       type="monotone"
                       dataKey="acumulado"
-                      stroke="#d97706"
+                      stroke="#0f766e"
                       strokeWidth={2}
                       dot={{ r: 2 }}
                       name={String(year)}
@@ -263,9 +262,8 @@ export function ChartsSection({
                     <Line
                       type="monotone"
                       dataKey="compareAcumulado"
-                      stroke="#fcd34d"
+                      stroke="#4f46e5"
                       strokeWidth={2}
-                      strokeDasharray="4 3"
                       dot={{ r: 2 }}
                       name={String(compareYear)}
                       isAnimationActive={animate}
