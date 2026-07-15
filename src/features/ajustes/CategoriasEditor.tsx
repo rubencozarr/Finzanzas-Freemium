@@ -255,7 +255,7 @@ export function CategoriasEditor({
             </div>
           ))}
         </div>
-        {canCreateCategory(list.length, type) ? (
+        {canCreateCategory(list.length, type) && (
           <>
             <div className="flex gap-1.5 mt-2">
               <input
@@ -276,10 +276,6 @@ export function CategoriasEditor({
             </div>
             {addError[type] && <p className="text-xs text-rose-600 mt-1">{addError[type]}</p>}
           </>
-        ) : (
-          <div className="mt-2">
-            <PremiumGate message="Con Premium puedes crear categorías ilimitadas con subcategorías" />
-          </div>
         )}
       </div>
     );
