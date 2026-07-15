@@ -121,6 +121,7 @@ export function AnualTab({
           <p className="font-mono text-lg text-teal-800">{fmt(totals.ahorroReal)}</p>
         </div>
         <StatCard label="Invertido este año" value={totals.inversion} tone="indigo" />
+        <StatCard label="Ahorro utilizado" value={totals.gastosFinanciados} tone="amber" />
       </div>
       <p className="text-xs text-stone-400 -mt-2 mb-4">
         Estos datos son solo de {year}, comparables entre años. Tu posición patrimonial acumulada (cuánto tienes en total) la ves en Fondos e
