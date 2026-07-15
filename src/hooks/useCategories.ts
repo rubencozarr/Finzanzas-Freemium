@@ -254,6 +254,23 @@ export function useCategories(userId: string | undefined) {
     [categories, refetch],
   );
 
+  const updateCategoryActive = useCallback(
+    async (id: string, active: boolean) => {
+      if (isLocalBackend) {
+        setCategories((prev) => {
+          const next = prev.map((c) => (c.id === id ? { ...c, isActive: active } : c));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("categories").update({ is_active: active }).eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
   return {
     categories,
     loading,
@@ -265,6 +282,7 @@ export function useCategories(userId: string | undefined) {
     addSubcategory,
     removeSubcategory,
     moveCategory,
+    updateCategoryActive,
     refetch,
   };
 }

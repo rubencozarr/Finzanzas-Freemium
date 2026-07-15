@@ -68,6 +68,7 @@ function App() {
     addSubcategory,
     removeSubcategory,
     moveCategory,
+    updateCategoryActive,
     refetch: refetchCategories,
   } = useCategories(userId);
   const { recurring, addRecurring, removeRecurring, updateRecurringAmount, refetch: refetchRecurring } = useRecurring(userId);
@@ -653,6 +654,7 @@ function App() {
             addSubcategory={addSubcategory}
             removeSubcategory={removeSubcategory}
             moveCategory={moveCategory}
+            updateCategoryActive={updateCategoryActive}
             getCategoryUsageCount={getCategoryUsageCount}
             getSubcategoryUsageCount={getSubcategoryUsageCount}
             variableBudget={variableBudget}

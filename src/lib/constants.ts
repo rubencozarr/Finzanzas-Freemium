@@ -64,6 +64,7 @@ export function buildDefaultCategories(): Category[] {
     subcategories: seed.subcategoryNames.map((name) => ({ id: crypto.randomUUID(), name })),
     budget: null,
     sortOrder: index,
+    isActive: true,
   }));
 }
 

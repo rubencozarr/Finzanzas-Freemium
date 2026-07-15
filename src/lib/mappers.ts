@@ -92,6 +92,7 @@ export function fromCategoryRow(row: CategoryRow): Category {
     subcategories: row.subcategories ?? [],
     budget: row.budget,
     sortOrder: row.sort_order,
+    isActive: row.is_active,
   };
 }
 

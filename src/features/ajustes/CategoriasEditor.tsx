@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
 import { fmt } from "../../lib/format";
 import { PremiumGate } from "../../components/PremiumGate";
+import { FREE_MAX_CATEGORIES } from "../../lib/constants";
 import type { Category, CategoryType } from "../../types";
 
 interface CategoriasEditorProps {
@@ -15,6 +16,7 @@ interface CategoriasEditorProps {
   addSubcategory: (categoryId: string, name: string) => void;
   removeSubcategory: (categoryId: string, subcategoryId: string) => void;
   moveCategory: (id: string, direction: -1 | 1) => void;
+  updateCategoryActive: (id: string, active: boolean) => void;
   getCategoryUsageCount: (categoryId: string) => number;
   getSubcategoryUsageCount: (categoryId: string, subcategoryId: string) => number;
   variableBudget: number;
@@ -32,6 +34,7 @@ export function CategoriasEditor({
   addSubcategory,
   removeSubcategory,
   moveCategory,
+  updateCategoryActive,
   getCategoryUsageCount,
   getSubcategoryUsageCount,
   variableBudget,
@@ -115,6 +118,11 @@ export function CategoriasEditor({
 
   const renderGroup = (type: CategoryType, title: string) => {
     const list = categories.filter((c) => c.type === type).sort((a, b) => a.sortOrder - b.sortOrder);
+    // Downgrade/importación: un free con más de 6 categorías de este tipo puede ver y usar todas en
+    // movimientos ya existentes, pero solo crear movimientos nuevos con las que marque como "activas"
+    // (máx. FREE_MAX_CATEGORIES[type]). Mismo mecanismo que "fondo activo" en FondosTab.tsx.
+    const showActiveToggle = !isPremium && list.length > FREE_MAX_CATEGORIES[type];
+    const activeCount = list.filter((c) => c.isActive).length;
     return (
       <div className="mb-5">
         <p className="text-sm font-semibold mb-2">{title}</p>
@@ -208,6 +216,21 @@ export function CategoriasEditor({
                   </button>
                 </div>
               </div>
+              {showActiveToggle && (
+                <button
+                  onClick={() => updateCategoryActive(cat.id, !cat.isActive)}
+                  disabled={!cat.isActive && activeCount >= FREE_MAX_CATEGORIES[type]}
+                  className={`text-[11px] px-2 py-0.5 rounded-full border mb-2 ${
+                    cat.isActive
+                      ? "bg-teal-50 text-teal-700 border-teal-200"
+                      : activeCount >= FREE_MAX_CATEGORIES[type]
+                        ? "text-stone-300 border-stone-100"
+                        : "text-stone-400 border-stone-200"
+                  }`}
+                >
+                  {cat.isActive ? "Categoría activa ✓" : "Marcar como activa"}
+                </button>
+              )}
               {type === "variable" && isPremium && (
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs text-stone-500">Presupuesto mensual</span>

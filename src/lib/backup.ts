@@ -68,12 +68,23 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
           subcategories: c.subcategories,
           budget: c.budget ?? null,
           sort_order: c.sortOrder,
+          is_active: c.isActive ?? true,
         })),
       ),
     );
   }
   if (raw.funds?.length) {
-    await run(supabase.from("funds").insert(raw.funds.map((f) => ({ id: f.id, user_id: userId, name: f.name }))));
+    await run(
+      supabase.from("funds").insert(
+        raw.funds.map((f) => ({
+          id: f.id,
+          user_id: userId,
+          name: f.name,
+          goal_amount: f.goalAmount ?? null,
+          is_active: f.isActive ?? true,
+        })),
+      ),
+    );
   }
   if (raw.recurring?.length) {
     await run(

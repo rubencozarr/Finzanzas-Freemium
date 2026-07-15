@@ -20,6 +20,7 @@ interface AjustesTabProps {
   addSubcategory: (categoryId: string, name: string) => void;
   removeSubcategory: (categoryId: string, subcategoryId: string) => void;
   moveCategory: (id: string, direction: -1 | 1) => void;
+  updateCategoryActive: (id: string, active: boolean) => void;
   getCategoryUsageCount: (categoryId: string) => number;
   getSubcategoryUsageCount: (categoryId: string, subcategoryId: string) => number;
   variableBudget: number;
@@ -61,6 +62,7 @@ export function AjustesTab({
   addSubcategory,
   removeSubcategory,
   moveCategory,
+  updateCategoryActive,
   getCategoryUsageCount,
   getSubcategoryUsageCount,
   variableBudget,
@@ -160,6 +162,7 @@ export function AjustesTab({
           addSubcategory={addSubcategory}
           removeSubcategory={removeSubcategory}
           moveCategory={moveCategory}
+          updateCategoryActive={updateCategoryActive}
           getCategoryUsageCount={getCategoryUsageCount}
           getSubcategoryUsageCount={getSubcategoryUsageCount}
           variableBudget={variableBudget}

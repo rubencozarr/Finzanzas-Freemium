@@ -32,6 +32,10 @@ create table if not exists public.categories (
   subcategories jsonb not null default '[]'::jsonb,
   budget numeric(12, 2),
   sort_order integer not null default 0,
+  -- Solo relevante para free con más de FREE_MAX_CATEGORIES[type] categorías de ese tipo
+  -- (downgrade/importación): controla con cuáles se pueden crear nuevos movimientos. En premium se
+  -- ignora, todas las categorías son utilizables siempre.
+  is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 

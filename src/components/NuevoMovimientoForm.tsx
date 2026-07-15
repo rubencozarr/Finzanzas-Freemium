@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Chip } from "./Chip";
 import { PremiumGate } from "./PremiumGate";
-import { AHORRO_LIBRE_ID, INCOME_CATS } from "../lib/constants";
+import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
 import { fmt, monthKey } from "../lib/format";
 import type { NewTransaction } from "../hooks/useTransactions";
@@ -98,8 +98,17 @@ export function NuevoMovimientoForm({
   const currentCat = categories.find((c) => c.id === categoryId);
   const needsFund = type === "aportacion" || type === "retiro";
   const needsAsset = type === "inversion";
-  const fixedCats = categories.filter((c) => c.type === "fixed");
-  const variableCats = categories.filter((c) => c.type === "variable");
+  // Downgrade/importación: un free con más de 6 categorías de un tipo solo puede crear movimientos
+  // nuevos con las que tenga marcadas como "activas" (mismo mecanismo que "fondo activo" en
+  // FondosTab.tsx). Las categorías inactivas no desaparecen del resto de la app, solo de este selector.
+  const allFixedCats = categories.filter((c) => c.type === "fixed");
+  const allVariableCats = categories.filter((c) => c.type === "variable");
+  const fixedCats =
+    !isPremium && allFixedCats.length > FREE_MAX_CATEGORIES.fixed ? allFixedCats.filter((c) => c.isActive) : allFixedCats;
+  const variableCats =
+    !isPremium && allVariableCats.length > FREE_MAX_CATEGORIES.variable
+      ? allVariableCats.filter((c) => c.isActive)
+      : allVariableCats;
   const selectedFund = funds.find((f) => f.id === fundId);
 
   const amt = parseFloat(amount) || 0;

@@ -40,6 +40,7 @@ export interface CategoryRow {
   subcategories: { id: string; name: string }[];
   budget: number | null;
   sort_order: number;
+  is_active: boolean;
   created_at: string;
 }
 

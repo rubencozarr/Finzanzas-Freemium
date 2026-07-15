@@ -44,6 +44,7 @@ export interface Category {
   subcategories: Subcategory[];
   budget?: number | null; // solo variables
   sortOrder: number;
+  isActive?: boolean;
 }
 
 export interface Recurring {
