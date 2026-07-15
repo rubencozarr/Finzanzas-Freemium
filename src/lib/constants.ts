@@ -44,14 +44,15 @@ const DEFAULT_CATEGORY_SEEDS: DefaultCategorySeed[] = [
   { type: "fixed", name: "Vivienda", subcategoryNames: [] },
   { type: "fixed", name: "Suministros", subcategoryNames: [] },
   { type: "fixed", name: "Seguros", subcategoryNames: [] },
+  { type: "fixed", name: "Préstamos", subcategoryNames: [] },
   { type: "fixed", name: "Suscripciones", subcategoryNames: [] },
-  { type: "fixed", name: "Otros fijos", subcategoryNames: [] },
-  { type: "variable", name: "Alimentación", subcategoryNames: ["Supermercado", "Restaurantes"] },
-  { type: "variable", name: "Transporte", subcategoryNames: ["Gasolina", "Transporte público", "Taxi/VTC"] },
-  { type: "variable", name: "Ocio", subcategoryNames: ["Cine", "Tapas", "Restaurantes", "Otros ocio"] },
-  { type: "variable", name: "Salud", subcategoryNames: ["Farmacia", "Médico"] },
-  { type: "variable", name: "Imprevistos", subcategoryNames: [] },
-  { type: "variable", name: "Otros variables", subcategoryNames: [] },
+  { type: "fixed", name: "Educación", subcategoryNames: [] },
+  { type: "variable", name: "Alimentación", subcategoryNames: [] },
+  { type: "variable", name: "Transporte", subcategoryNames: [] },
+  { type: "variable", name: "Ocio", subcategoryNames: [] },
+  { type: "variable", name: "Salud", subcategoryNames: [] },
+  { type: "variable", name: "Ropa", subcategoryNames: [] },
+  { type: "variable", name: "Otros", subcategoryNames: [] },
 ];
 
 /** Categorías por defecto en el modelo de la app (camelCase), para sembrar el modo local. */
