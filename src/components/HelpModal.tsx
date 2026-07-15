@@ -18,14 +18,19 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
       "Fijo es lo que pagas sí o sí cada mes (alquiler, seguros, suscripciones). Variable es lo que cambia según tus decisiones (alimentación, ocio, ropa). La app los separa porque se controlan de forma distinta: el fijo lo reduces renegociando contratos, el variable lo reduces con hábitos diarios.",
   },
   {
+    question: "¿Qué es el ahorro libre?",
+    answer:
+      "El ahorro libre es el dinero que te sobra cada mes después de descontar todos tus gastos, lo destinado a inversión y lo aportado a fondos de ahorro.",
+  },
+  {
     question: "¿Qué es el ahorro libre consolidado?",
     answer:
-      "El ahorro libre es el dinero que te sobra cada mes después de descontar todos tus gastos, lo destinado a inversión y lo aportado a fondos de ahorro. Es la suma de todo el dinero que te ha sobrado en meses anteriores sin gastarlo ni asignarlo a ningún fondo. Es dinero tuyo que puedes usar en cualquier momento marcando \"pagado con ahorro\" al crear un gasto.",
+      "Es la suma de todo el dinero que te ha sobrado en meses anteriores sin gastarlo ni asignarlo a ningún fondo. Es dinero tuyo que puedes usar en cualquier momento marcando \"pagado con ahorro\" al crear un gasto.",
   },
   {
     question: "¿Qué es el ahorro libre en curso?",
     answer:
-      "El ahorro libre es el dinero que te sobra cada mes después de descontar todos tus gastos, lo destinado a inversión y lo aportado a fondos de ahorro. Es lo que te ha sobrado este mes. Todavía puede cambiar (porque el mes no ha terminado). Cuando el mes cierre, ese dinero se sumará al consolidado.",
+      "Es lo que te ha sobrado este mes. Todavía puede cambiar (porque el mes no ha terminado). Cuando el mes cierre, ese dinero se sumará al consolidado.",
   },
   {
     question: "¿Cómo funcionan los fondos de ahorro?",
