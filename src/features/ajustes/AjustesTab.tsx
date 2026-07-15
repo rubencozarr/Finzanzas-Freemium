@@ -230,9 +230,14 @@ export function AjustesTab({
             </p>
             <button
               onClick={async () => {
-                const ok = await onImport(importConfirm);
-                setImportConfirm(null);
-                if (!ok) setImportError("No se pudieron importar los datos.");
+                try {
+                  const ok = await onImport(importConfirm);
+                  setImportConfirm(null);
+                  if (!ok) setImportError("No se pudieron importar los datos.");
+                } catch (e) {
+                  setImportConfirm(null);
+                  setImportError(e instanceof Error ? e.message : "No se pudieron importar los datos.");
+                }
               }}
               className="w-full bg-rose-600 text-white rounded-lg py-2.5 text-sm font-medium mb-2"
             >
