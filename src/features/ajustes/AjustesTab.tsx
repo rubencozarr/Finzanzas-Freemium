@@ -5,7 +5,7 @@ import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
 import { InvestmentEditor } from "./InvestmentEditor";
 import { PremiumGate } from "../../components/PremiumGate";
-import type { Asset, Category, CategoryType, InvestmentConfig, Recurring, RecurringIncome } from "../../types";
+import type { Asset, Category, CategoryType, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
 
 type Section = "categorias" | "recurrentes" | "ingresos" | "inversion";
 
@@ -21,7 +21,8 @@ interface AjustesTabProps {
   removeSubcategory: (categoryId: string, subcategoryId: string) => void;
   moveCategory: (id: string, direction: -1 | 1) => void;
   updateCategoryActive: (id: string, active: boolean) => void;
-  categoriesLockedUntil: string | null;
+  transactions: Transaction[];
+  currentMonthKey: string;
   getCategoryUsageCount: (categoryId: string) => number;
   getSubcategoryUsageCount: (categoryId: string, subcategoryId: string) => number;
   variableBudget: number;
@@ -64,7 +65,8 @@ export function AjustesTab({
   removeSubcategory,
   moveCategory,
   updateCategoryActive,
-  categoriesLockedUntil,
+  transactions,
+  currentMonthKey,
   getCategoryUsageCount,
   getSubcategoryUsageCount,
   variableBudget,
@@ -165,7 +167,8 @@ export function AjustesTab({
           removeSubcategory={removeSubcategory}
           moveCategory={moveCategory}
           updateCategoryActive={updateCategoryActive}
-          categoriesLockedUntil={categoriesLockedUntil}
+          transactions={transactions}
+          currentMonthKey={currentMonthKey}
           getCategoryUsageCount={getCategoryUsageCount}
           getSubcategoryUsageCount={getSubcategoryUsageCount}
           variableBudget={variableBudget}

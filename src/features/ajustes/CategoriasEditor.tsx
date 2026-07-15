@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Check, ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
-import { fmt, formatMonthYear, isFutureLock } from "../../lib/format";
+import { Check, ChevronDown, ChevronUp, Crown, Pencil, Plus, Trash2, X } from "lucide-react";
+import { firstOfNextMonthISO, fmt, formatMonthYear, monthKey } from "../../lib/format";
 import { PremiumGate } from "../../components/PremiumGate";
 import { FREE_MAX_CATEGORIES } from "../../lib/constants";
-import type { Category, CategoryType } from "../../types";
+import type { Category, CategoryType, Transaction } from "../../types";
 
 interface CategoriasEditorProps {
   isPremium: boolean;
@@ -17,11 +17,31 @@ interface CategoriasEditorProps {
   removeSubcategory: (categoryId: string, subcategoryId: string) => void;
   moveCategory: (id: string, direction: -1 | 1) => void;
   updateCategoryActive: (id: string, active: boolean) => void;
-  categoriesLockedUntil: string | null;
+  transactions: Transaction[];
+  currentMonthKey: string;
   getCategoryUsageCount: (categoryId: string) => number;
   getSubcategoryUsageCount: (categoryId: string, subcategoryId: string) => number;
   variableBudget: number;
   updateVariableBudget: (amount: number) => void;
+}
+
+// Corona junto al nombre de la categoría cuando está activa y ya se usó (un gasto) este mes — mismo
+// patrón que FundLockBadge en FondosTab.tsx: toca para abrir/cerrar el tooltip.
+function CategoryLockBadge() {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline-flex shrink-0">
+      <button onClick={() => setOpen((o) => !o)} className="text-amber-500 hover:text-amber-600">
+        <Crown size={13} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-10 w-48 bg-slate-800 text-white text-[11px] rounded-lg px-2.5 py-2 shadow-lg">
+          Tu selección está fijada hasta {formatMonthYear(firstOfNextMonthISO())}. Con Premium puedes usar todas tus categorías
+          sin límite.
+        </div>
+      )}
+    </span>
+  );
 }
 
 export function CategoriasEditor({
@@ -36,13 +56,18 @@ export function CategoriasEditor({
   removeSubcategory,
   moveCategory,
   updateCategoryActive,
-  categoriesLockedUntil,
+  transactions,
+  currentMonthKey,
   getCategoryUsageCount,
   getSubcategoryUsageCount,
   variableBudget,
   updateVariableBudget,
 }: CategoriasEditorProps) {
-  const isCategoriesLocked = isFutureLock(categoriesLockedUntil);
+  // El bloqueo es por categoría, no global: una categoría activa con la que ya se ha registrado un
+  // gasto este mes no se puede desactivar, pero el resto de huecos (si no se han usado todavía) siguen
+  // libres para activar/desactivar. Mismo mecanismo que "fondo activo" en FondosTab.tsx.
+  const categoryUsedThisMonth = (categoryId: string) =>
+    transactions.some((t) => t.type === "gasto" && t.categoryId === categoryId && monthKey(t.date) === currentMonthKey);
   const [newSubName, setNewSubName] = useState<Record<string, string>>({});
   const [newCatName, setNewCatName] = useState<Record<CategoryType, string>>({ fixed: "", variable: "" });
   const [addError, setAddError] = useState<Record<CategoryType, string | null>>({ fixed: null, variable: null });
@@ -162,20 +187,16 @@ export function CategoriasEditor({
           })()}
         {showActiveToggle && (
           <div className="mb-3">
-            {isCategoriesLocked ? (
-              <PremiumGate
-                message={`Tu selección está fijada hasta ${formatMonthYear(categoriesLockedUntil!)}. Con Premium puedes usar todas tus categorías sin límite.`}
-              />
-            ) : (
-              <p className="text-xs text-stone-400">
-                Elige tus {FREE_MAX_CATEGORIES[type]} categorías activas de cada tipo. Una vez registres el primer gasto del mes,
-                la selección se mantendrá hasta el mes siguiente.
-              </p>
-            )}
+            <p className="text-xs text-stone-400">
+              Elige tus {FREE_MAX_CATEGORIES[type]} categorías activas de cada tipo. Una vez registres el primer gasto del mes,
+              la selección se mantendrá hasta el mes siguiente.
+            </p>
           </div>
         )}
         <div className="space-y-3">
-          {list.map((cat, i) => (
+          {list.map((cat, i) => {
+            const catLocked = showActiveToggle && cat.isActive && categoryUsedThisMonth(cat.id);
+            return (
             <div key={cat.id} className="border border-stone-100 rounded-lg p-2.5 bg-white">
               <div className="flex justify-between items-center mb-2">
                 {editingCatId === cat.id ? (
@@ -215,6 +236,7 @@ export function CategoriasEditor({
                     <button onClick={() => startRename(cat)} className="text-stone-300 hover:text-slate-700">
                       <Pencil size={12} />
                     </button>
+                    {catLocked && <CategoryLockBadge />}
                   </span>
                 )}
                 <div className="flex items-center gap-2 shrink-0">
@@ -236,14 +258,14 @@ export function CategoriasEditor({
               {showActiveToggle && (
                 <button
                   onClick={() => updateCategoryActive(cat.id, !cat.isActive)}
-                  disabled={isCategoriesLocked || (!cat.isActive && activeCount >= FREE_MAX_CATEGORIES[type])}
+                  disabled={catLocked || (!cat.isActive && activeCount >= FREE_MAX_CATEGORIES[type])}
                   className={`text-[11px] px-2 py-0.5 rounded-full border mb-2 ${
                     cat.isActive
                       ? "bg-teal-50 text-teal-700 border-teal-200"
                       : activeCount >= FREE_MAX_CATEGORIES[type]
                         ? "text-stone-300 border-stone-100"
                         : "text-stone-400 border-stone-200"
-                  } ${isCategoriesLocked ? "opacity-50" : ""}`}
+                  } ${catLocked ? "opacity-50" : ""}`}
                 >
                   {cat.isActive ? "Categoría activa ✓" : "Marcar como activa"}
                 </button>
@@ -293,7 +315,8 @@ export function CategoriasEditor({
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
         {canCreateCategory(list.length, type) && (
           <>

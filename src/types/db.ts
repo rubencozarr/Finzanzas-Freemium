@@ -90,8 +90,6 @@ export interface UserSettingsRow {
   user_id: string;
   onboarding_completed: boolean;
   savings_milestone_shown: boolean;
-  active_funds_locked_until: string | null;
-  active_categories_locked_until: string | null;
   updated_at: string;
 }
 

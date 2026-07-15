@@ -12,7 +12,6 @@ import { useVariableBudget } from "./hooks/useVariableBudget";
 import { useOnboardingStatus } from "./hooks/useOnboardingStatus";
 import { useSubscription } from "./hooks/useSubscription";
 import { useSavingsMilestone } from "./hooks/useSavingsMilestone";
-import { useActiveSelectionLocks } from "./hooks/useActiveSelectionLocks";
 import { FREE_MAX_CATEGORIES, FREE_MAX_FUNDS } from "./lib/constants";
 import {
   ahorroLibreDisponibleParaMes,
@@ -34,7 +33,7 @@ import {
   type OrphanGroup,
   type OrphanSubcategoryGroup,
 } from "./lib/calculations";
-import { fmt, isFutureLock, monthKey, todayISO } from "./lib/format";
+import { fmt, monthKey, todayISO } from "./lib/format";
 import { buildBackup, downloadBackup, importBackup } from "./lib/backup";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
@@ -51,7 +50,7 @@ import { FondosTab } from "./features/fondos/FondosTab";
 import { MensualTab } from "./features/mensual/MensualTab";
 import { AnualTab } from "./features/anual/AnualTab";
 import { AjustesTab } from "./features/ajustes/AjustesTab";
-import type { AssetWithTotal, FundWithBalance, Transaction, TransactionType } from "./types";
+import type { AssetWithTotal, FundWithBalance, Transaction } from "./types";
 
 type Tab = "movimientos" | "fondos" | "mensual" | "anual" | "ajustes";
 
@@ -96,14 +95,14 @@ function App() {
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
   const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
   const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
-  const { categoriesLockedUntil, loading: locksLoading, lockCategoriesUntilNextMonth, clearCategoriesLock } =
-    useActiveSelectionLocks(userId);
 
   // Downgrade/importación: un free puede heredar más fondos/categorías "activos" que su límite (los
   // datos importados o los de una cuenta que antes era premium llegan con is_active = true). En cuanto
   // se detecta ese estado se desactivan todos, para que el usuario elija su selección desde cero dentro
   // del límite. Autolimitado: en cuanto la desactivación se aplica, el recuento de activos baja del
-  // límite y el efecto deja de disparar.
+  // límite y el efecto deja de disparar. El bloqueo mensual de fondos/categorías activas (una vez se
+  // usan) se deriva directamente de las transacciones del mes en FondosTab.tsx/CategoriasEditor.tsx
+  // (por elemento, no de forma global), así que no hace falta ningún estado ni escritura aquí.
   useEffect(() => {
     if (isPremium || fundsLoading) return;
     const activeFunds = funds.filter((f) => f.isActive);
@@ -112,7 +111,7 @@ function App() {
   }, [isPremium, fundsLoading, funds, updateFundActive]);
 
   useEffect(() => {
-    if (isPremium || categoriesLoading || locksLoading) return;
+    if (isPremium || categoriesLoading) return;
     const overLimitTypes = (["fixed", "variable"] as const).filter((type) => {
       const list = categories.filter((c) => c.type === type);
       return list.length > FREE_MAX_CATEGORIES[type] && list.filter((c) => c.isActive).length > FREE_MAX_CATEGORIES[type];
@@ -121,21 +120,7 @@ function App() {
     overLimitTypes.forEach((type) => {
       categories.filter((c) => c.type === type && c.isActive).forEach((c) => updateCategoryActive(c.id, false));
     });
-    if (categoriesLockedUntil) clearCategoriesLock();
-  }, [isPremium, categoriesLoading, locksLoading, categories, categoriesLockedUntil, updateCategoryActive, clearCategoriesLock]);
-
-  // Dispara el bloqueo mensual de categorías activas al crear un gasto nuevo (no al editar). Fondos ya
-  // no usa este mecanismo: su bloqueo se deriva directamente de las transacciones del mes en
-  // FondosTab.tsx (por fondo, no de forma global), así que no hace falta escribir nada aquí.
-  const maybeLockActiveSelection = async (tx: { type: TransactionType; fundId?: string | null; categoryId?: string | null }) => {
-    if (isPremium || locksLoading) return;
-    if (tx.type === "gasto" && tx.categoryId && !isFutureLock(categoriesLockedUntil)) {
-      const cat = categories.find((c) => c.id === tx.categoryId);
-      if (cat && cat.isActive && categories.filter((c) => c.type === cat.type).length > FREE_MAX_CATEGORIES[cat.type]) {
-        await lockCategoriesUntilNextMonth();
-      }
-    }
-  };
+  }, [isPremium, categoriesLoading, categories, updateCategoryActive]);
 
   const [tab, setTab] = useState<Tab>("movimientos");
   const [ajustesSection, setAjustesSection] = useState("categorias");
@@ -415,7 +400,6 @@ function App() {
         fundedBy: null,
         recurringId: tpl.id,
       });
-      await maybeLockActiveSelection({ type: "gasto", categoryId: cat?.id ?? null });
     }
     for (const it of investment) {
       const asset = assets.find((a) => a.id === it.id);
@@ -708,7 +692,8 @@ function App() {
             removeSubcategory={removeSubcategory}
             moveCategory={moveCategory}
             updateCategoryActive={updateCategoryActive}
-            categoriesLockedUntil={categoriesLockedUntil}
+            transactions={transactions}
+            currentMonthKey={currentMonthKey}
             getCategoryUsageCount={getCategoryUsageCount}
             getSubcategoryUsageCount={getSubcategoryUsageCount}
             variableBudget={variableBudget}
@@ -760,7 +745,6 @@ function App() {
               showToast("Movimiento actualizado");
             } else {
               await addTransaction(tx);
-              await maybeLockActiveSelection(tx);
               showToast("Movimiento guardado");
             }
             setShowForm(false);

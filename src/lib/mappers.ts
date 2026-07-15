@@ -138,15 +138,6 @@ export function fromSavingsMilestoneRow(row: UserSettingsRow | null): boolean {
   return row?.savings_milestone_shown ?? false;
 }
 
-export function fromActiveSelectionLocksRow(row: UserSettingsRow | null): {
-  fundsLockedUntil: string | null;
-  categoriesLockedUntil: string | null;
-} {
-  return {
-    fundsLockedUntil: row?.active_funds_locked_until ?? null,
-    categoriesLockedUntil: row?.active_categories_locked_until ?? null,
-  };
-}
 
 // Sin fila -> free. Plan "premium" con status distinto de "active" (cancelled/past_due) también
 // se trata como free: si el pago falló o se canceló, no debe seguir dando acceso premium.

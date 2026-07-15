@@ -107,13 +107,16 @@ create table if not exists public.user_settings (
   onboarding_completed boolean not null default false,
   -- Aviso de conversión free "ya llevas 500€ ahorrados": se muestra una sola vez.
   savings_milestone_shown boolean not null default false,
-  -- Bloqueo mensual de la selección de fondos/categorías activas (free con más elementos que su
-  -- límite, por downgrade o importación): se fija al usar la selección por primera vez en el mes
-  -- (primera aportación / primer gasto), al día 1 del mes siguiente. Null = sin bloquear.
-  active_funds_locked_until date,
-  active_categories_locked_until date,
   updated_at timestamptz not null default now()
 );
+
+-- Nota histórica: esta tabla llegó a tener active_funds_locked_until/active_categories_locked_until
+-- para un bloqueo mensual a nivel de cuenta. Se sustituyó por un bloqueo por fondo/categoría derivado
+-- directamente de las transacciones del mes (ver FondosTab.tsx/CategoriasEditor.tsx), así que esas
+-- columnas ya no las lee la aplicación. Si existen en tu base de datos (por haber ejecutado una versión
+-- anterior de este archivo), puedes eliminarlas opcionalmente con:
+--   alter table public.user_settings drop column if exists active_funds_locked_until;
+--   alter table public.user_settings drop column if exists active_categories_locked_until;
 
 -- =========================================================
 -- SUBSCRIPTIONS (estado de suscripción freemium, una fila por usuario)
