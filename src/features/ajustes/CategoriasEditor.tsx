@@ -146,11 +146,6 @@ export function CategoriasEditor({
                     Los presupuestos por categoría suman {fmt(sumaCat)}, pero tu presupuesto total es {fmt(variableBudget)}.
                   </p>
                 )}
-                {!isPremium && (
-                  <div className="mt-2">
-                    <PremiumGate message="Los presupuestos por categoría están disponibles con Premium" />
-                  </div>
-                )}
               </div>
             );
           })()}
@@ -294,7 +289,7 @@ export function CategoriasEditor({
     <div>
       {!isPremium && (
         <div className="mb-4">
-          <PremiumGate message="Las subcategorías están disponibles con Premium" />
+          <PremiumGate message="Con Premium: categorías ilimitadas, subcategorías y presupuestos por categoría." />
         </div>
       )}
       {renderGroup("fixed", "Categorías fijas")}
