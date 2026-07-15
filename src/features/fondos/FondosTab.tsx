@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Target, Trash2, X } from "lucide-react";
+import { Check, Crown, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { FREE_MAX_FUNDS, MONTHS_FULL } from "../../lib/constants";
@@ -35,6 +35,26 @@ interface FondosTabProps {
   onQuickMove: (fund: FundWithBalance, type: "aportacion" | "retiro") => void;
   onQuickInvest: (asset: AssetWithTotal) => void;
   onGoToAjustes: () => void;
+}
+
+// Corona junto al nombre del fondo cuando está activo y la selección ya quedó fijada este mes (mismo
+// patrón visual/interacción que PremiumHintBadge en MonthlyInsights.tsx: toca para abrir/cerrar el
+// tooltip, no se cierra solo al tocar fuera).
+function FundLockBadge({ lockedUntil }: { lockedUntil: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline-flex shrink-0">
+      <button onClick={() => setOpen((o) => !o)} className="text-amber-500 hover:text-amber-600">
+        <Crown size={13} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-10 w-48 bg-slate-800 text-white text-[11px] rounded-lg px-2.5 py-2 shadow-lg">
+          Tu selección está fijada hasta {formatMonthYear(lockedUntil)}. Con Premium puedes aportar a todos tus fondos sin
+          límite.
+        </div>
+      )}
+    </span>
+  );
 }
 
 export function FondosTab({
@@ -186,18 +206,12 @@ export function FondosTab({
           <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" />
         </div>
       )}
-      {showActiveToggle && (
+      {showActiveToggle && !isFundsLocked && (
         <div className="mb-3">
-          {isFundsLocked ? (
-            <PremiumGate
-              message={`Tu selección está fijada hasta ${formatMonthYear(fundsLockedUntil!)}. Con Premium puedes usar todos tus fondos sin límite.`}
-            />
-          ) : (
-            <p className="text-xs text-stone-400">
-              Elige tus {FREE_MAX_FUNDS} fondos activos para aportaciones. Una vez hagas la primera aportación del mes, la
-              selección se mantendrá hasta el mes siguiente.
-            </p>
-          )}
+          <p className="text-xs text-stone-400">
+            Elige tus {FREE_MAX_FUNDS} fondos activos para aportaciones. Una vez hagas la primera aportación del mes, la
+            selección se mantendrá hasta el mes siguiente.
+          </p>
         </div>
       )}
       <div className="space-y-3 mb-2">
@@ -227,7 +241,10 @@ export function FondosTab({
               </div>
             ) : (
               <div className="flex justify-between items-baseline gap-2 mb-2">
-                <span className="text-sm font-medium min-w-0 truncate">{f.name}</span>
+                <span className="flex items-center gap-1 min-w-0">
+                  <span className="text-sm font-medium truncate">{f.name}</span>
+                  {showActiveToggle && isFundsLocked && f.isActive && <FundLockBadge lockedUntil={fundsLockedUntil!} />}
+                </span>
                 <span className="font-mono text-sm text-teal-700 shrink-0">{fmt(f.balance)}</span>
               </div>
             )}
