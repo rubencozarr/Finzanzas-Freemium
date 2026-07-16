@@ -9,8 +9,9 @@ export const FREE_HISTORY_MONTHS = 6;
 
 // Iconos elegibles para fondos de ahorro (nombres kebab-case, ver src/lib/fundIcons.ts para el mapeo a
 // componentes de lucide-react).
-export const FREE_FUND_ICONS = ["piggy-bank", "plane", "car", "house", "gift", "heart"] as const;
+export const FREE_FUND_ICONS = ["piggy-bank", "plane", "car", "house", "gift"] as const;
 export const PREMIUM_FUND_ICONS = [
+  "heart",
   "graduation-cap",
   "baby",
   "wrench",
