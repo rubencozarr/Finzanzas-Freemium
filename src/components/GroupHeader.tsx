@@ -18,21 +18,29 @@ interface GroupHeaderProps {
   extra?: string | null;
   expanded: boolean;
   onToggle: () => void;
+  /** false = solo cabecera informativa (sin chevron ni toggle), para bloques sin nada que expandir. */
+  interactive?: boolean;
 }
 
-export function GroupHeader({ title, total, tone, extra, expanded, onToggle }: GroupHeaderProps) {
+export function GroupHeader({ title, total, tone, extra, expanded, onToggle, interactive = true }: GroupHeaderProps) {
+  const content = (
+    <div className="flex justify-between items-center">
+      <span className={`text-xs font-semibold uppercase tracking-wide rounded-full px-2.5 py-1 ${GROUP_BADGE[tone]} inline-flex items-center gap-1`}>
+        {title}
+        {interactive && (expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
+      </span>
+      <span className="font-mono text-sm">
+        {fmt(total)}
+        {extra ? <span className="text-stone-400"> · {extra}</span> : ""}
+      </span>
+    </div>
+  );
+  if (!interactive) {
+    return <div className="w-full text-left mb-2">{content}</div>;
+  }
   return (
     <button onClick={onToggle} className="w-full text-left mb-2">
-      <div className="flex justify-between items-center">
-        <span className={`text-xs font-semibold uppercase tracking-wide rounded-full px-2.5 py-1 ${GROUP_BADGE[tone]} inline-flex items-center gap-1`}>
-          {title}
-          {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        </span>
-        <span className="font-mono text-sm">
-          {fmt(total)}
-          {extra ? <span className="text-stone-400"> · {extra}</span> : ""}
-        </span>
-      </div>
+      {content}
     </button>
   );
 }

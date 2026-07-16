@@ -13,11 +13,14 @@ interface CategoryGroupProps {
   tone: GroupTone;
   showPct?: boolean;
   budget?: number;
+  /** Cabecera informativa sin desglose: ni chevron ni expandir, solo el total. Para bloques cuyo
+   * detalle por elemento individual no debe verse (p. ej. inversión por activo en free). */
+  hideDetail?: boolean;
 }
 
 const VARIABLE_PALETTE = ["#fb7185", "#f97373", "#fda4af", "#e11d48", "#f43f5e", "#9f1239", "#be123c", "#fecdd3"];
 
-export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget = 0 }: CategoryGroupProps) {
+export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget = 0, hideDetail }: CategoryGroupProps) {
   const [expanded, setExpanded] = useState(false);
   const hasBudget = budget > 0;
   const budgetPct = hasBudget ? (total / budget) * 100 : 0;
@@ -39,6 +42,7 @@ export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget =
         extra={showPct ? `${pct.toFixed(0)}% de tus ingresos` : null}
         expanded={expanded}
         onToggle={() => !isEmpty && setExpanded((e) => !e)}
+        interactive={!hideDetail}
       />
       {hasBudget && !isEmpty && (
         <p className={`text-xs -mt-1 mb-2 ${overBudget ? "text-rose-600 font-medium" : "text-stone-400"}`}>
@@ -47,7 +51,8 @@ export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget =
             : `${budgetPct.toFixed(0)}% de tu presupuesto total de variable (${fmt(budget)})`}
         </p>
       )}
-      {expanded &&
+      {!hideDetail &&
+        expanded &&
         (cats.length === 0 ? (
           <p className="text-stone-400 text-xs mb-2">Sin movimientos en este bloque.</p>
         ) : (

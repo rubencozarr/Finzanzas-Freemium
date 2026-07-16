@@ -132,7 +132,15 @@ export function MensualTab({
         showPct
         budget={variableBudget}
       />
-      <CategoryGroup title="Inversión" total={stats.inversion} pct={pctInversion} cats={assetCats} tone="inversion" showPct />
+      <CategoryGroup
+        title="Inversión"
+        total={stats.inversion}
+        pct={pctInversion}
+        cats={isPremium ? assetCats : []}
+        tone="inversion"
+        showPct
+        hideDetail={!isPremium}
+      />
       <FundUsageGroup total={stats.gastosFinanciados} funds={fundUsage} />
 
       <SparklineTrend data={trend6Meses} isPremium={isPremium} />
