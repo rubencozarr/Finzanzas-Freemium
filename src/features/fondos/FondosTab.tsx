@@ -311,7 +311,7 @@ export function FondosTab({
         <GroupHeader
           title={`Mis fondos (${funds.length})`}
           total={totalFondosAtDate}
-          tone="ahorro"
+          tone="fondos"
           expanded={fundsExpanded}
           onToggle={() => setFundsExpanded((e) => !e)}
         />

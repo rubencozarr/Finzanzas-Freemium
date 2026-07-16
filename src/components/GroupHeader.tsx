@@ -1,13 +1,14 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { fmt } from "../lib/format";
 
-export type GroupTone = "fixed" | "variable" | "ahorro" | "inversion";
+export type GroupTone = "fixed" | "variable" | "ahorro" | "inversion" | "fondos";
 
 export const GROUP_BADGE: Record<GroupTone, string> = {
   fixed: "bg-slate-700 text-white",
   variable: "bg-rose-600 text-white",
   ahorro: "bg-amber-600 text-white",
   inversion: "bg-indigo-600 text-white",
+  fondos: "bg-teal-700 text-white",
 };
 
 interface GroupHeaderProps {

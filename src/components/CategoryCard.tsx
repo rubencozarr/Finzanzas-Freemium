@@ -20,18 +20,21 @@ const ACCENT: Record<GroupTone, string> = {
   variable: "border-rose-400",
   inversion: "border-indigo-400",
   ahorro: "border-amber-400",
+  fondos: "border-teal-400",
 };
 const BAR: Record<GroupTone, string> = {
   fixed: "bg-slate-400",
   variable: "bg-rose-400",
   inversion: "bg-indigo-400",
   ahorro: "bg-amber-400",
+  fondos: "bg-teal-400",
 };
 const SUB_BAR: Record<GroupTone, string> = {
   fixed: "bg-slate-200",
   variable: "bg-rose-200",
   inversion: "bg-indigo-200",
   ahorro: "bg-amber-200",
+  fondos: "bg-teal-200",
 };
 
 export function CategoryCard({ name, total, pct, pctOfVariable, subcats, sinClasificar, tone, budget }: CategoryCardProps) {
