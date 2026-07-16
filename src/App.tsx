@@ -161,8 +161,6 @@ function App() {
   const { completed: onboardingCompleted, loading: onboardingLoading, setOnboardingCompleted } = useOnboardingStatus(userId);
   const [tourActive, setTourActive] = useState(false);
   const [tourStep, setTourStep] = useState(0);
-  const [tourBaselineIncome, setTourBaselineIncome] = useState(0);
-  const [tourBaselineRecurring, setTourBaselineRecurring] = useState(0);
 
   // Decide si arrancar el tour en cuanto se conoce el estado real de este usuario (tras el fetch a
   // Supabase), en vez de al montar el componente. No se evalúa nada mientras la sesión de Supabase
@@ -184,25 +182,35 @@ function App() {
 
   const tourSteps = useMemo(
     () =>
-      buildTourSteps({
-        ensureAjustes: () => setTab("ajustes"),
-        ensureAjustesIngresos: () => {
-          setTab("ajustes");
-          setAjustesSection("ingresos");
+      buildTourSteps(
+        {
+          ensureAjustes: () => setTab("ajustes"),
+          ensureAjustesIngresos: () => {
+            setTab("ajustes");
+            setAjustesSection("ingresos");
+          },
+          ensureAjustesRecurrentes: () => {
+            setTab("ajustes");
+            setAjustesSection("recurrentes");
+          },
+          ensureAjustesInversion: () => {
+            setTab("ajustes");
+            setAjustesSection("inversion");
+          },
+          ensureMovimientos: () => setTab("movimientos"),
+          ensureMovementForm: () => {
+            setFormPreset(null);
+            setEditingTx(null);
+            setShowForm(true);
+          },
+          closeMovementForm: () => setShowForm(false),
+          ensureFondos: () => setTab("fondos"),
+          ensureMensual: () => setTab("mensual"),
+          ensureAnual: () => setTab("anual"),
         },
-        ensureAjustesRecurrentes: () => {
-          setTab("ajustes");
-          setAjustesSection("recurrentes");
-        },
-        ensureMovimientos: () => setTab("movimientos"),
-        ensureMovementForm: () => {
-          setFormPreset(null);
-          setEditingTx(null);
-          setShowForm(true);
-        },
-        closeMovementForm: () => setShowForm(false),
-      }),
-    [],
+        isPremium,
+      ),
+    [isPremium],
   );
 
   const completeTour = () => {
@@ -222,6 +230,7 @@ function App() {
       setTourStep((s) => s + 1);
     }
   };
+  const handleTourPrev = () => setTourStep((s) => Math.max(0, s - 1));
 
   const year = cursor.getFullYear();
   const monthIdx = cursor.getMonth();
@@ -480,53 +489,13 @@ function App() {
   const tourPaused =
     (showForm && !tourSteps[tourStep]?.formOpen) || showApplyPresets || showResolveOrphans || showHelp;
 
-  // Aplica el prerrequisito de estado de cada paso al entrar en él (p. ej. cambiar de pestaña),
-  // tanto si se llega haciendo clic en el elemento real como si se llega pulsando "Siguiente".
+  // Aplica el prerrequisito de estado de cada paso al entrar en él (p. ej. cambiar de pestaña, abrir
+  // o cerrar el formulario de movimiento), tanto avanzando con "Siguiente" como retrocediendo con
+  // "Anterior" — cada paso es puramente explicativo, no espera ninguna acción real del usuario.
   useEffect(() => {
     if (!tourActive) return;
     tourSteps[tourStep]?.onEnter?.();
   }, [tourActive, tourStep, tourSteps]);
-
-  // Fotografía el número de ingresos/gastos fijos al entrar en el paso de "añade uno nuevo", para
-  // poder detectar más abajo que el usuario ha añadido uno real comparando contra el recuento actual.
-  useEffect(() => {
-    if (!tourActive) return;
-    if (tourStep === 2) setTourBaselineIncome(recurringIncome.length);
-    if (tourStep === 4) setTourBaselineRecurring(recurring.length);
-  }, [tourActive, tourStep]);
-
-  // Avanza el tour automáticamente cuando el usuario realiza la acción real señalada (en vez de
-  // depender solo del botón "Siguiente"). No se condiciona a tourPaused: la transición de paso debe
-  // registrarse en el momento en que se abre un modal (p. ej. el formulario de nuevo movimiento),
-  // aunque el overlay del tour se oculte mientras ese modal esté abierto.
-  useEffect(() => {
-    if (!tourActive) return;
-    if (tourStep === 0 && tab === "ajustes") setTourStep(1);
-    else if (tourStep === 1 && ajustesSection === "ingresos") setTourStep(2);
-    else if (tourStep === 2 && recurringIncome.length > tourBaselineIncome) setTourStep(3);
-    else if (tourStep === 3 && ajustesSection === "recurrentes") setTourStep(4);
-    else if (tourStep === 4 && recurring.length > tourBaselineRecurring) setTourStep(5);
-    else if (tourStep === 5 && tab === "movimientos") setTourStep(6);
-    else if (tourStep === 6 && showApplyPresets) setTourStep(7);
-    else if (tourStep === 7 && showForm) setTourStep(8);
-    // Los pasos 8 y 9 (tipos de movimiento) son solo explicativos y se avanzan con "Siguiente";
-    // si el usuario cierra el formulario a mano en mitad de ellos, saltamos igualmente al siguiente
-    // paso real (nav-mensual), cuyo onEnter ya se encarga de cerrar el formulario si siguiera abierto.
-    else if ((tourStep === 8 || tourStep === 9) && !showForm) setTourStep(10);
-    else if (tourStep === 10 && tab === "mensual") setTourStep(11);
-    else if (tourStep === 11 && tab === "fondos") setTourStep(12);
-  }, [
-    tourActive,
-    tourStep,
-    tab,
-    ajustesSection,
-    recurringIncome.length,
-    recurring.length,
-    showApplyPresets,
-    showForm,
-    tourBaselineIncome,
-    tourBaselineRecurring,
-  ]);
 
   const onExport = () => {
     downloadBackup(
@@ -782,6 +751,7 @@ function App() {
           stepIndex={tourStep}
           totalSteps={tourSteps.length}
           onNext={handleTourNext}
+          onPrev={handleTourPrev}
           onSkip={completeTour}
         />
       )}
@@ -794,7 +764,7 @@ function App() {
         <NavButton icon={<Wallet size={18} />} label="Movim." active={tab === "movimientos"} onClick={() => setTab("movimientos")} tourId="nav-movimientos" />
         <NavButton icon={<PiggyBank size={18} />} label="Fondos" active={tab === "fondos"} onClick={() => setTab("fondos")} tourId="nav-fondos" />
         <NavButton icon={<ArrowUpCircle size={18} />} label="Mensual" active={tab === "mensual"} onClick={() => setTab("mensual")} tourId="nav-mensual" />
-        <NavButton icon={<ArrowDownCircle size={18} />} label="Anual" active={tab === "anual"} onClick={() => setTab("anual")} />
+        <NavButton icon={<ArrowDownCircle size={18} />} label="Anual" active={tab === "anual"} onClick={() => setTab("anual")} tourId="nav-anual" />
         <NavButton icon={<Settings2 size={18} />} label="Ajustes" active={tab === "ajustes"} onClick={() => setTab("ajustes")} tourId="nav-ajustes" />
       </nav>
       <Toast message={toastMsg} />

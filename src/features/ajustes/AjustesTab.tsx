@@ -192,20 +192,23 @@ export function AjustesTab({
           updateRecurringIncomeAmount={updateRecurringIncomeAmount}
         />
       )}
-      {section === "inversion" &&
-        (isPremium ? (
-          <InvestmentEditor
-            assets={assets}
-            addAsset={addAsset}
-            renameAsset={renameAsset}
-            updateAssetPct={updateAssetPct}
-            removeAsset={removeAsset}
-            config={investmentConfig}
-            setGlobalPct={setGlobalPct}
-          />
-        ) : (
-          <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
-        ))}
+      {section === "inversion" && (
+        <div data-tour="ajustes-inversion-section">
+          {isPremium ? (
+            <InvestmentEditor
+              assets={assets}
+              addAsset={addAsset}
+              renameAsset={renameAsset}
+              updateAssetPct={updateAssetPct}
+              removeAsset={removeAsset}
+              config={investmentConfig}
+              setGlobalPct={setGlobalPct}
+            />
+          ) : (
+            <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
+          )}
+        </div>
+      )}
 
       <div className="border-t border-stone-200 mt-6 pt-4">
         <p className="text-xs text-stone-400 mb-3">Copia de seguridad de tus datos</p>

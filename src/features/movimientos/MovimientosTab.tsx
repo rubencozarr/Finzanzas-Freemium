@@ -301,7 +301,7 @@ export function MovimientosTab({
 
       {!searching && (
         <>
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div data-tour="movimientos-statcards" className="grid grid-cols-3 gap-2 mb-4">
             <StatCard label="Ingresos" value={stats.ingresos} tone="emerald" />
             <StatCard label="Gastos" value={stats.gastosOrdinarios} tone="rose" />
             <StatCard label="Libre en curso" value={stats.ahorroReal} tone="teal" />
