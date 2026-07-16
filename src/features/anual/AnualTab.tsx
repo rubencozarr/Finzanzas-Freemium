@@ -185,7 +185,7 @@ export function AnualTab({
           />
         </>
       ) : (
-        <PremiumGate message="Desbloquea los gráficos anuales, el desglose por categorías y la comparativa entre años con Premium" />
+        <PremiumGate message="Desbloquea los gráficos anuales y la comparativa entre años con Premium" />
       )}
     </div>
   );
