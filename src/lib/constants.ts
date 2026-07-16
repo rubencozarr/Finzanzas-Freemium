@@ -7,6 +7,24 @@ export const FREE_MAX_FUNDS = 2;
 export const FREE_MAX_CATEGORIES: Record<CategoryType, number> = { fixed: 6, variable: 6 };
 export const FREE_HISTORY_MONTHS = 6;
 
+// Iconos elegibles para fondos de ahorro (nombres kebab-case, ver src/lib/fundIcons.ts para el mapeo a
+// componentes de lucide-react).
+export const FREE_FUND_ICONS = ["piggy-bank", "plane", "car", "house", "gift", "heart"] as const;
+export const PREMIUM_FUND_ICONS = [
+  "graduation-cap",
+  "baby",
+  "wrench",
+  "smartphone",
+  "star",
+  "briefcase",
+  "music",
+  "heart-pulse",
+  "paw-print",
+  "party-popper",
+] as const;
+export const ALL_FUND_ICONS = [...FREE_FUND_ICONS, ...PREMIUM_FUND_ICONS] as const;
+export const DEFAULT_FUND_ICON = "piggy-bank";
+
 export const TYPE_META: Record<TransactionType, { color: string; sign: 1 | -1 }> = {
   ingreso: { color: "text-emerald-700", sign: 1 },
   gasto: { color: "text-rose-700", sign: -1 },

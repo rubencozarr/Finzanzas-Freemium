@@ -2,10 +2,19 @@ import { useState } from "react";
 import { Check, Crown, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
-import { FREE_MAX_FUNDS, MONTHS_FULL } from "../../lib/constants";
+import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
+import { ALL_FUND_ICONS, DEFAULT_FUND_ICON, FREE_MAX_FUNDS, MONTHS_FULL, PREMIUM_FUND_ICONS } from "../../lib/constants";
 import { fundAvgNetContribution } from "../../lib/calculations";
+import { fundIconComponent } from "../../lib/fundIcons";
 import { firstOfNextMonthISO, fmt, formatMonthYear, monthKey } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
+
+// Paletas locales para los donuts de esta pestaña. La de inversión duplica deliberadamente los mismos
+// tonos índigo que ASSET_COLORS en ChartsSection.tsx (coherencia visual con Anual) en vez de importarla,
+// para no acoplar dos features no relacionadas.
+const FUND_DONUT_COLORS = ["#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#0f766e", "#134e4a"];
+const FONDOS_ASSET_COLORS = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#4f46e5"];
+const PREMIUM_ICON_SET = new Set<string>(PREMIUM_FUND_ICONS);
 
 interface FondosTabProps {
   isPremium: boolean;
@@ -13,11 +22,12 @@ interface FondosTabProps {
   canNavigateToMonth: (monthDate: Date) => boolean;
   funds: FundWithBalance[];
   transactions: Transaction[];
-  addFund: (name: string) => void;
+  addFund: (name: string, icon?: string | null) => void;
   renameFund: (id: string, name: string) => void;
   deleteFund: (fund: FundWithBalance) => void;
   updateFundGoal: (id: string, amount: number | null) => void;
   updateFundActive: (id: string, active: boolean) => void;
+  updateFundIcon: (id: string, icon: string) => void;
   assets: AssetWithTotal[];
   selectedMonthKey: string;
   currentMonthKey: string;
@@ -56,6 +66,48 @@ function FundLockBadge({ lockedUntil }: { lockedUntil: string }) {
   );
 }
 
+// Rejilla de selección de icono para crear/editar un fondo. Los iconos premium se muestran atenuados
+// con una corona; tocarlos sin ser premium no selecciona nada y abre un tooltip breve, igual que el
+// resto de tooltips de esta pestaña.
+function FundIconPicker({ value, onChange, isPremium }: { value: string; onChange: (icon: string) => void; isPremium: boolean }) {
+  const [hint, setHint] = useState<string | null>(null);
+  return (
+    <div className="grid grid-cols-6 gap-1.5 mb-3">
+      {ALL_FUND_ICONS.map((icon) => {
+        const locked = !isPremium && PREMIUM_ICON_SET.has(icon);
+        const selected = value === icon;
+        const Icon = fundIconComponent(icon);
+        return (
+          <div key={icon} className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                if (locked) {
+                  if (!selected) setHint((h) => (h === icon ? null : icon));
+                  return;
+                }
+                onChange(icon);
+                setHint(null);
+              }}
+              className={`w-full min-h-[44px] flex items-center justify-center rounded-lg border ${
+                selected ? "bg-teal-50 border-teal-400 text-teal-700" : locked ? "border-stone-200 text-stone-300" : "border-stone-200 text-stone-700"
+              }`}
+            >
+              <Icon size={20} />
+            </button>
+            {locked && <Crown size={10} className="absolute bottom-0.5 right-0.5 text-amber-500" />}
+            {hint === icon && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-10 w-32 bg-slate-800 text-white text-[11px] rounded-lg px-2 py-1.5 shadow-lg text-center">
+                Disponible con Premium
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function FondosTab({
   isPremium,
   canCreateFund,
@@ -67,6 +119,7 @@ export function FondosTab({
   deleteFund,
   updateFundGoal,
   updateFundActive,
+  updateFundIcon,
   assets,
   selectedMonthKey,
   currentMonthKey,
@@ -85,8 +138,10 @@ export function FondosTab({
   onGoToAjustes,
 }: FondosTabProps) {
   const [newName, setNewName] = useState("");
+  const [newFundIcon, setNewFundIcon] = useState<string>(DEFAULT_FUND_ICON);
   const [editingFundId, setEditingFundId] = useState<string | null>(null);
   const [editFundName, setEditFundName] = useState("");
+  const [editFundIcon, setEditFundIcon] = useState<string>(DEFAULT_FUND_ICON);
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
   const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
   const [goalAmountInput, setGoalAmountInput] = useState("");
@@ -184,24 +239,28 @@ export function FondosTab({
 
       <p className="text-sm font-semibold mb-2">Fondos de ahorro</p>
       {canCreateFund(funds.length) ? (
-        <div className="flex gap-2 mb-4">
-          <input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Nombre del fondo (ej. Viajes)"
-            className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
-          />
-          <button
-            onClick={() => {
-              if (newName.trim()) {
-                addFund(newName.trim());
-                setNewName("");
-              }
-            }}
-            className="bg-slate-800 text-white rounded-lg px-3 text-sm"
-          >
-            <Plus size={16} />
-          </button>
+        <div className="mb-4">
+          <div className="flex gap-2 mb-2">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nombre del fondo (ej. Viajes)"
+              className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
+            />
+            <button
+              onClick={() => {
+                if (newName.trim()) {
+                  addFund(newName.trim(), newFundIcon);
+                  setNewName("");
+                  setNewFundIcon(DEFAULT_FUND_ICON);
+                }
+              }}
+              className="bg-slate-800 text-white rounded-lg px-3 text-sm"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+          <FundIconPicker value={newFundIcon} onChange={setNewFundIcon} isPremium={isPremium} />
         </div>
       ) : (
         <div className="mb-4">
@@ -216,6 +275,12 @@ export function FondosTab({
           </p>
         </div>
       )}
+      {(() => {
+        const fundDonutData: DonutDatum[] = fundsAtDate
+          .filter((f) => f.balance > 0)
+          .map((f, i) => ({ name: f.name, value: f.balance, color: FUND_DONUT_COLORS[i % FUND_DONUT_COLORS.length] }));
+        return <CategoryOverviewDonut data={fundDonutData} title="Distribución de tus fondos de ahorro" ingresos={0} />;
+      })()}
       <div className="space-y-3 mb-2">
         {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
         {fundsAtDate.map((f) => {
@@ -223,34 +288,44 @@ export function FondosTab({
           return (
           <div key={f.id} className="bg-white rounded-lg border border-stone-100 px-3 py-3">
             {editingFundId === f.id ? (
-              <div className="flex gap-2 mb-2">
-                <input
-                  value={editFundName}
-                  onChange={(e) => setEditFundName(e.target.value)}
-                  className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    renameFund(f.id, editFundName);
-                    setEditingFundId(null);
-                  }}
-                  className="text-teal-700"
-                >
-                  <Check size={16} />
-                </button>
-                <button onClick={() => setEditingFundId(null)} className="text-stone-400">
-                  <X size={16} />
-                </button>
+              <div className="mb-2">
+                <div className="flex gap-2 mb-2">
+                  <input
+                    value={editFundName}
+                    onChange={(e) => setEditFundName(e.target.value)}
+                    className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => {
+                      renameFund(f.id, editFundName);
+                      updateFundIcon(f.id, editFundIcon);
+                      setEditingFundId(null);
+                    }}
+                    className="text-teal-700"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button onClick={() => setEditingFundId(null)} className="text-stone-400">
+                    <X size={16} />
+                  </button>
+                </div>
+                <FundIconPicker value={editFundIcon} onChange={setEditFundIcon} isPremium={isPremium} />
               </div>
             ) : (
-              <div className="flex justify-between items-baseline gap-2 mb-2">
-                <span className="flex items-center gap-1 min-w-0">
-                  <span className="text-sm font-medium truncate">{f.name}</span>
-                  {fundLocked && <FundLockBadge lockedUntil={firstOfNextMonthISO()} />}
-                </span>
-                <span className="font-mono text-sm text-teal-700 shrink-0">{fmt(f.balance)}</span>
-              </div>
+              <>
+                <div className="flex items-center gap-2 mb-1">
+                  {(() => {
+                    const Icon = fundIconComponent(f.icon);
+                    return <Icon size={24} className="text-teal-600 shrink-0" />;
+                  })()}
+                  <span className="flex items-center gap-1 min-w-0 flex-1">
+                    <span className="text-sm font-medium truncate">{f.name}</span>
+                    {fundLocked && <FundLockBadge lockedUntil={firstOfNextMonthISO()} />}
+                  </span>
+                </div>
+                {(!isPremium || f.goalAmount == null) && <p className="font-mono text-2xl text-teal-700 mb-2">{fmt(f.balance)}</p>}
+              </>
             )}
             {showActiveToggle && (
               <button
@@ -323,23 +398,26 @@ export function FondosTab({
                   const avgNet = fundAvgNetContribution(transactions, f.id, 3);
                   const monthsToGoal = avgNet > 0 ? Math.ceil((f.goalAmount! - f.balance) / avgNet) : null;
                   return (
-                    <div className="mb-2">
-                      <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-                        <span className="flex items-center gap-1">
-                          {reached && <Check size={12} className="text-emerald-600" />}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                          {reached && <Check size={14} className="text-emerald-600" />}
                           {fmt(f.balance)} de {fmt(f.goalAmount!)}
                         </span>
-                        <button
-                          onClick={() => {
-                            setEditingGoalFundId(f.id);
-                            setGoalAmountInput(String(f.goalAmount));
-                          }}
-                          className="text-stone-300 hover:text-slate-700"
-                        >
-                          <Pencil size={11} />
-                        </button>
+                        <span className="flex items-center gap-1.5">
+                          <span className="font-mono text-sm text-emerald-700">{pct.toFixed(0)}%</span>
+                          <button
+                            onClick={() => {
+                              setEditingGoalFundId(f.id);
+                              setGoalAmountInput(String(f.goalAmount));
+                            }}
+                            className="text-stone-300 hover:text-slate-700"
+                          >
+                            <Pencil size={11} />
+                          </button>
+                        </span>
                       </div>
-                      <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                      <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
                         <div className={`h-full ${reached ? "bg-emerald-500" : "bg-emerald-400"}`} style={{ width: `${pct}%` }} />
                       </div>
                       {!reached && (
@@ -370,6 +448,7 @@ export function FondosTab({
                       onClick={() => {
                         setEditingFundId(f.id);
                         setEditFundName(f.name);
+                        setEditFundIcon(f.icon ?? DEFAULT_FUND_ICON);
                       }}
                       className="text-stone-300 hover:text-slate-700"
                     >
@@ -405,6 +484,37 @@ export function FondosTab({
             </button>
             .
           </p>
+          {(() => {
+            const conInversion = assetsAtDate.filter((a) => a.invertido > 0);
+            if (conInversion.length === 0) return null;
+            const assetDonutData: DonutDatum[] = conInversion.map((a, i) => ({
+              name: a.name,
+              value: a.invertido,
+              color: FONDOS_ASSET_COLORS[i % FONDOS_ASSET_COLORS.length],
+            }));
+            const withPct = conInversion.map((a) => ({
+              name: a.name,
+              real: totalInvertidoAtDate ? (a.invertido / totalInvertidoAtDate) * 100 : 0,
+              target: a.pct,
+            }));
+            const maxDiff = Math.max(...withPct.map((a) => Math.abs(a.real - a.target)));
+            const matches = maxDiff < 2;
+            return (
+              <>
+                <CategoryOverviewDonut data={assetDonutData} title="Distribución de tu inversión" ingresos={0} />
+                {matches ? (
+                  <p className="flex items-center gap-1.5 text-xs text-emerald-700 mb-3">
+                    <Check size={14} /> Tu inversión real coincide con tu objetivo configurado
+                  </p>
+                ) : (
+                  <p className="text-xs text-teal-700 mb-3">
+                    Objetivo: {withPct.map((a) => `${a.name} ${a.target.toFixed(0)}%`).join(" / ")} — Real:{" "}
+                    {withPct.map((a) => `${a.name} ${a.real.toFixed(0)}%`).join(" / ")}
+                  </p>
+                )}
+              </>
+            );
+          })()}
           <div className="space-y-3">
             {assets.length === 0 && (
               <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes activos. Configúralos en Ajustes → Inversión.</p>

@@ -81,7 +81,7 @@ export function toTransactionUpdate(updates: Partial<Transaction>) {
 }
 
 export function fromFundRow(row: FundRow): Fund {
-  return { id: row.id, name: row.name, goalAmount: row.goal_amount, isActive: row.is_active };
+  return { id: row.id, name: row.name, goalAmount: row.goal_amount, isActive: row.is_active, icon: row.icon };
 }
 
 export function fromCategoryRow(row: CategoryRow): Category {

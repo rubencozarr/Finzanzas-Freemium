@@ -48,17 +48,17 @@ export function useFunds(userId: string | undefined) {
   // en vez de leer "funds" del closure, para que llamadas seguidas en el mismo tick no se pisen
   // entre sí (mismo bug que en useTransactions con los preestablecidos).
   const addFund = useCallback(
-    async (name: string) => {
+    async (name: string, icon?: string | null) => {
       if (isLocalBackend) {
         setFunds((prev) => {
-          const next = [...prev, { id: crypto.randomUUID(), name }];
+          const next = [...prev, { id: crypto.randomUUID(), name, icon: icon ?? null }];
           writeLocal(LOCAL_KEY, next);
           return next;
         });
         return;
       }
       if (!userId) return;
-      const { error } = await getSupabase().from("funds").insert({ user_id: userId, name });
+      const { error } = await getSupabase().from("funds").insert({ user_id: userId, name, icon: icon ?? null });
       if (error) throw error;
       await refetch();
     },
@@ -133,5 +133,22 @@ export function useFunds(userId: string | undefined) {
     [refetch],
   );
 
-  return { funds, loading, error, addFund, renameFund, deleteFund, updateFundGoal, updateFundActive, refetch };
+  const updateFundIcon = useCallback(
+    async (id: string, icon: string) => {
+      if (isLocalBackend) {
+        setFunds((prev) => {
+          const next = prev.map((f) => (f.id === id ? { ...f, icon } : f));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("funds").update({ icon }).eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
+  return { funds, loading, error, addFund, renameFund, deleteFund, updateFundGoal, updateFundActive, updateFundIcon, refetch };
 }

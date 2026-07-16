@@ -29,6 +29,7 @@ export interface FundRow {
   name: string;
   goal_amount: number | null;
   is_active: boolean;
+  icon: string | null;
   created_at: string;
 }
 

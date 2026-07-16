@@ -101,6 +101,7 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
             name: f.name,
             goal_amount: f.goalAmount ?? null,
             is_active: f.isActive ?? true,
+            icon: f.icon ?? null,
           };
         }),
       ),

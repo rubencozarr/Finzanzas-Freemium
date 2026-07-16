@@ -23,6 +23,7 @@ export interface Fund {
   name: string;
   goalAmount?: number | null;
   isActive?: boolean;
+  icon?: string | null;
 }
 
 export interface FundWithBalance extends Fund {

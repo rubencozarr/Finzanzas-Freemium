@@ -17,6 +17,9 @@ create table if not exists public.funds (
   -- Solo relevante para free con más de FREE_MAX_FUNDS fondos (downgrade/importación): controla a
   -- cuáles se puede aportar. En premium se ignora, todos los fondos son utilizables siempre.
   is_active boolean not null default true,
+  -- Icono elegible para el fondo (nombre kebab-case, ver src/lib/constants.ts > ALL_FUND_ICONS y
+  -- src/lib/fundIcons.ts). Null = usar el icono por defecto ("piggy-bank") en la app.
+  icon text,
   created_at timestamptz not null default now()
 );
 
