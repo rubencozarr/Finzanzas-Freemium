@@ -139,6 +139,7 @@ export function FondosTab({
 }: FondosTabProps) {
   const [newName, setNewName] = useState("");
   const [newFundIcon, setNewFundIcon] = useState<string>(DEFAULT_FUND_ICON);
+  const [creatingFund, setCreatingFund] = useState(false);
   const [editingFundId, setEditingFundId] = useState<string | null>(null);
   const [editFundName, setEditFundName] = useState("");
   const [editFundIcon, setEditFundIcon] = useState<string>(DEFAULT_FUND_ICON);
@@ -244,6 +245,7 @@ export function FondosTab({
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
+              onFocus={() => setCreatingFund(true)}
               placeholder="Nombre del fondo (ej. Viajes)"
               className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
             />
@@ -253,14 +255,27 @@ export function FondosTab({
                   addFund(newName.trim(), newFundIcon);
                   setNewName("");
                   setNewFundIcon(DEFAULT_FUND_ICON);
+                  setCreatingFund(false);
                 }
               }}
               className="bg-slate-800 text-white rounded-lg px-3 text-sm"
             >
               <Plus size={16} />
             </button>
+            {creatingFund && (
+              <button
+                onClick={() => {
+                  setNewName("");
+                  setNewFundIcon(DEFAULT_FUND_ICON);
+                  setCreatingFund(false);
+                }}
+                className="text-stone-400 px-1"
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
-          <FundIconPicker value={newFundIcon} onChange={setNewFundIcon} isPremium={isPremium} />
+          {creatingFund && <FundIconPicker value={newFundIcon} onChange={setNewFundIcon} isPremium={isPremium} />}
         </div>
       ) : (
         <div className="mb-4">
