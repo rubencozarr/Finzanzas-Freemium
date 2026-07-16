@@ -50,16 +50,17 @@ export function MensualTab({
   trend6Meses,
   onGoToAjustes,
 }: MensualTabProps) {
-  // En free, las subcategorías son premium-only desde el Bloque 1 (Ajustes), así que un usuario free
-  // nuevo nunca las tendrá; esto es refuerzo defensivo por si quedan de datos importados o un downgrade.
-  const stripSubcats = (b: ReturnType<typeof buildBreakdown>) =>
-    isPremium ? b : b.map((c) => ({ ...c, subcats: [], sinClasificar: 0 }));
+  // En free, las subcategorías y el presupuesto por categoría son premium-only desde el Bloque 1
+  // (Ajustes), así que un usuario free nuevo nunca los tendrá; esto es refuerzo defensivo por si
+  // quedan de datos importados o un downgrade (solo se muestra el presupuesto global de variable).
+  const stripPremiumOnly = (b: ReturnType<typeof buildBreakdown>) =>
+    isPremium ? b : b.map((c) => ({ ...c, subcats: [], sinClasificar: 0, budget: 0 }));
   const fixedCats = useMemo(
-    () => stripSubcats(buildBreakdown(monthTx, categories, "fixedOrdinario")),
+    () => stripPremiumOnly(buildBreakdown(monthTx, categories, "fixedOrdinario")),
     [monthTx, categories, isPremium],
   );
   const variableCats = useMemo(
-    () => stripSubcats(buildBreakdown(monthTx, categories, "variableOrdinario")),
+    () => stripPremiumOnly(buildBreakdown(monthTx, categories, "variableOrdinario")),
     [monthTx, categories, isPremium],
   );
   const fundUsage = useMemo(() => buildFundUsage(monthTx, transactions, funds), [monthTx, transactions, funds]);

@@ -424,7 +424,7 @@ export function NuevoMovimientoForm({
                 </div>
               )}
             </div>
-            {currentCat && currentCat.subcategories.length > 0 && (
+            {isPremium && currentCat && currentCat.subcategories.length > 0 && (
               <div className="mb-3">
                 <p className="text-xs text-stone-500 mb-1.5">Subcategoría</p>
                 <div className="flex flex-wrap gap-1.5">
