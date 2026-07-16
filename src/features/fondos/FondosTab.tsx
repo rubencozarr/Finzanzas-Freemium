@@ -3,6 +3,7 @@ import { Check, Crown, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
+import { GroupHeader } from "../../components/GroupHeader";
 import { ALL_FUND_ICONS, DEFAULT_FUND_ICON, FREE_MAX_FUNDS, MONTHS_FULL, PREMIUM_FUND_ICONS } from "../../lib/constants";
 import { fundAvgNetContribution } from "../../lib/calculations";
 import { fundIconComponent } from "../../lib/fundIcons";
@@ -146,6 +147,12 @@ export function FondosTab({
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
   const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
   const [goalAmountInput, setGoalAmountInput] = useState("");
+  // Con pocos fondos/activos, un desplegable solo añade un toque extra sin beneficio (y un donut de un
+  // solo segmento tampoco aporta nada); con varios, ordena la pantalla y da una vista general rápida.
+  const [fundsExpanded, setFundsExpanded] = useState(false);
+  const [assetsExpanded, setAssetsExpanded] = useState(false);
+  const showFundsCollapse = funds.length > 2;
+  const showAssetsCollapse = assets.length > 2;
 
   // Downgrade/importación: un free con más de 2 fondos puede ver y retirar de todos, pero solo aportar
   // a los que marque como "activos" (máx. FREE_MAX_FUNDS). Con ≤2 fondos (el caso normal en free, ya
@@ -291,11 +298,25 @@ export function FondosTab({
         </div>
       )}
       {(() => {
-        const fundDonutData: DonutDatum[] = fundsAtDate
-          .filter((f) => f.balance > 0)
-          .map((f, i) => ({ name: f.name, value: f.balance, color: FUND_DONUT_COLORS[i % FUND_DONUT_COLORS.length] }));
+        const withBalance = fundsAtDate.filter((f) => f.balance > 0);
+        if (withBalance.length < 2) return null;
+        const fundDonutData: DonutDatum[] = withBalance.map((f, i) => ({
+          name: f.name,
+          value: f.balance,
+          color: FUND_DONUT_COLORS[i % FUND_DONUT_COLORS.length],
+        }));
         return <CategoryOverviewDonut data={fundDonutData} title="Distribución de tus fondos de ahorro" ingresos={0} />;
       })()}
+      {showFundsCollapse && (
+        <GroupHeader
+          title={`Mis fondos (${funds.length})`}
+          total={totalFondosAtDate}
+          tone="ahorro"
+          expanded={fundsExpanded}
+          onToggle={() => setFundsExpanded((e) => !e)}
+        />
+      )}
+      {(!showFundsCollapse || fundsExpanded) && (
       <div className="space-y-3 mb-2">
         {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
         {fundsAtDate.map((f) => {
@@ -487,6 +508,7 @@ export function FondosTab({
           );
         })}
       </div>
+      )}
       <p className="text-xs text-stone-400 mb-6">Si un gasto lo pagas con dinero de un fondo, márcalo como "pagado con ahorro" al crear ese gasto.</p>
 
       <p className="text-sm font-semibold mb-2">Inversión hasta {mesLabelSiempre}</p>
@@ -501,7 +523,7 @@ export function FondosTab({
           </p>
           {(() => {
             const conInversion = assetsAtDate.filter((a) => a.invertido > 0);
-            if (conInversion.length === 0) return null;
+            if (conInversion.length < 2) return null;
             const assetDonutData: DonutDatum[] = conInversion.map((a, i) => ({
               name: a.name,
               value: a.invertido,
@@ -530,6 +552,16 @@ export function FondosTab({
               </>
             );
           })()}
+          {showAssetsCollapse && (
+            <GroupHeader
+              title={`Mis activos (${assets.length})`}
+              total={totalInvertidoAtDate}
+              tone="inversion"
+              expanded={assetsExpanded}
+              onToggle={() => setAssetsExpanded((e) => !e)}
+            />
+          )}
+          {(!showAssetsCollapse || assetsExpanded) && (
           <div className="space-y-3">
             {assets.length === 0 && (
               <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes activos. Configúralos en Ajustes → Inversión.</p>
@@ -554,6 +586,7 @@ export function FondosTab({
               );
             })}
           </div>
+          )}
         </>
       ) : (
         <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
