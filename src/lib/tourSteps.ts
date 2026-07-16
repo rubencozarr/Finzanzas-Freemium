@@ -81,6 +81,16 @@ export function buildTourSteps(actions: TourActions, isPremium: boolean): TourSt
       },
     },
     {
+      target: '[data-tour="type-basic"]',
+      placement: "bottom",
+      text: "Con Ingreso y Gasto registras tus movimientos del día a día. Cada uno se refleja automáticamente en tu resumen del mes.",
+      onEnter: () => {
+        actions.ensureMovimientos();
+        actions.ensureMovementForm();
+      },
+      formOpen: true,
+    },
+    {
       target: '[data-tour="type-funds"]',
       placement: "bottom",
       text: "También puedes aportar dinero a tus fondos de ahorro, retirarlo cuando lo necesites, o registrar una inversión.",

@@ -59,6 +59,10 @@ export function GuidedTour({ step, stepIndex, totalSteps, onNext, onPrev, onSkip
     };
   }, [step.target]);
 
+  // Además de resize/scroll normales, escucha window.visualViewport: es la API que realmente informa
+  // cuando el teclado móvil aparece/desaparece (window.innerHeight no cambia en la mayoría de
+  // navegadores móviles al abrir el teclado, así que sin esto el anillo se quedaba calculado para el
+  // alto de pantalla completo y se desajustaba en cuanto se enfocaba un input como el de importe).
   useEffect(() => {
     if (!step.target) return;
     const update = () => {
@@ -67,15 +71,19 @@ export function GuidedTour({ step, stepIndex, totalSteps, onNext, onPrev, onSkip
     };
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
     };
   }, [step.target]);
 
   const isLast = stepIndex === totalSteps - 1;
-  const vw = typeof window !== "undefined" ? window.innerWidth : 400;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+  const vw = typeof window !== "undefined" ? (window.visualViewport?.width ?? window.innerWidth) : 400;
+  const vh = typeof window !== "undefined" ? (window.visualViewport?.height ?? window.innerHeight) : 800;
 
   const r = rect
     ? {
