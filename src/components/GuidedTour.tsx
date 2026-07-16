@@ -59,27 +59,40 @@ export function GuidedTour({ step, stepIndex, totalSteps, onNext, onPrev, onSkip
     };
   }, [step.target]);
 
-  // Además de resize/scroll normales, escucha window.visualViewport: es la API que realmente informa
-  // cuando el teclado móvil aparece/desaparece (window.innerHeight no cambia en la mayoría de
-  // navegadores móviles al abrir el teclado, así que sin esto el anillo se quedaba calculado para el
-  // alto de pantalla completo y se desajustaba en cuanto se enfocaba un input como el de importe).
+  // Seguimiento continuo por frame en vez de escuchar resize/scroll sueltos: el teclado móvil, el
+  // scroll interno del modal (overflow-y-auto) y la transición de altura por dvh pueden mover el
+  // elemento señalado sin disparar siempre esos eventos en el momento exacto (o con retraso respecto
+  // a la animación), así que el anillo se quedaba desajustado. Comparar antes de llamar a setRect
+  // evita re-renders de sobra cuando el elemento está quieto.
   useEffect(() => {
     if (!step.target) return;
-    const update = () => {
+    let rafId: number;
+    let lastKey = "";
+    const loop = () => {
       const el = document.querySelector(step.target as string);
-      if (el) setRect(el.getBoundingClientRect());
+      if (el) {
+        const next = el.getBoundingClientRect();
+        const key = `${next.top}|${next.left}|${next.width}|${next.height}`;
+        if (key !== lastKey) {
+          lastKey = key;
+          setRect(next);
+        }
+      }
+      rafId = requestAnimationFrame(loop);
     };
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    window.visualViewport?.addEventListener("resize", update);
-    window.visualViewport?.addEventListener("scroll", update);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-      window.visualViewport?.removeEventListener("resize", update);
-      window.visualViewport?.removeEventListener("scroll", update);
-    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
   }, [step.target]);
+
+  // Solo para refrescar vw/vh (usados en el posicionamiento del tooltip): si el teclado abre/cierra
+  // sin que el propio elemento señalado cambie de posición, el bucle de arriba no provoca un
+  // re-render por sí solo.
+  const [, bumpViewport] = useState(0);
+  useEffect(() => {
+    const bump = () => bumpViewport((t) => t + 1);
+    window.visualViewport?.addEventListener("resize", bump);
+    return () => window.visualViewport?.removeEventListener("resize", bump);
+  }, []);
 
   const isLast = stepIndex === totalSteps - 1;
   const vw = typeof window !== "undefined" ? (window.visualViewport?.width ?? window.innerWidth) : 400;

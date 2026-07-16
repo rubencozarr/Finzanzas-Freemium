@@ -497,6 +497,17 @@ function App() {
     tourSteps[tourStep]?.onEnter?.();
   }, [tourActive, tourStep, tourSteps]);
 
+  // Caso especial: en el paso que señala el botón real "Nuevo movimiento" (sin formOpen, porque el
+  // formulario todavía no está abierto en ese paso), si el usuario toca el botón de verdad en vez de
+  // "Siguiente", showForm pasa a true y tourPaused ocultaría el tour entero hasta que cerrara el
+  // formulario, dando sensación de que el tutorial se ha quedado colgado. En vez de eso, se avanza al
+  // paso siguiente (que sí espera el formulario abierto), igual que si hubiera pulsado "Siguiente".
+  const newMovementBtnStepIndex = tourSteps.findIndex((s) => s.target === '[data-tour="new-movement-btn"]');
+  useEffect(() => {
+    if (!tourActive) return;
+    if (tourStep === newMovementBtnStepIndex && showForm) setTourStep(tourStep + 1);
+  }, [tourActive, tourStep, showForm, newMovementBtnStepIndex]);
+
   const onExport = () => {
     downloadBackup(
       buildBackup({ transactions, funds, categories, recurring, recurringIncome, assets, investmentConfig, variableBudget }),
