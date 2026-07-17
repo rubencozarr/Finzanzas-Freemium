@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, LogOut, Upload } from "lucide-react";
+import { Crown, Download, FileSpreadsheet, LogOut, Upload } from "lucide-react";
 import { CategoriasEditor } from "./CategoriasEditor";
 import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
@@ -49,8 +49,40 @@ interface AjustesTabProps {
   initialSection: string;
   onSectionChange?: (section: string) => void;
   onExport: () => void;
+  onExportExcel: () => void;
   onImport: (data: unknown) => Promise<boolean>;
   onSignOut: () => void | Promise<unknown>;
+}
+
+// Botón "Exportar Excel" (premium). En free se ve deshabilitado con una coronita; tocar el botón o la
+// corona muestra el tooltip "Disponible con Premium" en vez de exportar (mismo patrón de corona+tooltip
+// que InvestmentLockBadge en NuevoMovimientoForm.tsx).
+function ExcelExportButton({ isPremium, onClick }: { isPremium: boolean; onClick: () => void }) {
+  const [showHint, setShowHint] = useState(false);
+  return (
+    <div className="relative flex-1">
+      <button
+        onClick={() => {
+          if (!isPremium) {
+            setShowHint((h) => !h);
+            return;
+          }
+          onClick();
+        }}
+        className={`w-full flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium ${
+          isPremium ? "bg-emerald-700 text-white" : "bg-stone-100 text-stone-400"
+        }`}
+      >
+        <FileSpreadsheet size={14} /> Exportar Excel
+      </button>
+      {!isPremium && <Crown size={12} className="absolute -top-1.5 -right-1.5 text-amber-500 bg-white rounded-full" />}
+      {showHint && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-10 w-36 bg-slate-800 text-white text-[11px] rounded-lg px-2.5 py-2 shadow-lg text-center">
+          Disponible con Premium
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function AjustesTab({
@@ -89,6 +121,7 @@ export function AjustesTab({
   initialSection,
   onSectionChange,
   onExport,
+  onExportExcel,
   onImport,
   onSignOut,
 }: AjustesTabProps) {
@@ -213,15 +246,16 @@ export function AjustesTab({
       <div className="border-t border-stone-200 mt-6 pt-4">
         <p className="text-xs text-stone-400 mb-3">Copia de seguridad de tus datos</p>
         {importError && <p className="text-xs text-rose-600 mb-2">{importError}</p>}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
           <button onClick={onExport} className="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 text-white rounded-lg py-2 text-xs font-medium">
             <Download size={14} /> Exportar
           </button>
-          <label className="flex-1 flex items-center justify-center gap-1.5 border border-stone-200 text-slate-700 rounded-lg py-2 text-xs font-medium cursor-pointer bg-white">
-            <Upload size={14} /> Importar
-            <input type="file" accept="application/json" onChange={handleFile} className="hidden" />
-          </label>
+          <ExcelExportButton isPremium={isPremium} onClick={onExportExcel} />
         </div>
+        <label className="w-full flex items-center justify-center gap-1.5 border border-stone-200 text-slate-700 rounded-lg py-2 text-xs font-medium cursor-pointer bg-white">
+          <Upload size={14} /> Importar
+          <input type="file" accept="application/json" onChange={handleFile} className="hidden" />
+        </label>
         <button
           onClick={() => onSignOut()}
           className="w-full flex items-center justify-center gap-1.5 text-stone-400 py-2 text-xs mt-3"

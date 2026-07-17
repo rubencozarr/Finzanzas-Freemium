@@ -35,6 +35,7 @@ import {
 } from "./lib/calculations";
 import { fmt, monthKey, todayISO } from "./lib/format";
 import { buildBackup, downloadBackup, importBackup } from "./lib/backup";
+import { exportToExcel } from "./lib/exportExcel";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
 import { MilestoneNotice } from "./components/MilestoneNotice";
@@ -514,6 +515,8 @@ function App() {
     );
   };
 
+  const onExportExcel = () => exportToExcel({ transactions, funds: fundsWithBalance, categories });
+
   const onImport = async (data: unknown) => {
     const ok = await importBackup(userId, data);
     if (ok) {
@@ -698,6 +701,7 @@ function App() {
             initialSection={ajustesSection}
             onSectionChange={setAjustesSection}
             onExport={onExport}
+            onExportExcel={onExportExcel}
             onImport={onImport}
             onSignOut={handleSignOut}
           />
