@@ -53,8 +53,9 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
       "En Ajustes → Categorías puedes poner un límite mensual a cada categoría variable (ej. Ocio: 150€) y un presupuesto general de todo lo variable. Cuando metes un gasto, la app te avisa al instante si te estás acercando o pasando del límite.",
   },
   {
-    question: "¿Cómo exporto mis datos?",
-    answer: "En Ajustes, abajo del todo, tienes los botones de Exportar e Importar. Exportar descarga un archivo con todos tus datos. Guárdalo como copia de seguridad.",
+    question: "¿Puedo exportar o hacer una copia de seguridad de mis datos?",
+    answer:
+      "Sí. En Ajustes encontrarás las opciones de exportar e importar tus datos en formato JSON (disponible para todos) y en formato Excel (disponible con Premium). Tus datos son tuyos y puedes descargarlos cuando quieras.",
   },
 ];
 
