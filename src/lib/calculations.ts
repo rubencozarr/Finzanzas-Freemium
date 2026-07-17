@@ -3,7 +3,11 @@
 //
 // Terminología del ahorro (ver spec, sección "TERMINOLOGÍA DEL AHORRO"):
 // - "Ahorro libre consolidado": ahorroLibreHasta(prevMonthKey(mes)). Ya se puede gastar.
-// - "Ahorro libre en curso": ahorroLibreHasta(mes) - ahorroLibreHasta(prevMonthKey(mes)). Todavía no.
+// - "Ahorro libre en curso": computeMonth(mes).ahorroReal — el flujo propio de ESE mes (ingresos menos
+//   gastos ordinarios, aportaciones e inversión). OJO: NO es ahorroLibreHasta(mes) -
+//   ahorroLibreHasta(prevMonthKey(mes)): esa resta arrastra también los gastos "pagados con ahorro
+//   consolidado" del mes, que tiran del consolidado ya acumulado en meses anteriores, no del flujo que
+//   ese mes está generando (bug real, corregido en FondosTab.tsx — ver comentario ahí).
 // - "Ahorro libre": consolidado + en curso.
 
 import { AHORRO_LIBRE_ID, MONTHS_ES } from "./constants";

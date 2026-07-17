@@ -195,7 +195,15 @@ export function FondosTab({
   const totalInvertidoAtDate = assetsAtDate.reduce((s, a) => s + a.invertido, 0);
   const ahorroLibreAtDate = ahorroLibreHasta(selectedMonthKey);
   const consolidado = ahorroLibreDisponibleParaMes(selectedMonthKey);
-  const enCurso = ahorroLibreAtDate - consolidado;
+  // "En curso" es el flujo propio de ESTE mes (ingresos - gastos ordinarios - aportaciones - inversión),
+  // igual que ahorroReal de computeMonth (ya usado por Mensual y por los puntos de color de
+  // MonthSwitcher) — NO la resta ahorroLibreAtDate - consolidado: esa resta también arrastraba los
+  // gastos "pagados con ahorro consolidado" de este mes, cuando en realidad esos gastos tiran del
+  // consolidado ya acumulado en meses anteriores, no del flujo que este mes está generando. Con la
+  // resta antigua, un gasto así desaparecía sin rastro: bajaba "en curso" pero el consolidado del mes
+  // siguiente no reflejaba ese descuento (los dos números salían de la misma cuenta, así que el efecto
+  // se cancelaba).
+  const enCurso = getAhorroReal(year, monthIdx);
   const totalAhorro = ahorroLibreAtDate + totalFondosAtDate;
   const patrimonioTotal = totalAhorro + totalInvertidoAtDate;
 
