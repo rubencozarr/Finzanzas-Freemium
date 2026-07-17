@@ -181,6 +181,16 @@ export function computeMonth(transactions: Transaction[], mKey: string): MonthSt
   };
 }
 
+/** % de los ingresos que se queda como ahorro real (ahorro libre en curso + aportaciones a fondos),
+ * excluyendo la inversión (que la app trata siempre aparte del ahorro, no como parte de él).
+ * gastosOrdinarios ya excluye aportaciones/inversión por construcción (son un `type` de transacción
+ * distinto a "gasto"), así que solo hace falta restar la inversión además de gastosOrdinarios. Fuente
+ * única para no volver a divergir entre el insight de Mensual y el gráfico de Anual (ya divergían: uno
+ * no restaba inversión, el otro restaba también las aportaciones). */
+export function tasaAhorroPct(stats: MonthStats): number {
+  return stats.ingresos ? ((stats.ingresos - stats.gastosOrdinarios - stats.inversion) / stats.ingresos) * 100 : 0;
+}
+
 // ---------------------------------------------------------------------------
 // Series anuales / tendencias
 // ---------------------------------------------------------------------------
@@ -219,7 +229,7 @@ export function yearMonthsData(transactions: Transaction[], year: number): YearM
       gastosFinanciados: s.gastosFinanciados,
       inversion: s.inversion,
       ahorroReal: s.ahorroReal,
-      tasaAhorro: s.ingresos ? (s.ahorroReal / s.ingresos) * 100 : 0,
+      tasaAhorro: tasaAhorroPct(s),
       acumulado: consolidadoEsteMes,
     };
   });
@@ -478,8 +488,8 @@ export function buildMonthlyInsights(
   }
 
   if (prevStats.ingresos > 0) {
-    const tasa = (stats.ahorroTotal / stats.ingresos) * 100;
-    const tasaPrev = (prevStats.ahorroTotal / prevStats.ingresos) * 100;
+    const tasa = tasaAhorroPct(stats);
+    const tasaPrev = tasaAhorroPct(prevStats);
     const diff = tasa - tasaPrev;
     insights.push({
       type: "tasa_ahorro",
