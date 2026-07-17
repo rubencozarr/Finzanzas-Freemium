@@ -5,7 +5,7 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "¿Cómo funciona la app?",
     answer:
-      "Registra tus ingresos y gastos día a día en Movimientos. Si configuras tu nómina y gastos fijos en Ajustes, cada mes puedes aplicarlos todos de golpe con un botón. En Mensual y Anual ves cómo te ha ido. En Fondos e inversión ves cuánto tienes ahorrado en total.",
+      "Registras a mano cada movimiento en Movimientos: ingresos, gastos fijos o variables, aportaciones y retiros de tus fondos de ahorro, e inversión. Los ingresos, gastos e inversiones que se repiten cada mes (nómina, alquiler, suscripciones...) los configuras una vez como preestablecidos en Ajustes y los aplicas de golpe con un botón, en vez de registrarlos uno a uno. Organizas tu ahorro en fondos con un objetivo cada uno, y en Mensual y Anual ves el desglose completo de en qué se ha ido tu dinero. La inversión se trata siempre por separado del ahorro, porque a diferencia de este puede subir o bajar de valor.",
   },
   {
     question: "¿Qué son los preestablecidos?",
@@ -31,6 +31,11 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
     question: "¿Qué es el ahorro libre en curso?",
     answer:
       "Es el ahorro libre del mes actual. Todavía puede cambiar (porque el mes no ha terminado). Cuando el mes cierre, ese dinero se sumará al consolidado.",
+  },
+  {
+    question: "¿Qué es la tasa de ahorro?",
+    answer:
+      "La tasa de ahorro es el porcentaje de tus ingresos que consigues ahorrar cada mes, ya sea como ahorro libre o aportándolo a tus fondos. No incluye la inversión, porque en Klaro la inversión se trata por separado del ahorro (puede cambiar de valor). Por ejemplo, si ingresas 2.000€ y ahorras 400€ entre ahorro libre y fondos, tu tasa de ahorro es del 20%.",
   },
   {
     question: "¿Cómo funcionan los fondos de ahorro?",

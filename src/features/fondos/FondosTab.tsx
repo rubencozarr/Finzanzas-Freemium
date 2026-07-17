@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Crown, Pencil, Plus, Target, Trash2, X } from "lucide-react";
+import { Check, Crown, Info, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
@@ -61,6 +61,26 @@ function FundLockBadge({ lockedUntil }: { lockedUntil: string }) {
         <div className="absolute left-0 top-full mt-1 z-10 w-48 bg-slate-800 text-white text-[11px] rounded-lg px-2.5 py-2 shadow-lg">
           Tu selección está fijada hasta {formatMonthYear(lockedUntil)}. Con Premium puedes aportar a todos tus fondos sin
           límite.
+        </div>
+      )}
+    </span>
+  );
+}
+
+// Explica qué es "Consolidado" en la tarjeta de Patrimonio. Mismo patrón que FundLockBadge, pero con
+// tooltip claro (bg-white) en vez de oscuro: esta tarjeta ya tiene fondo bg-slate-800, así que un
+// tooltip también oscuro se confundiría con el fondo.
+function ConsolidadoInfoBadge() {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline-flex shrink-0">
+      <button onClick={() => setOpen((o) => !o)} className="text-stone-400 hover:text-stone-200">
+        <Info size={11} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-10 w-52 bg-white text-slate-700 text-[11px] rounded-lg px-2.5 py-2 shadow-lg">
+          Es la suma de lo que te ha sobrado sin usar en meses anteriores. Dinero ya cerrado que puedes gastar marcando "pagado
+          con ahorro".
         </div>
       )}
     </span>
@@ -220,7 +240,10 @@ export function FondosTab({
             <p className="font-mono text-lg text-teal-400">{fmt(totalAhorro)}</p>
             <div className="text-[11px] mt-2 space-y-1.5">
               <div>
-                <p className="text-stone-400">Consolidado</p>
+                <p className="text-stone-400 flex items-center gap-1">
+                  Consolidado
+                  <ConsolidadoInfoBadge />
+                </p>
                 <p className="font-mono text-stone-50 text-xs">{fmt(consolidado)}</p>
               </div>
               <div>
@@ -239,10 +262,6 @@ export function FondosTab({
             <p className="text-[11px] text-stone-400 mt-1">Sujeta a que suba o baje de valor</p>
           </div>
         </div>
-        <p className="text-[11px] text-stone-400 mt-3 pt-2 border-t border-slate-600">
-          "Consolidado" es la suma de lo que te ha sobrado sin usar en meses anteriores. Es dinero ya cerrado que puedes gastar marcando
-          "pagado con ahorro".
-        </p>
       </div>
 
       <p className="text-sm font-semibold mb-2">Fondos de ahorro</p>

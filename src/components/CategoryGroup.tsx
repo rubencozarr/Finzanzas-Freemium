@@ -18,7 +18,20 @@ interface CategoryGroupProps {
   hideDetail?: boolean;
 }
 
-const VARIABLE_PALETTE = ["#fb7185", "#f97373", "#fda4af", "#e11d48", "#f43f5e", "#9f1239", "#be123c", "#fecdd3"];
+// Paleta cualitativa (base Tableau10): tonos claramente distintos entre sí en vez de varios matices de
+// un mismo color, para que las categorías se distingan bien también con daltonismo.
+const VARIABLE_PALETTE = [
+  "#4E79A7", // azul
+  "#F28E2B", // naranja
+  "#E15759", // rojo
+  "#59A14F", // verde
+  "#EDC948", // amarillo
+  "#B07AA1", // púrpura
+  "#FF9DA7", // rosa
+  "#9C755F", // marrón
+  "#BAB0AC", // gris
+  "#D37295", // malva
+];
 
 export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget = 0, hideDetail }: CategoryGroupProps) {
   const [expanded, setExpanded] = useState(false);
