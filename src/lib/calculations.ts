@@ -111,8 +111,15 @@ export function ahorroLibreHasta(transactions: Transaction[], mKey: string): num
   return ingresosTotal - gastosOrdinariosTotal - aportacionesTotal - inversionTotal - gastoLibre;
 }
 
+// El consolidado disponible baja en directo según se gasta dentro del propio mes: no basta con el
+// acumulado hasta el mes anterior, hay que descontar también lo ya gastado "con ahorro consolidado"
+// en el mes actual (si no, un segundo gasto el mismo mes vería el mismo saldo sin descontar el primero,
+// y "Consolidado" en Fondos no bajaría hasta cerrar el mes).
 export function ahorroLibreDisponibleParaMes(transactions: Transaction[], mKey: string): number {
-  return ahorroLibreHasta(transactions, prevMonthKey(mKey));
+  const gastoLibreEsteMes = transactions
+    .filter((t) => t.type === "gasto" && t.fundedBy === AHORRO_LIBRE_ID && monthKey(t.date) === mKey)
+    .reduce((s, t) => s + t.amount, 0);
+  return ahorroLibreHasta(transactions, prevMonthKey(mKey)) - gastoLibreEsteMes;
 }
 
 /** Pseudo-fondo "Ahorro libre acumulado", para mostrarlo junto a los fondos reales. */
@@ -222,7 +229,11 @@ export function yearMonthsData(transactions: Transaction[], year: number): YearM
     // le mostraría a FondosTab si navegases a este mes. Por eso se guarda el snapshot ANTES de sumar la
     // contribución del propio mes: sumarla antes convertiría esto en "ahorro libre total a fin de mes"
     // (consolidado + en curso), que es un concepto distinto aunque tenga el mismo nombre en el gráfico.
-    const consolidadoEsteMes = acumulado;
+    // También hay que restar los gastos pagados con ahorro libre DE ESTE MES (gastosFinanciadosLibre):
+    // igual que en Fondos, ese dinero sale del consolidado ya acumulado en cuanto se gasta, no solo al
+    // cerrar el mes — si no, este punto del gráfico y "Consolidado" en Fondos divergerían para el mismo
+    // mes. El acumulador que pasa al mes siguiente no cambia, ya restaba gastosFinanciadosLibre.
+    const consolidadoEsteMes = acumulado - s.gastosFinanciadosLibre;
     acumulado += s.ahorroReal - s.gastosFinanciadosLibre;
     return {
       mes: MONTHS_ES[i],
