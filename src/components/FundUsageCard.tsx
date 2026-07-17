@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { fmt } from "../lib/format";
+import { usePersistentState } from "../lib/persistentState";
 import type { FundUsage } from "../lib/calculations";
 
 export function FundUsageCard({ f }: { f: FundUsage }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = usePersistentState(`mensual.fundUsageCard.${f.id}`, false);
   return (
     <div className="border-l-4 border-amber-400 border-y border-r border-stone-100 bg-white rounded-r-lg mb-2 overflow-hidden">
       <button onClick={() => setExpanded((e) => !e)} className="w-full text-left pl-3 pr-3 py-2.5">

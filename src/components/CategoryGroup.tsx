@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { fmt } from "../lib/format";
+import { usePersistentState } from "../lib/persistentState";
 import { CategoryCard } from "./CategoryCard";
 import { CategoryOverviewDonut, type DonutDatum } from "./CategoryOverviewDonut";
 import { GroupHeader, type GroupTone } from "./GroupHeader";
@@ -34,7 +34,7 @@ const VARIABLE_PALETTE = [
 ];
 
 export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget = 0, hideDetail }: CategoryGroupProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = usePersistentState(`mensual.categoryGroup.${tone}`, false);
   const hasBudget = budget > 0;
   const budgetPct = hasBudget ? (total / budget) * 100 : 0;
   const overBudget = hasBudget && total > budget;

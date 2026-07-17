@@ -7,6 +7,7 @@ import { GroupHeader } from "../../components/GroupHeader";
 import { ALL_FUND_ICONS, DEFAULT_FUND_ICON, FREE_MAX_FUNDS, MONTHS_FULL, PREMIUM_FUND_ICONS } from "../../lib/constants";
 import { fundAvgNetContribution } from "../../lib/calculations";
 import { fundIconComponent } from "../../lib/fundIcons";
+import { usePersistentState } from "../../lib/persistentState";
 import { firstOfNextMonthISO, fmt, formatMonthYear, monthKey } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
 
@@ -169,8 +170,8 @@ export function FondosTab({
   const [goalAmountInput, setGoalAmountInput] = useState("");
   // Con pocos fondos/activos, un desplegable solo añade un toque extra sin beneficio (y un donut de un
   // solo segmento tampoco aporta nada); con varios, ordena la pantalla y da una vista general rápida.
-  const [fundsExpanded, setFundsExpanded] = useState(false);
-  const [assetsExpanded, setAssetsExpanded] = useState(false);
+  const [fundsExpanded, setFundsExpanded] = usePersistentState("fondos.fundsExpanded", false);
+  const [assetsExpanded, setAssetsExpanded] = usePersistentState("fondos.assetsExpanded", false);
   const showFundsCollapse = funds.length > 2;
   const showAssetsCollapse = assets.length > 2;
 

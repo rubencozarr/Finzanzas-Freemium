@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { usePersistentState } from "../lib/persistentState";
 import {
   Bar,
   BarChart,
@@ -87,7 +87,7 @@ export function ChartsSection({
   compareAssetBreakdown = [],
   compareTotalInversion = 0,
 }: ChartsSectionProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = usePersistentState("anual.chartsExpanded", false);
   const comparing = !!(compareYear && compareData);
 
   // Mismo activo -> mismo color en ambos donuts, aunque el orden (por total invertido, mayor a menor)

@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { fmt } from "../lib/format";
+import { usePersistentState } from "../lib/persistentState";
 import type { GroupTone } from "./GroupHeader";
 
 interface CategoryCardProps {
@@ -38,7 +38,7 @@ const SUB_BAR: Record<GroupTone, string> = {
 };
 
 export function CategoryCard({ name, total, pct, pctOfVariable, subcats, sinClasificar, tone, budget }: CategoryCardProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = usePersistentState(`mensual.categoryCard.${tone}.${name}`, false);
 
   const hasBudget = budget > 0;
   const budgetPct = hasBudget ? (total / budget) * 100 : 0;
