@@ -391,16 +391,16 @@ export function FondosTab({
                       <button
                         onClick={() => updateFundOrder(f.id, -1)}
                         disabled={i === 0}
-                        className={i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                        className={`p-2 -m-0.5 ${i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
                       >
-                        <ChevronUp size={14} />
+                        <ChevronUp size={18} />
                       </button>
                       <button
                         onClick={() => updateFundOrder(f.id, 1)}
                         disabled={i === fundsAtDate.length - 1}
-                        className={i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                        className={`p-2 -m-0.5 ${i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
                       >
-                        <ChevronDown size={14} />
+                        <ChevronDown size={18} />
                       </button>
                     </span>
                     {fundLocked && <FundLockBadge lockedUntil={firstOfNextMonthISO()} />}
