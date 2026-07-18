@@ -154,8 +154,12 @@ export function useFunds(userId: string | undefined) {
     [refetch],
   );
 
-  /** Intercambia el sort_order con el fondo anterior/siguiente. Mismo patrón que moveCategory en
-   * useCategories.ts, pero sin agrupar por tipo: los fondos no tienen esa subdivisión. */
+  /** Mueve el fondo una posición arriba/abajo y renumera TODA la lista a valores secuenciales
+   * (0..n-1), en vez de solo intercambiar el sort_order de los dos fondos movidos: los fondos ya
+   * existentes antes de esta función comparten todos sort_order 0 (columna añadida con default 0),
+   * así que un simple intercambio entre dos ceros no cambiaba nada. Renumerar todo garantiza que el
+   * primer movimiento (y todos los siguientes) funcionen sin depender de que ya hubiera valores
+   * distintos de antes. */
   const updateFundOrder = useCallback(
     async (id: string, direction: -1 | 1) => {
       if (isLocalBackend) {
@@ -164,13 +168,9 @@ export function useFunds(userId: string | undefined) {
           const idx = ordered.findIndex((f) => f.id === id);
           const swapIdx = idx + direction;
           if (idx === -1 || swapIdx < 0 || swapIdx >= ordered.length) return prev;
-          const a = ordered[idx];
-          const b = ordered[swapIdx];
-          const next = prev.map((f) => {
-            if (f.id === a.id) return { ...f, sortOrder: b.sortOrder ?? 0 };
-            if (f.id === b.id) return { ...f, sortOrder: a.sortOrder ?? 0 };
-            return f;
-          });
+          [ordered[idx], ordered[swapIdx]] = [ordered[swapIdx], ordered[idx]];
+          const orderById = new Map(ordered.map((f, i) => [f.id, i]));
+          const next = prev.map((f) => ({ ...f, sortOrder: orderById.get(f.id) ?? f.sortOrder ?? 0 }));
           writeLocal(LOCAL_KEY, next);
           return next;
         });
@@ -180,11 +180,12 @@ export function useFunds(userId: string | undefined) {
       const idx = ordered.findIndex((f) => f.id === id);
       const swapIdx = idx + direction;
       if (idx === -1 || swapIdx < 0 || swapIdx >= ordered.length) return;
-      const a = ordered[idx];
-      const b = ordered[swapIdx];
-      const { error: e1 } = await getSupabase().from("funds").update({ sort_order: b.sortOrder ?? 0 }).eq("id", a.id);
-      const { error: e2 } = await getSupabase().from("funds").update({ sort_order: a.sortOrder ?? 0 }).eq("id", b.id);
-      if (e1 || e2) throw e1 || e2;
+      [ordered[idx], ordered[swapIdx]] = [ordered[swapIdx], ordered[idx]];
+      const results = await Promise.all(
+        ordered.map((f, i) => getSupabase().from("funds").update({ sort_order: i }).eq("id", f.id)),
+      );
+      const firstError = results.find((r) => r.error)?.error;
+      if (firstError) throw firstError;
       await refetch();
     },
     [funds, refetch],
