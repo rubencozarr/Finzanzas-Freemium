@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
