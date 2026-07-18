@@ -1,16 +1,84 @@
 import { useEffect, useState } from "react";
-import { Crown, Download, FileSpreadsheet, LogOut, Upload } from "lucide-react";
+import { Check, ChevronRight, Crown, Download, FileSpreadsheet, LogOut, Upload } from "lucide-react";
 import { CategoriasEditor } from "./CategoriasEditor";
 import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
 import { InvestmentEditor } from "./InvestmentEditor";
 import { PremiumGate } from "../../components/PremiumGate";
+import { openCheckout } from "../../lib/lemonsqueezy";
+import { LEMONSQUEEZY_VARIANT_ANNUAL, LEMONSQUEEZY_VARIANT_MONTHLY } from "../../lib/constants";
 import type { Asset, Category, CategoryType, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
+
+// Tarjeta "Tu plan": encima del selector de secciones (no una 5ª sección), porque es un concern de
+// cuenta transversal, no una categoría de ajustes — así se ve siempre, elijas la sección que elijas.
+function PlanCard({ isPremium, userId, userEmail }: { isPremium: boolean; userId?: string; userEmail?: string }) {
+  const [choosing, setChoosing] = useState(false);
+
+  if (isPremium) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
+        <p className="text-sm font-semibold text-amber-900 flex items-center gap-1.5">
+          <Crown size={15} className="text-amber-500" /> Plan actual: Premium
+          <Check size={14} className="text-emerald-600" />
+        </p>
+        <a
+          href="https://klarofinanzas.lemonsqueezy.com/billing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-amber-800 underline mt-1 inline-block"
+        >
+          Gestionar suscripción
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
+      <p className="text-sm font-semibold text-amber-900 flex items-center gap-1.5 mb-2">
+        <Crown size={15} className="text-amber-500" /> Plan actual: Gratuito
+      </p>
+      {!choosing ? (
+        <button onClick={() => setChoosing(true)} className="w-full bg-amber-500 text-white rounded-lg py-2 text-sm font-medium">
+          Hazte Premium
+        </button>
+      ) : (
+        <div className="space-y-1.5">
+          <button
+            onClick={() => userId && openCheckout(LEMONSQUEEZY_VARIANT_MONTHLY, userId, userEmail)}
+            disabled={!userId}
+            className="w-full flex items-center justify-between bg-white border border-amber-300 rounded-lg px-3 py-2 text-sm text-left"
+          >
+            <span>Mensual</span>
+            <span className="flex items-center gap-1 font-mono text-amber-800">
+              2,99 €/mes <ChevronRight size={14} />
+            </span>
+          </button>
+          <button
+            onClick={() => userId && openCheckout(LEMONSQUEEZY_VARIANT_ANNUAL, userId, userEmail)}
+            disabled={!userId}
+            className="w-full flex items-center justify-between bg-white border border-amber-300 rounded-lg px-3 py-2 text-sm text-left"
+          >
+            <span>
+              Anual <span className="text-emerald-700 text-[11px]">(ahorras 5,89 €)</span>
+            </span>
+            <span className="flex items-center gap-1 font-mono text-amber-800">
+              29,99 €/año <ChevronRight size={14} />
+            </span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 type Section = "categorias" | "recurrentes" | "ingresos" | "inversion";
 
 interface AjustesTabProps {
   isPremium: boolean;
+  userId?: string;
+  userEmail?: string;
+  onGoToAjustes: () => void;
   canCreateCategory: (currentCount: number, type: CategoryType) => boolean;
   categories: Category[];
   addCategory: (type: CategoryType, name: string) => void;
@@ -87,6 +155,9 @@ function ExcelExportButton({ isPremium, onClick }: { isPremium: boolean; onClick
 
 export function AjustesTab({
   isPremium,
+  userId,
+  userEmail,
+  onGoToAjustes,
   canCreateCategory,
   categories,
   addCategory,
@@ -158,6 +229,8 @@ export function AjustesTab({
 
   return (
     <div>
+      <PlanCard isPremium={isPremium} userId={userId} userEmail={userEmail} />
+
       <div className="grid grid-cols-2 gap-2 mb-5">
         <button
           onClick={() => setSection("categorias")}
@@ -206,6 +279,7 @@ export function AjustesTab({
           getSubcategoryUsageCount={getSubcategoryUsageCount}
           variableBudget={variableBudget}
           updateVariableBudget={updateVariableBudget}
+          onGoToAjustes={onGoToAjustes}
         />
       )}
       {section === "recurrentes" && (
@@ -238,7 +312,7 @@ export function AjustesTab({
               setGlobalPct={setGlobalPct}
             />
           ) : (
-            <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
+            <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onGoToAjustes={onGoToAjustes} />
           )}
         </div>
       )}

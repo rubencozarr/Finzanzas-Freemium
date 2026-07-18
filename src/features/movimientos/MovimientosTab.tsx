@@ -210,6 +210,7 @@ export function MovimientosTab({
             changeYear={changeYear}
             goToMonthIndex={goToMonthIndex}
             getAhorroReal={getAhorroReal}
+            onGoToAjustes={onGoToAjustes}
           />
         </div>
       </div>

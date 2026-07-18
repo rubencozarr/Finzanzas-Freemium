@@ -94,6 +94,7 @@ export function MensualTab({
         changeYear={changeYear}
         goToMonthIndex={goToMonthIndex}
         getAhorroReal={getAhorroReal}
+        onGoToAjustes={onGoToAjustes}
       />
       <div className="bg-white rounded-lg border border-stone-100 p-4 mb-5 space-y-2 text-sm">
         <Row label="Ingresos" value={stats.ingresos} bold tone="emerald" />

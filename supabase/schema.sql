@@ -133,13 +133,21 @@ create table if not exists public.subscriptions (
   user_id uuid not null unique references auth.users (id) on delete cascade,
   plan text not null default 'free' check (plan in ('free', 'premium')),
   status text not null default 'active' check (status in ('active', 'cancelled', 'past_due')),
+  -- Legacy: nunca se llegó a usar Stripe, ningún código las lee ni escribe. Se dejan tal cual (sin
+  -- renombrar) por si acaso, el pago real es Lemon Squeezy (columnas lemonsqueezy_* de abajo).
   stripe_customer_id text,
   stripe_subscription_id text,
+  lemonsqueezy_subscription_id text,
+  lemonsqueezy_customer_id text,
   current_period_start timestamptz,
   current_period_end timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create unique index if not exists idx_subscriptions_lemonsqueezy_sub
+  on public.subscriptions (lemonsqueezy_subscription_id)
+  where lemonsqueezy_subscription_id is not null;
 
 -- =========================================================
 -- TRANSACTIONS (movimientos)

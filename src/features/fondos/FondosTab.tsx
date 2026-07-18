@@ -235,6 +235,7 @@ export function FondosTab({
         changeYear={changeYear}
         goToMonthIndex={goToMonthIndex}
         getAhorroReal={getAhorroReal}
+        onGoToAjustes={onGoToAjustes}
       />
 
       {isHistorical && (
@@ -316,7 +317,7 @@ export function FondosTab({
         </div>
       ) : (
         <div className="mb-4">
-          <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" />
+          <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" onGoToAjustes={onGoToAjustes} />
         </div>
       )}
       {showActiveToggle && (
@@ -646,7 +647,7 @@ export function FondosTab({
           )}
         </>
       ) : (
-        <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" />
+        <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onGoToAjustes={onGoToAjustes} />
       )}
 
       {deleteConfirmFund && (

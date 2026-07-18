@@ -2,6 +2,11 @@ import type { Category, CategoryType, TransactionType } from "../types";
 
 export const AHORRO_LIBRE_ID = "ahorro_libre";
 
+// No son secretos (van en URLs de checkout públicas), por eso van como constantes y no como env vars.
+export const LEMONSQUEEZY_STORE_SLUG = "klarofinanzas";
+export const LEMONSQUEEZY_VARIANT_MONTHLY = "1922178";
+export const LEMONSQUEEZY_VARIANT_ANNUAL = "1922142";
+
 // Límites del plan free (ver MASTER-PLAN-FREEMIUM.md, sección 4).
 export const FREE_MAX_FUNDS = 2;
 export const FREE_MAX_CATEGORIES: Record<CategoryType, number> = { fixed: 6, variable: 6 };

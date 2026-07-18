@@ -23,6 +23,7 @@ interface CategoriasEditorProps {
   getSubcategoryUsageCount: (categoryId: string, subcategoryId: string) => number;
   variableBudget: number;
   updateVariableBudget: (amount: number) => void;
+  onGoToAjustes?: () => void;
 }
 
 // Corona junto al nombre de la categoría cuando está activa y ya se usó (un gasto) este mes — mismo
@@ -62,6 +63,7 @@ export function CategoriasEditor({
   getSubcategoryUsageCount,
   variableBudget,
   updateVariableBudget,
+  onGoToAjustes,
 }: CategoriasEditorProps) {
   // El bloqueo es por categoría, no global: una categoría activa con la que ya se ha registrado un
   // gasto este mes no se puede desactivar, pero el resto de huecos (si no se han usado todavía) siguen
@@ -373,7 +375,10 @@ export function CategoriasEditor({
     <div>
       {!isPremium && (
         <div className="mb-4">
-          <PremiumGate message="Con Premium: categorías ilimitadas, subcategorías y presupuestos por categoría." />
+          <PremiumGate
+            message="Con Premium: categorías ilimitadas, subcategorías y presupuestos por categoría."
+            onGoToAjustes={onGoToAjustes}
+          />
         </div>
       )}
       {renderGroup("fixed", "Categorías fijas")}

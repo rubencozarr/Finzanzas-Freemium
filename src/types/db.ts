@@ -102,6 +102,8 @@ export interface SubscriptionRow {
   status: "active" | "cancelled" | "past_due";
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  lemonsqueezy_subscription_id: string | null;
+  lemonsqueezy_customer_id: string | null;
   current_period_start: string | null;
   current_period_end: string | null;
   created_at: string;

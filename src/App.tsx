@@ -154,6 +154,11 @@ function App() {
   const [compareYear, setCompareYear] = useState<number | null>(null);
   const goToAjustes = (section?: string) => {
     setAjustesSection(section || "categorias");
+    // Fuerza que Ajustes se abra arriba del todo (donde vive la tarjeta "Tu plan"), en vez de
+    // restaurar el scroll donde se dejó la última vez: relevante para "Ver planes" desde un
+    // PremiumGate, que quiere llevar directo a esa tarjeta, no a media pestaña.
+    scrollPositions.current.ajustes = 0;
+    if (tab === "ajustes" && mainRef.current) mainRef.current.scrollTop = 0;
     setTab("ajustes");
   };
 
@@ -685,11 +690,15 @@ function App() {
             variableBudget={variableBudget}
             compareYear={compareYear}
             onCompareYearChange={setCompareYear}
+            onGoToAjustes={() => goToAjustes()}
           />
         )}
         {tab === "ajustes" && (
           <AjustesTab
             isPremium={isPremium}
+            userId={userId}
+            userEmail={user?.email ?? undefined}
+            onGoToAjustes={() => goToAjustes()}
             canCreateCategory={canCreateCategory}
             categories={categories}
             addCategory={addCategory}
@@ -747,6 +756,11 @@ function App() {
           onClose={() => {
             setShowForm(false);
             setEditingTx(null);
+          }}
+          onGoToAjustes={() => {
+            setShowForm(false);
+            setEditingTx(null);
+            goToAjustes();
           }}
           onSave={async (tx) => {
             if (editingTx) {
