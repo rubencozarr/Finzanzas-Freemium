@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, HelpCircle, PiggyBank, Settings2, Wallet } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { useTransactions } from "./hooks/useTransactions";
@@ -124,7 +124,20 @@ function App() {
     });
   }, [isPremium, categoriesLoading, categories, updateCategoryActive]);
 
-  const [tab, setTab] = useState<Tab>("movimientos");
+  const [tab, setTabRaw] = useState<Tab>("movimientos");
+  // El scroll de <main> (más abajo) se pierde al cambiar de pestaña porque el contenido del tab
+  // saliente se desmonta y el navegador reposiciona el scroll para el nuevo contenido. Se guarda el
+  // scrollTop de cada tab en este ref (no en estado: no necesita re-render) al salir de él, y se
+  // restaura en el useLayoutEffect de más abajo al volver.
+  const mainRef = useRef<HTMLElement>(null);
+  const scrollPositions = useRef<Partial<Record<Tab, number>>>({});
+  const setTab = (newTab: Tab) => {
+    if (mainRef.current) scrollPositions.current[tab] = mainRef.current.scrollTop;
+    setTabRaw(newTab);
+  };
+  useLayoutEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = scrollPositions.current[tab] ?? 0;
+  }, [tab]);
   const [ajustesSection, setAjustesSection] = useState("categorias");
   // Vive en App (no en AnualTab) para que sobreviva a salir y volver a la pestaña Anual: AnualTab solo
   // se renderiza cuando tab === "anual", así que un estado local ahí se perdía cada vez que el usuario
@@ -560,7 +573,7 @@ function App() {
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
+      <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
         {tab === "movimientos" && (
           <MovimientosTab
             isPremium={isPremium}
