@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import type { useAuth } from "../hooks/useAuth";
 
 type Mode = "login" | "signup";
@@ -20,6 +21,9 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -29,6 +33,10 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
     setInfo(null);
     if (!email.trim() || !password) {
       setError("Rellena email y contraseña.");
+      return;
+    }
+    if (mode === "signup" && password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
       return;
     }
     setLoading(true);
@@ -43,6 +51,7 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
         setInfo("Cuenta creada. Revisa tu email para confirmar la cuenta y luego inicia sesión.");
         setMode("login");
         setPassword("");
+        setConfirmPassword("");
       }
     }
     setLoading(false);
@@ -74,14 +83,43 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
             placeholder="Email"
             className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base mb-3 bg-white"
           />
-          <input
-            type="password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Contraseña"
-            className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base mb-3 bg-white"
-          />
+          <div className="relative mb-3">
+            <input
+              type={showPassword ? "text" : "password"}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña"
+              className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-10 text-base bg-white"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          {mode === "signup" && (
+            <div className="relative mb-3">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmar contraseña"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-10 text-base bg-white"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((s) => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          )}
 
           {error && <p className="text-xs text-rose-600 mb-3">{error}</p>}
           {info && <p className="text-xs text-emerald-700 mb-3">{info}</p>}
@@ -98,6 +136,7 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
         <button
           onClick={() => {
             setMode(mode === "login" ? "signup" : "login");
+            setConfirmPassword("");
             setError(null);
             setInfo(null);
           }}

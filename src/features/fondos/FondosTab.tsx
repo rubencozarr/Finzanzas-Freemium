@@ -387,6 +387,22 @@ export function FondosTab({
                   })()}
                   <span className="flex items-center gap-1 min-w-0 flex-1">
                     <span className="text-sm font-medium truncate">{f.name}</span>
+                    <span className="flex items-center shrink-0">
+                      <button
+                        onClick={() => updateFundOrder(f.id, -1)}
+                        disabled={i === 0}
+                        className={i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => updateFundOrder(f.id, 1)}
+                        disabled={i === fundsAtDate.length - 1}
+                        className={i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                    </span>
                     {fundLocked && <FundLockBadge lockedUntil={firstOfNextMonthISO()} />}
                   </span>
                 </div>
@@ -509,20 +525,6 @@ export function FondosTab({
                     </button>
                     <button onClick={() => onQuickMove(f, "retiro")} className="flex-1 text-xs bg-amber-50 text-amber-800 rounded-md px-2.5 py-1.5">
                       Retirar
-                    </button>
-                    <button
-                      onClick={() => updateFundOrder(f.id, -1)}
-                      disabled={i === 0}
-                      className={i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
-                    >
-                      <ChevronUp size={15} />
-                    </button>
-                    <button
-                      onClick={() => updateFundOrder(f.id, 1)}
-                      disabled={i === fundsAtDate.length - 1}
-                      className={i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
-                    >
-                      <ChevronDown size={15} />
                     </button>
                     <button
                       onClick={() => {
