@@ -137,7 +137,15 @@ function App() {
     setTabRaw(newTab);
   };
   useLayoutEffect(() => {
-    if (mainRef.current) mainRef.current.scrollTop = scrollPositions.current[tab] ?? 0;
+    const saved = scrollPositions.current[tab] ?? 0;
+    if (mainRef.current) mainRef.current.scrollTop = saved;
+    // Un solo set en el commit no basta: si el contenido del tab termina de asentar su altura un
+    // frame después (p. ej. fuentes o primer layout de algún gráfico), el navegador puede recolocar
+    // el scroll ligeramente. Se reafirma el mismo valor guardado un frame más tarde para corregirlo.
+    const raf = requestAnimationFrame(() => {
+      if (mainRef.current) mainRef.current.scrollTop = saved;
+    });
+    return () => cancelAnimationFrame(raf);
   }, [tab]);
   const [ajustesSection, setAjustesSection] = useState("categorias");
   // Vive en App (no en AnualTab) para que sobreviva a salir y volver a la pestaña Anual: AnualTab solo

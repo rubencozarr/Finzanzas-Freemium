@@ -499,8 +499,19 @@ export function FondosTab({
                           </button>
                         </span>
                       </div>
-                      <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${reached ? "bg-emerald-500" : "bg-emerald-400"}`} style={{ width: `${pct}%` }} />
+                      <div className="relative w-full h-3 mb-0.5">
+                        <div className="absolute inset-0 bg-stone-100 rounded-full overflow-hidden">
+                          <div className={`h-full ${reached ? "bg-emerald-500" : "bg-emerald-400"}`} style={{ width: `${pct}%` }} />
+                        </div>
+                        <div
+                          className="absolute top-1/2 w-5 h-5 rounded-full bg-white border-2 border-emerald-500 shadow-sm flex items-center justify-center"
+                          style={{ left: `clamp(10px, ${pct}%, calc(100% - 10px))`, transform: "translate(-50%, -50%)" }}
+                        >
+                          {(() => {
+                            const Icon = fundIconComponent(f.icon);
+                            return <Icon size={11} className="text-emerald-700" />;
+                          })()}
+                        </div>
                       </div>
                       {!reached && (
                         <p className="text-[11px] text-stone-400 mt-1">
