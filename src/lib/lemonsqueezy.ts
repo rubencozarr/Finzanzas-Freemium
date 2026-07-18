@@ -1,4 +1,4 @@
-import { LEMONSQUEEZY_STORE_SLUG } from "./constants";
+import { LEMONSQUEEZY_CHECKOUT_UUID, LEMONSQUEEZY_STORE_SLUG } from "./constants";
 
 // lemon.js (cargado en index.html) engancha window.createLemonSqueezy, que a su vez expone
 // window.LemonSqueezy con el helper del overlay de checkout.
@@ -19,14 +19,15 @@ function ensureLoaded() {
   loaded = true;
 }
 
-/** Abre el overlay de checkout de Lemon Squeezy para la variante indicada, con el user_id como
- * custom data (así el webhook sabe a qué usuario activar) y el email prellenado si se conoce. */
-export function openCheckout(variantId: string, userId: string, email?: string) {
+/** Abre el overlay de checkout de Lemon Squeezy (mensual/anual se eligen dentro de esa misma
+ * página), con el user_id como custom data (así el webhook sabe a qué usuario activar) y el email
+ * prellenado si se conoce. */
+export function openCheckout(userId: string, email?: string) {
   ensureLoaded();
   const params = new URLSearchParams();
   params.set("checkout[custom][user_id]", userId);
   if (email) params.set("checkout[email]", email);
-  const url = `https://${LEMONSQUEEZY_STORE_SLUG}.lemonsqueezy.com/buy/${variantId}?${params.toString()}`;
+  const url = `https://${LEMONSQUEEZY_STORE_SLUG}.lemonsqueezy.com/checkout/buy/${LEMONSQUEEZY_CHECKOUT_UUID}?${params.toString()}`;
   if (window.LemonSqueezy) {
     window.LemonSqueezy.Url.Open(url);
   } else {
