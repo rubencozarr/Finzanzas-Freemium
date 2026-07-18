@@ -68,6 +68,7 @@ function App() {
     updateFundGoal,
     updateFundActive,
     updateFundIcon,
+    updateFundOrder,
     loading: fundsLoading,
     refetch: refetchFunds,
   } = useFunds(userId);
@@ -624,6 +625,7 @@ function App() {
             updateFundGoal={updateFundGoal}
             updateFundActive={updateFundActive}
             updateFundIcon={updateFundIcon}
+            updateFundOrder={updateFundOrder}
             assets={assetsWithTotal}
             selectedMonthKey={selectedMonthKey}
             currentMonthKey={currentMonthKey}

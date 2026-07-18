@@ -24,6 +24,7 @@ export interface Fund {
   goalAmount?: number | null;
   isActive?: boolean;
   icon?: string | null;
+  sortOrder?: number;
 }
 
 export interface FundWithBalance extends Fund {

@@ -20,6 +20,7 @@ create table if not exists public.funds (
   -- Icono elegible para el fondo (nombre kebab-case, ver src/lib/constants.ts > ALL_FUND_ICONS y
   -- src/lib/fundIcons.ts). Null = usar el icono por defecto ("piggy-bank") en la app.
   icon text,
+  sort_order integer not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -177,7 +178,7 @@ create index if not exists idx_transactions_user_type on public.transactions (us
 create index if not exists idx_transactions_split_id on public.transactions (split_id) where split_id is not null;
 create index if not exists idx_transactions_fund_id on public.transactions (fund_id) where fund_id is not null;
 create index if not exists idx_transactions_category_id on public.transactions (category_id) where category_id is not null;
-create index if not exists idx_funds_user on public.funds (user_id);
+create index if not exists idx_funds_user on public.funds (user_id, sort_order);
 create index if not exists idx_categories_user on public.categories (user_id, sort_order);
 create index if not exists idx_recurring_user on public.recurring (user_id);
 create index if not exists idx_recurring_income_user on public.recurring_income (user_id);

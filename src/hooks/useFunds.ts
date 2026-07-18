@@ -29,10 +29,12 @@ export function useFunds(userId: string | undefined) {
       .from("funds")
       .select("*")
       .eq("user_id", userId)
-      // Desempate por id: los fondos importados de golpe (misma importación) comparten el mismo
-      // created_at, así que sin un segundo criterio de orden Postgres puede devolverlos en un orden
-      // distinto cada vez que uno de ellos se actualiza (p. ej. al marcarlo como activo), dando la
-      // sensación de que la lista "salta" de posición.
+      // sort_order manda (reordenamiento manual del usuario); created_at y luego id son solo
+      // desempate para fondos que nunca se han reordenado (todos con sort_order 0, p. ej. tras la
+      // migración o una importación en bloque), donde sin un segundo criterio Postgres puede
+      // devolverlos en un orden distinto cada vez que uno de ellos se actualiza (p. ej. al marcarlo
+      // como activo), dando la sensación de que la lista "salta" de posición.
+      .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true })
       .order("id", { ascending: true });
     if (error) setError(error.message);
@@ -51,18 +53,20 @@ export function useFunds(userId: string | undefined) {
     async (name: string, icon?: string | null) => {
       if (isLocalBackend) {
         setFunds((prev) => {
-          const next = [...prev, { id: crypto.randomUUID(), name, icon: icon ?? null }];
+          const nextOrder = prev.length ? Math.max(...prev.map((f) => f.sortOrder ?? 0)) + 1 : 0;
+          const next = [...prev, { id: crypto.randomUUID(), name, icon: icon ?? null, sortOrder: nextOrder }];
           writeLocal(LOCAL_KEY, next);
           return next;
         });
         return;
       }
       if (!userId) return;
-      const { error } = await getSupabase().from("funds").insert({ user_id: userId, name, icon: icon ?? null });
+      const nextOrder = funds.length ? Math.max(...funds.map((f) => f.sortOrder ?? 0)) + 1 : 0;
+      const { error } = await getSupabase().from("funds").insert({ user_id: userId, name, icon: icon ?? null, sort_order: nextOrder });
       if (error) throw error;
       await refetch();
     },
-    [userId, refetch],
+    [userId, funds, refetch],
   );
 
   const renameFund = useCallback(
@@ -150,5 +154,53 @@ export function useFunds(userId: string | undefined) {
     [refetch],
   );
 
-  return { funds, loading, error, addFund, renameFund, deleteFund, updateFundGoal, updateFundActive, updateFundIcon, refetch };
+  /** Intercambia el sort_order con el fondo anterior/siguiente. Mismo patrón que moveCategory en
+   * useCategories.ts, pero sin agrupar por tipo: los fondos no tienen esa subdivisión. */
+  const updateFundOrder = useCallback(
+    async (id: string, direction: -1 | 1) => {
+      if (isLocalBackend) {
+        setFunds((prev) => {
+          const ordered = [...prev].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+          const idx = ordered.findIndex((f) => f.id === id);
+          const swapIdx = idx + direction;
+          if (idx === -1 || swapIdx < 0 || swapIdx >= ordered.length) return prev;
+          const a = ordered[idx];
+          const b = ordered[swapIdx];
+          const next = prev.map((f) => {
+            if (f.id === a.id) return { ...f, sortOrder: b.sortOrder ?? 0 };
+            if (f.id === b.id) return { ...f, sortOrder: a.sortOrder ?? 0 };
+            return f;
+          });
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const ordered = [...funds].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      const idx = ordered.findIndex((f) => f.id === id);
+      const swapIdx = idx + direction;
+      if (idx === -1 || swapIdx < 0 || swapIdx >= ordered.length) return;
+      const a = ordered[idx];
+      const b = ordered[swapIdx];
+      const { error: e1 } = await getSupabase().from("funds").update({ sort_order: b.sortOrder ?? 0 }).eq("id", a.id);
+      const { error: e2 } = await getSupabase().from("funds").update({ sort_order: a.sortOrder ?? 0 }).eq("id", b.id);
+      if (e1 || e2) throw e1 || e2;
+      await refetch();
+    },
+    [funds, refetch],
+  );
+
+  return {
+    funds,
+    loading,
+    error,
+    addFund,
+    renameFund,
+    deleteFund,
+    updateFundGoal,
+    updateFundActive,
+    updateFundIcon,
+    updateFundOrder,
+    refetch,
+  };
 }

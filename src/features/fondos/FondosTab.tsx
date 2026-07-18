@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Crown, Info, Pencil, Plus, Target, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Crown, Info, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
@@ -30,6 +30,7 @@ interface FondosTabProps {
   updateFundGoal: (id: string, amount: number | null) => void;
   updateFundActive: (id: string, active: boolean) => void;
   updateFundIcon: (id: string, icon: string) => void;
+  updateFundOrder: (id: string, direction: -1 | 1) => void;
   assets: AssetWithTotal[];
   selectedMonthKey: string;
   currentMonthKey: string;
@@ -149,6 +150,7 @@ export function FondosTab({
   assetsHasta,
   ahorroLibreHasta,
   ahorroLibreDisponibleParaMes,
+  updateFundOrder,
   monthIdx,
   year,
   changeMonth,
@@ -347,7 +349,7 @@ export function FondosTab({
       {(!showFundsCollapse || fundsExpanded) && (
       <div className="space-y-3 mb-2">
         {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
-        {fundsAtDate.map((f) => {
+        {fundsAtDate.map((f, i) => {
           const fundLocked = showActiveToggle && f.isActive && fundContributedThisMonth(f.id);
           return (
           <div key={f.id} className="bg-white rounded-lg border border-stone-100 px-3 py-3">
@@ -507,6 +509,20 @@ export function FondosTab({
                     </button>
                     <button onClick={() => onQuickMove(f, "retiro")} className="flex-1 text-xs bg-amber-50 text-amber-800 rounded-md px-2.5 py-1.5">
                       Retirar
+                    </button>
+                    <button
+                      onClick={() => updateFundOrder(f.id, -1)}
+                      disabled={i === 0}
+                      className={i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                    >
+                      <ChevronUp size={15} />
+                    </button>
+                    <button
+                      onClick={() => updateFundOrder(f.id, 1)}
+                      disabled={i === fundsAtDate.length - 1}
+                      className={i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                    >
+                      <ChevronDown size={15} />
                     </button>
                     <button
                       onClick={() => {

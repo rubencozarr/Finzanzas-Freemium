@@ -102,6 +102,7 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
             goal_amount: f.goalAmount ?? null,
             is_active: f.isActive ?? true,
             icon: f.icon ?? null,
+            sort_order: f.sortOrder ?? 0,
           };
         }),
       ),
