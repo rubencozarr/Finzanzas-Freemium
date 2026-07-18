@@ -37,6 +37,14 @@ export const formatMonthYear = (dateStr: string) => {
   return `${MONTHS_FULL[m - 1]} de ${y}`;
 };
 
+// "2026-08-01" -> "01-08-2026": el formato ISO (año-mes-día) de la base de datos no es el habitual en
+// España, donde se lee día-mes-año. Solo para mostrar; el ISO original (t.date) sigue usándose para
+// ordenar, comparar y editar.
+export const formatDateEs = (dateStr: string) => {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}-${m}-${y}`;
+};
+
 export const fmt = (n: number) => {
   const rounded = round2(n);
   return (rounded < 0 ? "-" : "") + Math.abs(rounded).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";

@@ -13,7 +13,7 @@ import {
   type MonthStats,
 } from "../../lib/calculations";
 import { AHORRO_LIBRE_ID, TYPE_META } from "../../lib/constants";
-import { fmt } from "../../lib/format";
+import { fmt, formatDateEs } from "../../lib/format";
 import type { Category, FundWithBalance, Transaction, TransactionType } from "../../types";
 
 const FILTER_OPTIONS: [TransactionType, string][] = [
@@ -173,7 +173,7 @@ export function MovimientosTab({
           {orphanSub && <span className="text-amber-600"> (sin subcategoría válida)</span>}
           {t.note ? ` · ${t.note}` : ""}
         </p>
-        <p className="text-xs text-stone-400 mt-1">{t.date}</p>
+        <p className="text-xs text-stone-400 mt-1">{formatDateEs(t.date)}</p>
         {fundedByName && <p className="text-xs text-amber-700 mt-0.5">Pagado con {fundedByName}</p>}
         {t.splitLabel && <p className="text-xs text-amber-700 mt-0.5">{t.splitLabel}</p>}
       </div>

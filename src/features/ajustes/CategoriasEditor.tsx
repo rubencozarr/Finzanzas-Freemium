@@ -68,6 +68,13 @@ export function CategoriasEditor({
   // libres para activar/desactivar. Mismo mecanismo que "fondo activo" en FondosTab.tsx.
   const categoryUsedThisMonth = (categoryId: string) =>
     transactions.some((t) => t.type === "gasto" && t.categoryId === categoryId && monthKey(t.date) === currentMonthKey);
+  // Los inputs de presupuesto NO están controlados directamente por variableBudget/cat.budget: esos
+  // props solo se actualizan tras el round-trip a Supabase (updateVariableBudget/updateBudget son
+  // async), así que escribirlos ahí hacía que cada dígito tardara en aparecer (o, si el usuario
+  // escribía "12." y el round-trip volvía primero, el punto decimal desaparecía porque parseFloat lo
+  // descarta). Con un borrador local, el tecleo es instantáneo y solo se guarda al salir del campo.
+  const [budgetDraft, setBudgetDraft] = useState<Record<string, string>>({});
+  const [globalBudgetDraft, setGlobalBudgetDraft] = useState<string | null>(null);
   const [newSubName, setNewSubName] = useState<Record<string, string>>({});
   const [newCatName, setNewCatName] = useState<Record<CategoryType, string>>({ fixed: "", variable: "" });
   const [addError, setAddError] = useState<Record<CategoryType, string | null>>({ fixed: null, variable: null });
@@ -170,8 +177,15 @@ export function CategoriasEditor({
                   <input
                     type="number"
                     inputMode="decimal"
-                    value={variableBudget || ""}
-                    onChange={(e) => updateVariableBudget(parseFloat(e.target.value) || 0)}
+                    value={globalBudgetDraft ?? (variableBudget || "")}
+                    onChange={(e) => setGlobalBudgetDraft(e.target.value)}
+                    onBlur={(e) => {
+                      updateVariableBudget(parseFloat(e.target.value) || 0);
+                      setGlobalBudgetDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder="Sin límite"
                     className="w-24 border border-stone-200 rounded-md px-2 py-1 text-base font-mono"
@@ -276,8 +290,19 @@ export function CategoriasEditor({
                   <input
                     type="number"
                     inputMode="decimal"
-                    value={cat.budget || ""}
-                    onChange={(e) => updateBudget(cat.id, parseFloat(e.target.value) || 0)}
+                    value={budgetDraft[cat.id] ?? (cat.budget || "")}
+                    onChange={(e) => setBudgetDraft((s) => ({ ...s, [cat.id]: e.target.value }))}
+                    onBlur={(e) => {
+                      updateBudget(cat.id, parseFloat(e.target.value) || 0);
+                      setBudgetDraft((s) => {
+                        const next = { ...s };
+                        delete next[cat.id];
+                        return next;
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder="Sin límite"
                     className="w-24 border border-stone-200 rounded-md px-2 py-1 text-base font-mono"

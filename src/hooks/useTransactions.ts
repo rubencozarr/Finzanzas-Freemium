@@ -36,7 +36,11 @@ export function useTransactions(userId: string | undefined) {
       .from("transactions")
       .select("*")
       .eq("user_id", userId)
-      .order("date", { ascending: false });
+      // Desempate por created_at: dos movimientos con la misma fecha (p. ej. registrados el mismo día)
+      // se ordenaban por lo que devolviera Postgres, sin garantía; con esto el creado más reciente
+      // aparece primero dentro del mismo día. Mismo patrón que el desempate en useFunds.
+      .order("date", { ascending: false })
+      .order("created_at", { ascending: false });
     if (error) setError(error.message);
     else setTransactions(((data as TransactionRow[]) ?? []).map(fromTransactionRow));
     setLoading(false);
