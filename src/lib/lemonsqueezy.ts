@@ -26,7 +26,7 @@ export function openCheckout(variantId: string, userId: string, email?: string) 
   const params = new URLSearchParams();
   params.set("checkout[custom][user_id]", userId);
   if (email) params.set("checkout[email]", email);
-  const url = `https://${LEMONSQUEEZY_STORE_SLUG}.lemonsqueezy.com/checkout/buy/${variantId}?${params.toString()}`;
+  const url = `https://${LEMONSQUEEZY_STORE_SLUG}.lemonsqueezy.com/buy/${variantId}?${params.toString()}`;
   if (window.LemonSqueezy) {
     window.LemonSqueezy.Url.Open(url);
   } else {
