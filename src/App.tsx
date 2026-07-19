@@ -133,8 +133,15 @@ function App() {
   // restaura en el useLayoutEffect de más abajo al volver.
   const mainRef = useRef<HTMLElement>(null);
   const scrollPositions = useRef<Partial<Record<Tab, number>>>({});
+  // Cada pestaña, una vez visitada, se queda montada (ver render de <main> más abajo: se oculta con
+  // display:none en vez de desmontarse) para no perder los useMemo internos de cada tab ni forzar a
+  // los gráficos a remedirse cada vez. Se añade al set aquí, en el mismo ciclo que cambia `tab`, para
+  // que la primera vez que una pestaña se monta ya sea la visible (nunca se monta oculta: evita el
+  // bug clásico de ResponsiveContainer midiendo 0×0 al montar con display:none).
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(["movimientos"]));
   const setTab = (newTab: Tab) => {
     if (mainRef.current) scrollPositions.current[tab] = mainRef.current.scrollTop;
+    setVisitedTabs((prev) => (prev.has(newTab) ? prev : new Set(prev).add(newTab)));
     setTabRaw(newTab);
   };
   useLayoutEffect(() => {
@@ -591,7 +598,8 @@ function App() {
       </header>
 
       <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
-        {tab === "movimientos" && (
+        {visitedTabs.has("movimientos") && (
+          <div style={{ display: tab === "movimientos" ? "block" : "none" }}>
           <MovimientosTab
             isPremium={isPremium}
             canNavigateToMonth={canNavigateToMonth}
@@ -628,8 +636,10 @@ function App() {
             onResolveOrphans={() => setShowResolveOrphans(true)}
             toast={showToast}
           />
+          </div>
         )}
-        {tab === "fondos" && (
+        {visitedTabs.has("fondos") && (
+          <div style={{ display: tab === "fondos" ? "block" : "none" }}>
           <FondosTab
             isPremium={isPremium}
             canCreateFund={canCreateFund}
@@ -661,8 +671,10 @@ function App() {
             onGoToAjustes={() => goToAjustes("inversion")}
             onOpenPremiumScreen={onOpenPremiumScreen}
           />
+          </div>
         )}
-        {tab === "mensual" && (
+        {visitedTabs.has("mensual") && (
+          <div style={{ display: tab === "mensual" ? "block" : "none" }}>
           <MensualTab
             isPremium={isPremium}
             canNavigateToMonth={canNavigateToMonth}
@@ -683,8 +695,10 @@ function App() {
             onGoToAjustes={() => goToAjustes("categorias")}
             onOpenPremiumScreen={onOpenPremiumScreen}
           />
+          </div>
         )}
-        {tab === "anual" && (
+        {visitedTabs.has("anual") && (
+          <div style={{ display: tab === "anual" ? "block" : "none" }}>
           <AnualTab
             isPremium={isPremium}
             year={year}
@@ -698,8 +712,10 @@ function App() {
             onCompareYearChange={setCompareYear}
             onOpenPremiumScreen={onOpenPremiumScreen}
           />
+          </div>
         )}
-        {tab === "ajustes" && (
+        {visitedTabs.has("ajustes") && (
+          <div style={{ display: tab === "ajustes" ? "block" : "none" }}>
           <AjustesTab
             isPremium={isPremium}
             onOpenPremiumScreen={onOpenPremiumScreen}
@@ -741,6 +757,7 @@ function App() {
             onImport={onImport}
             onSignOut={handleSignOut}
           />
+          </div>
         )}
       </main>
 
