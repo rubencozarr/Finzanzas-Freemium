@@ -562,6 +562,23 @@ export function matchesCategory(t: CategoryMatchable, cat: Category): boolean {
   return t.categoryId ? t.categoryId === cat.id : t.category === cat.name;
 }
 
+/** Subconjunto mínimo para resolver el nombre "en vivo" del fondo de una aportación/retiro. */
+export interface FundMatchable {
+  fundId?: string | null;
+  category: string;
+}
+
+/** Nombre "en vivo" del fondo de una aportación/retiro: siempre refleja el nombre actual, igual que
+ * resolveCategoryName para categorías — category es solo el snapshot de texto guardado al crear el
+ * movimiento, que queda obsoleto si el fondo se renombra después. */
+export function resolveFundName(t: FundMatchable, funds: Fund[]): string {
+  if (t.fundId) {
+    const fund = funds.find((f) => f.id === t.fundId);
+    if (fund) return fund.name;
+  }
+  return t.category;
+}
+
 /** Nombre "en vivo" de la categoría de un movimiento: siempre refleja el nombre actual. */
 export function resolveCategoryName(t: CategoryMatchable, categories: Category[]): string {
   if (t.categoryId) {
@@ -829,6 +846,7 @@ export interface DisplayTransactionItem {
   type: Transaction["type"];
   fixed?: boolean | null;
   amount: number;
+  fundId?: string | null;
   fundedBy?: string | null;
   splitLabel?: string | null;
   raw?: Transaction;
@@ -871,6 +889,7 @@ export function mergeSplitDisplay(monthTx: Transaction[], funds: FundWithBalance
         type: t.type,
         fixed: t.fixed,
         amount: t.amount,
+        fundId: t.fundId,
         fundedBy: t.fundedBy,
         raw: t,
       });

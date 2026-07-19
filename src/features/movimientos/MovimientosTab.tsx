@@ -8,6 +8,7 @@ import {
   isOrphanSubcategory,
   mergeSplitDisplay,
   resolveCategoryName,
+  resolveFundName,
   resolveSubcategoryName,
   type DisplayTransactionItem,
   type MonthStats,
@@ -155,7 +156,10 @@ export function MovimientosTab({
   };
 
   const renderTxRow = (t: DisplayTransactionItem, id: string, canEdit: boolean) => {
-    const displayCategory = resolveCategoryName(t, categories);
+    // Aportaciones/retiros muestran el nombre del fondo, no de una categoría: se resuelve en vivo
+    // desde fundId (igual que la categoría desde categoryId), no del texto guardado al crearlo, que
+    // queda obsoleto si el fondo se renombra después.
+    const displayCategory = t.type === "aportacion" || t.type === "retiro" ? resolveFundName(t, funds) : resolveCategoryName(t, categories);
     const displaySubcategory = resolveSubcategoryName(t, categories);
     const orphan = isOrphanGasto(t, categories);
     const orphanSub = !orphan && isOrphanSubcategory(t, categories);
@@ -383,6 +387,7 @@ export function MovimientosTab({
                 type: t.type,
                 fixed: t.fixed,
                 amount: t.amount,
+                fundId: t.fundId,
                 fundedBy: t.fundedBy,
                 raw: t,
               },
