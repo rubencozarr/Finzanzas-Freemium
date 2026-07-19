@@ -134,15 +134,17 @@ function App() {
   const mainRef = useRef<HTMLElement>(null);
   const scrollPositions = useRef<Partial<Record<Tab, number>>>({});
   // Cada pestaña, una vez visitada, se queda montada (ver render de <main> más abajo) para no perder
-  // los useMemo internos de cada tab. Se oculta con "invisible absolute inset-0" (visibility:hidden +
-  // position:absolute), NO con display:none: display:none colapsa el elemento a 0×0, así que
-  // ResponsiveContainer (Recharts) tiene que volver a medir y redibujar el gráfico entero CADA VEZ que
-  // la pestaña se vuelve a mostrar, no solo la primera vez — eso es lo que se sentía como "carga" al
-  // cambiar a una pestaña con gráficos. Con position:absolute + inset:0, la pestaña oculta conserva su
-  // ancho real todo el tiempo (ocupa el mismo hueco que si estuviera visible, solo que fuera del flujo
-  // y sin pintarse), así el gráfico nunca ve un contenedor de tamaño 0 y no hace falta remedir al volver.
-  // Se añade al set aquí, en el mismo ciclo que cambia `tab`, para que la primera vez que una pestaña
-  // se monta ya sea la visible.
+  // los useMemo internos de cada tab. Se oculta con "invisible h-0 overflow-hidden", NO con
+  // display:none: display:none colapsa el elemento a 0×0, así que ResponsiveContainer (Recharts)
+  // tiene que volver a medir y redibujar el gráfico entero CADA VEZ que la pestaña se vuelve a
+  // mostrar, no solo la primera vez — eso es lo que se sentía como "carga" al cambiar a una pestaña
+  // con gráficos. h-0 + overflow-hidden recorta la ALTURA a 0 (sin aportar espacio de scroll) pero dentro
+  // del flujo normal del documento, sin position:absolute: el ANCHO no se ve afectado por la altura en
+  // el modelo de caja de bloque, así que Recharts sigue midiendo el ancho real. (Se probó primero con
+  // position:absolute + inset:0, pero un elemento posicionado siempre se pinta POR ENCIMA de sus
+  // hermanos en flujo normal aunque sea invisible/pointer-events:none — eso bloqueaba el scroll táctil
+  // de la pestaña visible.) Se añade al set aquí, en el mismo ciclo que cambia `tab`, para que la
+  // primera vez que una pestaña se monta ya sea la visible.
   const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(["movimientos"]));
   const setTab = (newTab: Tab) => {
     if (mainRef.current) scrollPositions.current[tab] = mainRef.current.scrollTop;
@@ -602,9 +604,9 @@ function App() {
         </button>
       </header>
 
-      <main ref={mainRef} className="relative flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
+      <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
         {visitedTabs.has("movimientos") && (
-          <div className={tab === "movimientos" ? "" : "invisible absolute inset-0 pointer-events-none"}>
+          <div className={tab === "movimientos" ? "" : "invisible h-0 overflow-hidden pointer-events-none"}>
           <MovimientosTab
             isPremium={isPremium}
             canNavigateToMonth={canNavigateToMonth}
@@ -644,7 +646,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("fondos") && (
-          <div className={tab === "fondos" ? "" : "invisible absolute inset-0 pointer-events-none"}>
+          <div className={tab === "fondos" ? "" : "invisible h-0 overflow-hidden pointer-events-none"}>
           <FondosTab
             isPremium={isPremium}
             canCreateFund={canCreateFund}
@@ -679,7 +681,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("mensual") && (
-          <div className={tab === "mensual" ? "" : "invisible absolute inset-0 pointer-events-none"}>
+          <div className={tab === "mensual" ? "" : "invisible h-0 overflow-hidden pointer-events-none"}>
           <MensualTab
             isPremium={isPremium}
             canNavigateToMonth={canNavigateToMonth}
@@ -703,7 +705,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("anual") && (
-          <div className={tab === "anual" ? "" : "invisible absolute inset-0 pointer-events-none"}>
+          <div className={tab === "anual" ? "" : "invisible h-0 overflow-hidden pointer-events-none"}>
           <AnualTab
             isPremium={isPremium}
             year={year}
@@ -720,7 +722,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("ajustes") && (
-          <div className={tab === "ajustes" ? "" : "invisible absolute inset-0 pointer-events-none"}>
+          <div className={tab === "ajustes" ? "" : "invisible h-0 overflow-hidden pointer-events-none"}>
           <AjustesTab
             isPremium={isPremium}
             onOpenPremiumScreen={onOpenPremiumScreen}
