@@ -122,6 +122,7 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
             amount: r.amount,
             note: r.note,
             day: r.day,
+            funded_by_fund_id: r.fundedByFundId ? (fundIdMap.get(r.fundedByFundId) ?? null) : null,
           };
         }),
       ),

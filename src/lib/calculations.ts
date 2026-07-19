@@ -11,7 +11,7 @@
 // - "Ahorro libre": consolidado + en curso.
 
 import { AHORRO_LIBRE_ID, MONTHS_ES } from "./constants";
-import { fmt, monthKey, prevMonthKey } from "./format";
+import { fmt, monthKey, prevMonthKey, round2 } from "./format";
 import type {
   Asset,
   AssetWithTotal,
@@ -577,6 +577,37 @@ export function resolveFundName(t: FundMatchable, funds: Fund[]): string {
     if (fund) return fund.name;
   }
   return t.category;
+}
+
+export interface FundedRecurringPlan {
+  recurringId: string;
+  fundId: string;
+  amount: number;
+  fundAmount: number; // parte que se paga del fondo
+  normalAmount: number; // parte que se paga como gasto normal (0 si el fondo cubre todo)
+}
+
+/** Simula el pago de varios gastos fijos "pagar desde un fondo" a la vez, descontando el saldo
+ * disponible de cada fondo según se van procesando (en el orden dado). Necesario porque dos gastos
+ * fijos distintos pueden apuntar al mismo fondo: sin este descuento secuencial, ambos verían el saldo
+ * original completo y podrían creerse cubiertos aunque el fondo no llegue para los dos juntos. Se
+ * reutiliza tal cual tanto para el aviso previo (ApplyPresetsModal) como para la aplicación real
+ * (applyPresets en App.tsx), en el mismo orden, para que nunca puedan divergir. */
+export function planFundedRecurringApplications(
+  items: { id: string; amount: number; fundedByFundId: string | null | undefined }[],
+  funds: FundWithBalance[],
+): FundedRecurringPlan[] {
+  const remaining = new Map(funds.map((f) => [f.id, f.balance]));
+  const plans: FundedRecurringPlan[] = [];
+  for (const item of items) {
+    if (!item.fundedByFundId || item.amount <= 0) continue;
+    const available = Math.max(0, remaining.get(item.fundedByFundId) ?? 0);
+    const fundAmount = Math.min(item.amount, available);
+    const normalAmount = round2(item.amount - fundAmount);
+    remaining.set(item.fundedByFundId, available - fundAmount);
+    plans.push({ recurringId: item.id, fundId: item.fundedByFundId, amount: item.amount, fundAmount, normalAmount });
+  }
+  return plans;
 }
 
 /** Nombre "en vivo" de la categoría de un movimiento: siempre refleja el nombre actual. */

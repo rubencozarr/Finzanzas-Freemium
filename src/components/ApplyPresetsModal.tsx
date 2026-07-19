@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { fmt } from "../lib/format";
-import type { Asset, Category, InvestmentConfig, Recurring, RecurringIncome } from "../types";
+import { planFundedRecurringApplications, type FundedRecurringPlan } from "../lib/calculations";
+import type { Asset, Category, FundWithBalance, InvestmentConfig, Recurring, RecurringIncome } from "../types";
+
+interface ApplyPresetsPayload {
+  income: { id: string; amount: number }[];
+  expenses: { id: string; amount: number }[];
+  investment: { id: string; amount: number }[];
+}
 
 interface ApplyPresetsModalProps {
   pendingIncome: RecurringIncome[];
   pendingRecurring: Recurring[];
   pendingInvestmentAssets: Asset[];
   categories: Category[];
+  funds: FundWithBalance[];
   investmentConfig: InvestmentConfig;
   ingresos: number;
   onClose: () => void;
-  onConfirm: (payload: {
-    income: { id: string; amount: number }[];
-    expenses: { id: string; amount: number }[];
-    investment: { id: string; amount: number }[];
-  }) => void;
+  onConfirm: (payload: ApplyPresetsPayload) => void;
 }
 
 interface ItemState {
@@ -28,6 +32,7 @@ export function ApplyPresetsModal({
   pendingRecurring,
   pendingInvestmentAssets,
   categories,
+  funds,
   investmentConfig,
   ingresos,
   onClose,
@@ -55,8 +60,13 @@ export function ApplyPresetsModal({
   const setAmt = (setter: typeof setIncomeItems, id: string, val: string) =>
     setter((s) => ({ ...s, [id]: { ...s[id], amount: parseFloat(val) || 0 } }));
 
+  // Si algún gasto fijo "pagar desde un fondo" no tiene saldo suficiente, se avisa antes de aplicar de
+  // verdad (informar, no preguntar: un único botón "Continuar") en vez de aplicar directamente.
+  const [pendingPayload, setPendingPayload] = useState<ApplyPresetsPayload | null>(null);
+  const [warningPlans, setWarningPlans] = useState<FundedRecurringPlan[] | null>(null);
+
   const confirm = () => {
-    onConfirm({
+    const payload: ApplyPresetsPayload = {
       income: pendingIncome.filter((r) => incomeItems[r.id]?.checked).map((r) => ({ id: r.id, amount: incomeItems[r.id].amount })),
       expenses: pendingRecurring
         .filter((r) => expenseItems[r.id]?.checked)
@@ -64,7 +74,26 @@ export function ApplyPresetsModal({
       investment: pendingInvestmentAssets
         .filter((a) => investItems[a.id]?.checked)
         .map((a) => ({ id: a.id, amount: investItems[a.id].amount })),
-    });
+    };
+    const plans = planFundedRecurringApplications(
+      payload.expenses.map((e) => ({
+        id: e.id,
+        amount: e.amount,
+        fundedByFundId: pendingRecurring.find((r) => r.id === e.id)?.fundedByFundId,
+      })),
+      funds,
+    );
+    const warnings = plans.filter((p) => p.normalAmount > 0);
+    if (warnings.length === 0) {
+      onConfirm(payload);
+      return;
+    }
+    setPendingPayload(payload);
+    setWarningPlans(warnings);
+  };
+
+  const confirmAfterWarning = () => {
+    if (pendingPayload) onConfirm(pendingPayload);
   };
 
   const nothingPending = pendingIncome.length === 0 && pendingRecurring.length === 0 && pendingInvestmentAssets.length === 0;
@@ -76,12 +105,33 @@ export function ApplyPresetsModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-3">
-          <p className="font-serif text-base">Ingresos y gastos preestablecidos</p>
+          <p className="font-serif text-base">{warningPlans ? "Antes de continuar" : "Ingresos y gastos preestablecidos"}</p>
           <button onClick={onClose} className="text-stone-400">
             <X size={18} />
           </button>
         </div>
 
+        {warningPlans ? (
+          <>
+            <div className="space-y-2 mb-4">
+              {warningPlans.map((p) => {
+                const tpl = pendingRecurring.find((r) => r.id === p.recurringId)!;
+                const fund = funds.find((f) => f.id === p.fundId)!;
+                const catName = categories.find((c) => c.id === tpl.categoryId)?.name ?? "";
+                return (
+                  <p key={p.recurringId} className="text-sm text-amber-800 bg-amber-50 rounded-md px-3 py-2">
+                    El fondo <strong>{fund.name}</strong> tiene {fmt(fund.balance)} pero el gasto <strong>{catName}</strong> es de{" "}
+                    {fmt(p.amount)}. Se pagará {fmt(p.fundAmount)} del fondo y {fmt(p.normalAmount)} como gasto normal.
+                  </p>
+                );
+              })}
+            </div>
+            <button onClick={confirmAfterWarning} className="w-full bg-teal-700 text-white rounded-lg py-2.5 text-sm font-medium">
+              Continuar
+            </button>
+          </>
+        ) : (
+        <>
         {nothingPending && (
           <div className="text-center py-6">
             <Check size={32} className="mx-auto text-teal-600 mb-2" />
@@ -176,6 +226,8 @@ export function ApplyPresetsModal({
         <button onClick={confirm} className="w-full bg-teal-700 text-white rounded-lg py-2.5 text-sm font-medium">
           Confirmar
         </button>
+        </>
+        )}
       </div>
     </div>
   );

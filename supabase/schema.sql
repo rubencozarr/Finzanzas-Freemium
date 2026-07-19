@@ -54,6 +54,9 @@ create table if not exists public.recurring (
   amount numeric(12, 2) not null check (amount > 0),
   note text not null default '',
   day smallint check (day between 1 and 31),
+  -- Si no es null, este gasto fijo se paga desde este fondo (íntegro o dividido si no llega el saldo)
+  -- al aplicar los preestablecidos, en vez de como gasto ordinario. Null = comportamiento normal.
+  funded_by_fund_id uuid references public.funds (id) on delete set null,
   created_at timestamptz not null default now()
 );
 

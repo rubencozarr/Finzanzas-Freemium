@@ -54,6 +54,7 @@ export interface RecurringRow {
   amount: number;
   note: string;
   day: number | null;
+  funded_by_fund_id: string | null;
   created_at: string;
 }
 

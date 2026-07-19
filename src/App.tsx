@@ -27,6 +27,7 @@ import {
   groupOrphanSubcategories,
   matchesCategory,
   matchesSubcategory,
+  planFundedRecurringApplications,
   trendUltimos6Meses,
   yearMonthsData,
   yearTotals,
@@ -86,7 +87,14 @@ function App() {
     loading: categoriesLoading,
     refetch: refetchCategories,
   } = useCategories(userId);
-  const { recurring, addRecurring, removeRecurring, updateRecurringAmount, refetch: refetchRecurring } = useRecurring(userId);
+  const {
+    recurring,
+    addRecurring,
+    removeRecurring,
+    updateRecurringAmount,
+    updateRecurringFundedByFund,
+    refetch: refetchRecurring,
+  } = useRecurring(userId);
   const {
     recurringIncome,
     addRecurringIncome,
@@ -439,22 +447,44 @@ function App() {
         recurringIncomeId: tpl.id,
       });
     }
+    const plans = planFundedRecurringApplications(
+      expenses.map((it) => ({
+        id: it.id,
+        amount: it.amount,
+        fundedByFundId: recurring.find((r) => r.id === it.id)?.fundedByFundId,
+      })),
+      fundsWithBalance,
+    );
     for (const it of expenses) {
       const tpl = recurring.find((r) => r.id === it.id);
       if (!tpl || it.amount <= 0) continue;
       const cat = categories.find((c) => c.id === tpl.categoryId);
-      await addTransaction({
-        type: "gasto",
+      const base = {
+        type: "gasto" as const,
         fixed: true,
-        amount: it.amount,
         date: dateWithDay(tpl.day),
         category: cat?.name || "",
         categoryId: cat?.id ?? null,
         subcategory: tpl.subcategory || null,
         note: tpl.note || "",
-        fundedBy: null,
         recurringId: tpl.id,
-      });
+      };
+      const plan = plans.find((p) => p.recurringId === tpl.id);
+      if (!plan) {
+        await addTransaction({ ...base, amount: it.amount, fundedBy: null });
+      } else if (plan.normalAmount <= 0) {
+        await addTransaction({ ...base, amount: it.amount, fundedBy: plan.fundId });
+      } else if (plan.fundAmount > 0) {
+        await addTransaction({
+          ...base,
+          amount: it.amount,
+          fundedBy: null,
+          splitFundId: plan.fundId,
+          splitFundAmount: plan.fundAmount,
+        });
+      } else {
+        await addTransaction({ ...base, amount: it.amount, fundedBy: null });
+      }
     }
     for (const it of investment) {
       const asset = assets.find((a) => a.id === it.id);
@@ -742,10 +772,12 @@ function App() {
             getSubcategoryUsageCount={getSubcategoryUsageCount}
             variableBudget={variableBudget}
             updateVariableBudget={updateVariableBudget}
+            funds={fundsWithBalance}
             recurring={recurring}
             addRecurring={addRecurring}
             removeRecurring={removeRecurring}
             updateRecurringAmount={updateRecurringAmount}
+            updateRecurringFundedByFund={updateRecurringFundedByFund}
             recurringIncome={recurringIncome}
             addRecurringIncome={addRecurringIncome}
             removeRecurringIncome={removeRecurringIncome}
@@ -809,6 +841,7 @@ function App() {
           pendingRecurring={pending.pendingRecurring}
           pendingInvestmentAssets={pending.pendingInvestmentAssets}
           categories={categories}
+          funds={fundsWithBalance}
           investmentConfig={investmentConfig}
           ingresos={monthStats.ingresos + pending.pendingIncome.reduce((s, r) => s + r.amount, 0)}
           onClose={() => setShowApplyPresets(false)}

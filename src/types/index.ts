@@ -56,6 +56,7 @@ export interface Recurring {
   amount: number;
   note: string;
   day: number | null;
+  fundedByFundId?: string | null;
 }
 
 export type IncomeCategory = "Ingreso fijo" | "Ingreso extra";

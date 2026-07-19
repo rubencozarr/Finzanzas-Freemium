@@ -59,6 +59,7 @@ export function useRecurring(userId: string | undefined) {
         amount: r.amount,
         note: r.note,
         day: r.day,
+        funded_by_fund_id: r.fundedByFundId ?? null,
       });
       if (error) throw error;
       await refetch();
@@ -100,5 +101,31 @@ export function useRecurring(userId: string | undefined) {
     [refetch],
   );
 
-  return { recurring, loading, error, addRecurring, removeRecurring, updateRecurringAmount, refetch };
+  const updateRecurringFundedByFund = useCallback(
+    async (id: string, fundId: string | null) => {
+      if (isLocalBackend) {
+        setRecurring((prev) => {
+          const next = prev.map((r) => (r.id === id ? { ...r, fundedByFundId: fundId } : r));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("recurring").update({ funded_by_fund_id: fundId }).eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
+  return {
+    recurring,
+    loading,
+    error,
+    addRecurring,
+    removeRecurring,
+    updateRecurringAmount,
+    updateRecurringFundedByFund,
+    refetch,
+  };
 }

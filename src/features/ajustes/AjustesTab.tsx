@@ -5,7 +5,7 @@ import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
 import { InvestmentEditor } from "./InvestmentEditor";
 import { PremiumGate } from "../../components/PremiumGate";
-import type { Asset, Category, CategoryType, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
+import type { Asset, Category, CategoryType, FundWithBalance, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
 
 // Tarjeta "Tu plan": encima del selector de secciones (no una 5ª sección), porque es un concern de
 // cuenta transversal, no una categoría de ajustes — así se ve siempre, elijas la sección que elijas.
@@ -63,10 +63,12 @@ interface AjustesTabProps {
   variableBudget: number;
   updateVariableBudget: (amount: number) => void;
 
+  funds: FundWithBalance[];
   recurring: Recurring[];
   addRecurring: (r: Omit<Recurring, "id">) => void;
   removeRecurring: (id: string) => void;
   updateRecurringAmount: (id: string, amount: number) => void;
+  updateRecurringFundedByFund: (id: string, fundId: string | null) => void;
 
   recurringIncome: RecurringIncome[];
   addRecurringIncome: (r: Omit<RecurringIncome, "id">) => void;
@@ -139,10 +141,12 @@ export function AjustesTab({
   getSubcategoryUsageCount,
   variableBudget,
   updateVariableBudget,
+  funds,
   recurring,
   addRecurring,
   removeRecurring,
   updateRecurringAmount,
+  updateRecurringFundedByFund,
   recurringIncome,
   addRecurringIncome,
   removeRecurringIncome,
@@ -250,10 +254,12 @@ export function AjustesTab({
       {section === "recurrentes" && (
         <RecurringEditor
           categories={categories}
+          funds={funds}
           recurring={recurring}
           addRecurring={addRecurring}
           removeRecurring={removeRecurring}
           updateRecurringAmount={updateRecurringAmount}
+          updateRecurringFundedByFund={updateRecurringFundedByFund}
         />
       )}
       {section === "ingresos" && (

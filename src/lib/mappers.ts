@@ -104,6 +104,7 @@ export function fromRecurringRow(row: RecurringRow): Recurring {
     amount: Number(row.amount),
     note: row.note,
     day: row.day,
+    fundedByFundId: row.funded_by_fund_id,
   };
 }
 
