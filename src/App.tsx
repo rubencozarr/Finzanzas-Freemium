@@ -133,11 +133,16 @@ function App() {
   // restaura en el useLayoutEffect de más abajo al volver.
   const mainRef = useRef<HTMLElement>(null);
   const scrollPositions = useRef<Partial<Record<Tab, number>>>({});
-  // Cada pestaña, una vez visitada, se queda montada (ver render de <main> más abajo: se oculta con
-  // display:none en vez de desmontarse) para no perder los useMemo internos de cada tab ni forzar a
-  // los gráficos a remedirse cada vez. Se añade al set aquí, en el mismo ciclo que cambia `tab`, para
-  // que la primera vez que una pestaña se monta ya sea la visible (nunca se monta oculta: evita el
-  // bug clásico de ResponsiveContainer midiendo 0×0 al montar con display:none).
+  // Cada pestaña, una vez visitada, se queda montada (ver render de <main> más abajo) para no perder
+  // los useMemo internos de cada tab. Se oculta con "invisible absolute inset-0" (visibility:hidden +
+  // position:absolute), NO con display:none: display:none colapsa el elemento a 0×0, así que
+  // ResponsiveContainer (Recharts) tiene que volver a medir y redibujar el gráfico entero CADA VEZ que
+  // la pestaña se vuelve a mostrar, no solo la primera vez — eso es lo que se sentía como "carga" al
+  // cambiar a una pestaña con gráficos. Con position:absolute + inset:0, la pestaña oculta conserva su
+  // ancho real todo el tiempo (ocupa el mismo hueco que si estuviera visible, solo que fuera del flujo
+  // y sin pintarse), así el gráfico nunca ve un contenedor de tamaño 0 y no hace falta remedir al volver.
+  // Se añade al set aquí, en el mismo ciclo que cambia `tab`, para que la primera vez que una pestaña
+  // se monta ya sea la visible.
   const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(["movimientos"]));
   const setTab = (newTab: Tab) => {
     if (mainRef.current) scrollPositions.current[tab] = mainRef.current.scrollTop;
@@ -597,9 +602,9 @@ function App() {
         </button>
       </header>
 
-      <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
+      <main ref={mainRef} className="relative flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
         {visitedTabs.has("movimientos") && (
-          <div style={{ display: tab === "movimientos" ? "block" : "none" }}>
+          <div className={tab === "movimientos" ? "" : "invisible absolute inset-0 pointer-events-none"}>
           <MovimientosTab
             isPremium={isPremium}
             canNavigateToMonth={canNavigateToMonth}
@@ -639,7 +644,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("fondos") && (
-          <div style={{ display: tab === "fondos" ? "block" : "none" }}>
+          <div className={tab === "fondos" ? "" : "invisible absolute inset-0 pointer-events-none"}>
           <FondosTab
             isPremium={isPremium}
             canCreateFund={canCreateFund}
@@ -674,7 +679,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("mensual") && (
-          <div style={{ display: tab === "mensual" ? "block" : "none" }}>
+          <div className={tab === "mensual" ? "" : "invisible absolute inset-0 pointer-events-none"}>
           <MensualTab
             isPremium={isPremium}
             canNavigateToMonth={canNavigateToMonth}
@@ -698,7 +703,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("anual") && (
-          <div style={{ display: tab === "anual" ? "block" : "none" }}>
+          <div className={tab === "anual" ? "" : "invisible absolute inset-0 pointer-events-none"}>
           <AnualTab
             isPremium={isPremium}
             year={year}
@@ -715,7 +720,7 @@ function App() {
           </div>
         )}
         {visitedTabs.has("ajustes") && (
-          <div style={{ display: tab === "ajustes" ? "block" : "none" }}>
+          <div className={tab === "ajustes" ? "" : "invisible absolute inset-0 pointer-events-none"}>
           <AjustesTab
             isPremium={isPremium}
             onOpenPremiumScreen={onOpenPremiumScreen}
