@@ -1,13 +1,29 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { fmt } from "../lib/format";
-import { planFundedRecurringApplications, type FundedRecurringPlan } from "../lib/calculations";
+import { planFundedRecurringApplications } from "../lib/calculations";
 import type { Asset, Category, FundWithBalance, InvestmentConfig, Recurring, RecurringIncome } from "../types";
 
 interface ApplyPresetsPayload {
   income: { id: string; amount: number }[];
   expenses: { id: string; amount: number }[];
   investment: { id: string; amount: number }[];
+}
+
+// Datos del aviso ya resueltos (nombre de fondo/categoría, no ids) en el momento de calcularlo:
+// applyPresets va aplicando movimientos uno a uno con await, así que React puede re-renderizar este
+// modal, todavía montado, a medio aplicar — si el aviso volviera a buscar por id en pendingRecurring/
+// funds (props que van cambiando según se aplican gastos), un gasto ya aplicado podía desaparecer de
+// esas listas a mitad de la operación y el .find() fallar, dejando la pantalla en blanco.
+interface FundWarningDisplay {
+  recurringId: string;
+  fundName: string;
+  categoryName: string;
+  amount: number;
+  fundAmount: number;
+  normalAmount: number;
+  availableBefore: number;
+  consumedByOthers: boolean;
 }
 
 interface ApplyPresetsModalProps {
@@ -63,7 +79,7 @@ export function ApplyPresetsModal({
   // Si algún gasto fijo "pagar desde un fondo" no tiene saldo suficiente, se avisa antes de aplicar de
   // verdad (informar, no preguntar: un único botón "Continuar") en vez de aplicar directamente.
   const [pendingPayload, setPendingPayload] = useState<ApplyPresetsPayload | null>(null);
-  const [warningPlans, setWarningPlans] = useState<FundedRecurringPlan[] | null>(null);
+  const [warnings, setWarnings] = useState<FundWarningDisplay[] | null>(null);
 
   const confirm = () => {
     const payload: ApplyPresetsPayload = {
@@ -83,13 +99,28 @@ export function ApplyPresetsModal({
       })),
       funds,
     );
-    const warnings = plans.filter((p) => p.normalAmount > 0);
-    if (warnings.length === 0) {
+    const newWarnings: FundWarningDisplay[] = plans
+      .filter((p) => p.normalAmount > 0)
+      .map((p) => {
+        const tpl = pendingRecurring.find((r) => r.id === p.recurringId);
+        const fund = funds.find((f) => f.id === p.fundId);
+        return {
+          recurringId: p.recurringId,
+          fundName: fund?.name ?? "el fondo",
+          categoryName: categories.find((c) => c.id === tpl?.categoryId)?.name ?? "",
+          amount: p.amount,
+          fundAmount: p.fundAmount,
+          normalAmount: p.normalAmount,
+          availableBefore: p.availableBefore,
+          consumedByOthers: (fund?.balance ?? 0) > p.availableBefore,
+        };
+      });
+    if (newWarnings.length === 0) {
       onConfirm(payload);
       return;
     }
     setPendingPayload(payload);
-    setWarningPlans(warnings);
+    setWarnings(newWarnings);
   };
 
   const confirmAfterWarning = () => {
@@ -105,48 +136,38 @@ export function ApplyPresetsModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-3">
-          <p className="font-serif text-base">{warningPlans ? "Antes de continuar" : "Ingresos y gastos preestablecidos"}</p>
+          <p className="font-serif text-base">{warnings ? "Antes de continuar" : "Ingresos y gastos preestablecidos"}</p>
           <button onClick={onClose} className="text-stone-400">
             <X size={18} />
           </button>
         </div>
 
-        {warningPlans ? (
+        {warnings ? (
           <>
             <div className="space-y-2 mb-4">
-              {warningPlans.map((p) => {
-                const tpl = pendingRecurring.find((r) => r.id === p.recurringId)!;
-                const fund = funds.find((f) => f.id === p.fundId)!;
-                const catName = categories.find((c) => c.id === tpl.categoryId)?.name ?? "";
-                // El aviso usa availableBefore (saldo justo antes de este gasto dentro de esta misma
-                // aplicación), no fund.balance (saldo inicial): si otro gasto de esta misma tanda ya
-                // tiró del mismo fondo antes, mostrar el saldo inicial haría que las cifras no
-                // parecieran cuadrar a la vista del usuario.
-                const consumedByOthers = fund.balance > p.availableBefore;
-                return (
-                  <p key={p.recurringId} className="text-sm text-amber-800 bg-amber-50 rounded-md px-3 py-2">
-                    {p.availableBefore <= 0 ? (
-                      <>
-                        El fondo <strong>{fund.name}</strong>{" "}
-                        {consumedByOthers ? "ya se ha usado por completo en otros gastos de esta aplicación" : "no tiene saldo disponible"}
-                        . El gasto <strong>{catName}</strong> ({fmt(p.amount)}) se registrará íntegro como gasto del mes.
-                      </>
-                    ) : consumedByOthers ? (
-                      <>
-                        El fondo <strong>{fund.name}</strong> ya se ha usado para otros gastos de esta aplicación y le quedan{" "}
-                        {fmt(p.availableBefore)}. El gasto <strong>{catName}</strong> ({fmt(p.amount)}) se pagará con esos{" "}
-                        {fmt(p.availableBefore)}, y los {fmt(p.normalAmount)} restantes se registrarán como gasto del mes.
-                      </>
-                    ) : (
-                      <>
-                        El fondo <strong>{fund.name}</strong> tiene {fmt(p.availableBefore)} pero el gasto <strong>{catName}</strong> es de{" "}
-                        {fmt(p.amount)}. Se pagarán {fmt(p.fundAmount)} del fondo y {fmt(p.normalAmount)} se registrarán como gasto del
-                        mes.
-                      </>
-                    )}
-                  </p>
-                );
-              })}
+              {warnings.map((w) => (
+                <p key={w.recurringId} className="text-sm text-amber-800 bg-amber-50 rounded-md px-3 py-2">
+                  {w.availableBefore <= 0 ? (
+                    <>
+                      El fondo <strong>{w.fundName}</strong>{" "}
+                      {w.consumedByOthers ? "ya se ha usado por completo en otros gastos de esta aplicación" : "no tiene saldo disponible"}
+                      . El gasto <strong>{w.categoryName}</strong> ({fmt(w.amount)}) se registrará íntegro como gasto del mes.
+                    </>
+                  ) : w.consumedByOthers ? (
+                    <>
+                      El fondo <strong>{w.fundName}</strong> ya se ha usado para otros gastos de esta aplicación y le quedan{" "}
+                      {fmt(w.availableBefore)}. El gasto <strong>{w.categoryName}</strong> ({fmt(w.amount)}) se pagará con esos{" "}
+                      {fmt(w.availableBefore)}, y los {fmt(w.normalAmount)} restantes se registrarán como gasto del mes.
+                    </>
+                  ) : (
+                    <>
+                      El fondo <strong>{w.fundName}</strong> tiene {fmt(w.availableBefore)} pero el gasto{" "}
+                      <strong>{w.categoryName}</strong> es de {fmt(w.amount)}. Se pagarán {fmt(w.fundAmount)} del fondo y{" "}
+                      {fmt(w.normalAmount)} se registrarán como gasto del mes.
+                    </>
+                  )}
+                </p>
+              ))}
             </div>
             <button onClick={confirmAfterWarning} className="w-full bg-teal-700 text-white rounded-lg py-2.5 text-sm font-medium">
               Continuar
