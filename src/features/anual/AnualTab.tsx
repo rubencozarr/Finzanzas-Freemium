@@ -27,7 +27,7 @@ interface AnualTabProps {
   variableBudget: number;
   compareYear: number | null;
   onCompareYearChange: (year: number | null) => void;
-  onGoToAjustes: () => void;
+  onOpenPremiumScreen: () => void;
 }
 
 export function AnualTab({
@@ -41,7 +41,7 @@ export function AnualTab({
   variableBudget,
   compareYear,
   onCompareYearChange,
-  onGoToAjustes,
+  onOpenPremiumScreen,
 }: AnualTabProps) {
   const overviewDataAnual: DonutDatum[] = [
     { name: "Gasto fijo", value: totals.fixedOrdinario, color: "#94a3b8" },
@@ -187,7 +187,7 @@ export function AnualTab({
           />
         </>
       ) : (
-        <PremiumGate message="Desbloquea los gráficos anuales y la comparativa entre años con Premium" onGoToAjustes={onGoToAjustes} />
+        <PremiumGate message="Desbloquea los gráficos anuales y la comparativa entre años con Premium" onOpenPremiumScreen={onOpenPremiumScreen} />
       )}
     </div>
   );

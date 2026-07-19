@@ -13,7 +13,7 @@ interface MonthSwitcherProps {
   changeYear?: (delta: number) => void;
   goToMonthIndex?: (m: number) => void;
   getAhorroReal?: (year: number, monthIdx: number) => number;
-  onGoToAjustes?: () => void;
+  onOpenPremiumScreen?: () => void;
 }
 
 export function MonthSwitcher({
@@ -25,7 +25,7 @@ export function MonthSwitcher({
   changeYear,
   goToMonthIndex,
   getAhorroReal,
-  onGoToAjustes,
+  onOpenPremiumScreen,
 }: MonthSwitcherProps) {
   const [open, setOpen] = useState(false);
   const hasPicker = !!(changeYear && goToMonthIndex);
@@ -59,7 +59,7 @@ export function MonthSwitcher({
       </div>
       {!isPremium && !canGoBack && (
         <div className="mt-2">
-          <PremiumGate message="Con Premium tienes acceso a todo tu historial" onGoToAjustes={onGoToAjustes} />
+          <PremiumGate message="Con Premium tienes acceso a todo tu historial" onOpenPremiumScreen={onOpenPremiumScreen} />
         </div>
       )}
       {open && hasPicker && (

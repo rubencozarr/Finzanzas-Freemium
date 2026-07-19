@@ -5,12 +5,11 @@ import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
 import { InvestmentEditor } from "./InvestmentEditor";
 import { PremiumGate } from "../../components/PremiumGate";
-import { openCheckout } from "../../lib/lemonsqueezy";
 import type { Asset, Category, CategoryType, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
 
 // Tarjeta "Tu plan": encima del selector de secciones (no una 5ª sección), porque es un concern de
 // cuenta transversal, no una categoría de ajustes — así se ve siempre, elijas la sección que elijas.
-function PlanCard({ isPremium, userId, userEmail }: { isPremium: boolean; userId?: string; userEmail?: string }) {
+function PlanCard({ isPremium, onOpenPremiumScreen }: { isPremium: boolean; onOpenPremiumScreen: () => void }) {
   if (isPremium) {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
@@ -35,14 +34,9 @@ function PlanCard({ isPremium, userId, userEmail }: { isPremium: boolean; userId
       <p className="text-sm font-semibold text-amber-900 flex items-center gap-1.5 mb-2">
         <Crown size={15} className="text-amber-500" /> Plan actual: Gratuito
       </p>
-      <button
-        onClick={() => userId && openCheckout(userId, userEmail)}
-        disabled={!userId}
-        className="w-full bg-amber-500 text-white rounded-lg py-2 text-sm font-medium"
-      >
-        Hazte Premium
+      <button onClick={onOpenPremiumScreen} className="w-full bg-amber-500 text-white rounded-lg py-2 text-sm font-medium">
+        Ver planes Premium
       </button>
-      <p className="text-[11px] text-amber-700 mt-1.5">Mensual (2,99€) o anual (29,99€, ahorra un 16%) — eliges en el siguiente paso.</p>
     </div>
   );
 }
@@ -51,9 +45,7 @@ type Section = "categorias" | "recurrentes" | "ingresos" | "inversion";
 
 interface AjustesTabProps {
   isPremium: boolean;
-  userId?: string;
-  userEmail?: string;
-  onGoToAjustes: () => void;
+  onOpenPremiumScreen: () => void;
   canCreateCategory: (currentCount: number, type: CategoryType) => boolean;
   categories: Category[];
   addCategory: (type: CategoryType, name: string) => void;
@@ -130,9 +122,7 @@ function ExcelExportButton({ isPremium, onClick }: { isPremium: boolean; onClick
 
 export function AjustesTab({
   isPremium,
-  userId,
-  userEmail,
-  onGoToAjustes,
+  onOpenPremiumScreen,
   canCreateCategory,
   categories,
   addCategory,
@@ -204,7 +194,7 @@ export function AjustesTab({
 
   return (
     <div>
-      <PlanCard isPremium={isPremium} userId={userId} userEmail={userEmail} />
+      <PlanCard isPremium={isPremium} onOpenPremiumScreen={onOpenPremiumScreen} />
 
       <div className="grid grid-cols-2 gap-2 mb-5">
         <button
@@ -254,7 +244,7 @@ export function AjustesTab({
           getSubcategoryUsageCount={getSubcategoryUsageCount}
           variableBudget={variableBudget}
           updateVariableBudget={updateVariableBudget}
-          onGoToAjustes={onGoToAjustes}
+          onOpenPremiumScreen={onOpenPremiumScreen}
         />
       )}
       {section === "recurrentes" && (
@@ -287,7 +277,7 @@ export function AjustesTab({
               setGlobalPct={setGlobalPct}
             />
           ) : (
-            <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onGoToAjustes={onGoToAjustes} />
+            <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onOpenPremiumScreen={onOpenPremiumScreen} />
           )}
         </div>
       )}

@@ -28,7 +28,7 @@ interface NuevoMovimientoFormProps {
   editingTx: Transaction | null;
   onClose: () => void;
   onSave: (tx: NewTransaction) => void;
-  onGoToAjustes?: () => void;
+  onOpenPremiumScreen?: () => void;
 }
 
 const TYPE_OPTIONS: [TransactionType, string][] = [
@@ -78,7 +78,7 @@ export function NuevoMovimientoForm({
   editingTx,
   onClose,
   onSave,
-  onGoToAjustes,
+  onOpenPremiumScreen,
 }: NuevoMovimientoFormProps) {
   const [type, setType] = useState<TransactionType>(editingTx?.type || initial?.type || "gasto");
   const [categoryId, setCategoryId] = useState(() => {
@@ -502,7 +502,7 @@ export function NuevoMovimientoForm({
                 <div className="mb-3 mt-3">
                   <PremiumGate
                     message="Con Premium puedes cubrir la diferencia con tus fondos de ahorro"
-                    onGoToAjustes={onGoToAjustes}
+                    onOpenPremiumScreen={onOpenPremiumScreen}
                   />
                 </div>
               ))}

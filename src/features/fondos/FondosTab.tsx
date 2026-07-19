@@ -47,6 +47,7 @@ interface FondosTabProps {
   onQuickMove: (fund: FundWithBalance, type: "aportacion" | "retiro") => void;
   onQuickInvest: (asset: AssetWithTotal) => void;
   onGoToAjustes: () => void;
+  onOpenPremiumScreen: () => void;
 }
 
 // Corona junto al nombre del fondo cuando está activo y la selección ya quedó fijada este mes (mismo
@@ -160,6 +161,7 @@ export function FondosTab({
   onQuickMove,
   onQuickInvest,
   onGoToAjustes,
+  onOpenPremiumScreen,
 }: FondosTabProps) {
   const [newName, setNewName] = useState("");
   const [newFundIcon, setNewFundIcon] = useState<string>(DEFAULT_FUND_ICON);
@@ -235,7 +237,7 @@ export function FondosTab({
         changeYear={changeYear}
         goToMonthIndex={goToMonthIndex}
         getAhorroReal={getAhorroReal}
-        onGoToAjustes={onGoToAjustes}
+        onOpenPremiumScreen={onOpenPremiumScreen}
       />
 
       {isHistorical && (
@@ -317,7 +319,7 @@ export function FondosTab({
         </div>
       ) : (
         <div className="mb-4">
-          <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" onGoToAjustes={onGoToAjustes} />
+          <PremiumGate message="Con Premium puedes crear fondos ilimitados y poner metas de ahorro" onOpenPremiumScreen={onOpenPremiumScreen} />
         </div>
       )}
       {showActiveToggle && (
@@ -647,7 +649,7 @@ export function FondosTab({
           )}
         </>
       ) : (
-        <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onGoToAjustes={onGoToAjustes} />
+        <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onOpenPremiumScreen={onOpenPremiumScreen} />
       )}
 
       {deleteConfirmFund && (

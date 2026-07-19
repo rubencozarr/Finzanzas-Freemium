@@ -65,6 +65,7 @@ interface MovimientosTabProps {
   hasAnyConfigured: boolean;
   onOpenApplyPresets: () => void;
   onGoToAjustes: () => void;
+  onOpenPremiumScreen: () => void;
   orphanCount: number;
   onResolveOrphans: () => void;
   toast: (msg: string) => void;
@@ -91,6 +92,7 @@ export function MovimientosTab({
   hasAnyConfigured,
   onOpenApplyPresets,
   onGoToAjustes,
+  onOpenPremiumScreen,
   orphanCount,
   onResolveOrphans,
   toast,
@@ -210,7 +212,7 @@ export function MovimientosTab({
             changeYear={changeYear}
             goToMonthIndex={goToMonthIndex}
             getAhorroReal={getAhorroReal}
-            onGoToAjustes={onGoToAjustes}
+            onOpenPremiumScreen={onOpenPremiumScreen}
           />
         </div>
       </div>

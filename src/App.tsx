@@ -46,6 +46,7 @@ import { LoginScreen } from "./components/LoginScreen";
 import { GuidedTour } from "./components/GuidedTour";
 import { buildTourSteps } from "./lib/tourSteps";
 import { HelpModal } from "./components/HelpModal";
+import { PremiumScreen } from "./components/PremiumScreen";
 import { MovimientosTab } from "./features/movimientos/MovimientosTab";
 import { FondosTab } from "./features/fondos/FondosTab";
 import { MensualTab } from "./features/mensual/MensualTab";
@@ -177,6 +178,8 @@ function App() {
   const [showApplyPresets, setShowApplyPresets] = useState(false);
   const [showResolveOrphans, setShowResolveOrphans] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showPremiumScreen, setShowPremiumScreen] = useState(false);
+  const onOpenPremiumScreen = () => setShowPremiumScreen(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -515,7 +518,7 @@ function App() {
   // El formulario de nuevo movimiento no pausa el tour en los pasos que señalan algo dentro de él
   // (formOpen: true): ahí el modal debe permanecer abierto y visible por encima del overlay.
   const tourPaused =
-    (showForm && !tourSteps[tourStep]?.formOpen) || showApplyPresets || showResolveOrphans || showHelp;
+    (showForm && !tourSteps[tourStep]?.formOpen) || showApplyPresets || showResolveOrphans || showHelp || showPremiumScreen;
 
   // Aplica el prerrequisito de estado de cada paso al entrar en él (p. ej. cambiar de pestaña, abrir
   // o cerrar el formulario de movimiento), tanto avanzando con "Siguiente" como retrocediendo con
@@ -618,6 +621,7 @@ function App() {
             hasAnyConfigured={pending.hasAnyConfigured}
             onOpenApplyPresets={() => setShowApplyPresets(true)}
             onGoToAjustes={() => goToAjustes()}
+            onOpenPremiumScreen={onOpenPremiumScreen}
             orphanCount={
               orphanGroups.reduce((s, g) => s + g.count, 0) + orphanSubcategoryGroups.reduce((s, g) => s + g.count, 0)
             }
@@ -655,6 +659,7 @@ function App() {
             onQuickMove={onQuickMove}
             onQuickInvest={onQuickInvest}
             onGoToAjustes={() => goToAjustes("inversion")}
+            onOpenPremiumScreen={onOpenPremiumScreen}
           />
         )}
         {tab === "mensual" && (
@@ -676,6 +681,7 @@ function App() {
             variableBudget={variableBudget}
             trend6Meses={trend6Meses}
             onGoToAjustes={() => goToAjustes("categorias")}
+            onOpenPremiumScreen={onOpenPremiumScreen}
           />
         )}
         {tab === "anual" && (
@@ -690,15 +696,13 @@ function App() {
             variableBudget={variableBudget}
             compareYear={compareYear}
             onCompareYearChange={setCompareYear}
-            onGoToAjustes={() => goToAjustes()}
+            onOpenPremiumScreen={onOpenPremiumScreen}
           />
         )}
         {tab === "ajustes" && (
           <AjustesTab
             isPremium={isPremium}
-            userId={userId}
-            userEmail={user?.email ?? undefined}
-            onGoToAjustes={() => goToAjustes()}
+            onOpenPremiumScreen={onOpenPremiumScreen}
             canCreateCategory={canCreateCategory}
             categories={categories}
             addCategory={addCategory}
@@ -757,10 +761,10 @@ function App() {
             setShowForm(false);
             setEditingTx(null);
           }}
-          onGoToAjustes={() => {
+          onOpenPremiumScreen={() => {
             setShowForm(false);
             setEditingTx(null);
-            goToAjustes();
+            setShowPremiumScreen(true);
           }}
           onSave={async (tx) => {
             if (editingTx) {
@@ -808,6 +812,15 @@ function App() {
         />
       )}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} onRestartTour={restartTour} />}
+
+      {showPremiumScreen && (
+        <PremiumScreen
+          isPremium={isPremium}
+          userId={userId}
+          userEmail={user?.email ?? undefined}
+          onClose={() => setShowPremiumScreen(false)}
+        />
+      )}
 
       <nav
         className="sticky bottom-0 bg-white border-t border-stone-200 flex justify-around pt-2 max-w-md w-full mx-auto"

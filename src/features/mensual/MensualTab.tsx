@@ -29,6 +29,7 @@ interface MensualTabProps {
   variableBudget: number;
   trend6Meses: TrendPoint[];
   onGoToAjustes: () => void;
+  onOpenPremiumScreen: () => void;
 }
 
 export function MensualTab({
@@ -49,6 +50,7 @@ export function MensualTab({
   variableBudget,
   trend6Meses,
   onGoToAjustes,
+  onOpenPremiumScreen,
 }: MensualTabProps) {
   // En free, las subcategorías y el presupuesto por categoría son premium-only desde el Bloque 1
   // (Ajustes), así que un usuario free nuevo nunca los tendrá; esto es refuerzo defensivo por si
@@ -94,7 +96,7 @@ export function MensualTab({
         changeYear={changeYear}
         goToMonthIndex={goToMonthIndex}
         getAhorroReal={getAhorroReal}
-        onGoToAjustes={onGoToAjustes}
+        onOpenPremiumScreen={onOpenPremiumScreen}
       />
       <div className="bg-white rounded-lg border border-stone-100 p-4 mb-5 space-y-2 text-sm">
         <Row label="Ingresos" value={stats.ingresos} bold tone="emerald" />
