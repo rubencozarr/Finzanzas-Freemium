@@ -118,10 +118,32 @@ export function ApplyPresetsModal({
                 const tpl = pendingRecurring.find((r) => r.id === p.recurringId)!;
                 const fund = funds.find((f) => f.id === p.fundId)!;
                 const catName = categories.find((c) => c.id === tpl.categoryId)?.name ?? "";
+                // El aviso usa availableBefore (saldo justo antes de este gasto dentro de esta misma
+                // aplicación), no fund.balance (saldo inicial): si otro gasto de esta misma tanda ya
+                // tiró del mismo fondo antes, mostrar el saldo inicial haría que las cifras no
+                // parecieran cuadrar a la vista del usuario.
+                const consumedByOthers = fund.balance > p.availableBefore;
                 return (
                   <p key={p.recurringId} className="text-sm text-amber-800 bg-amber-50 rounded-md px-3 py-2">
-                    El fondo <strong>{fund.name}</strong> tiene {fmt(fund.balance)} pero el gasto <strong>{catName}</strong> es de{" "}
-                    {fmt(p.amount)}. Se pagará {fmt(p.fundAmount)} del fondo y {fmt(p.normalAmount)} como gasto normal.
+                    {p.availableBefore <= 0 ? (
+                      <>
+                        El fondo <strong>{fund.name}</strong>{" "}
+                        {consumedByOthers ? "ya se ha usado por completo en otros gastos de esta aplicación" : "no tiene saldo disponible"}
+                        . El gasto <strong>{catName}</strong> ({fmt(p.amount)}) se registrará íntegro como gasto del mes.
+                      </>
+                    ) : consumedByOthers ? (
+                      <>
+                        El fondo <strong>{fund.name}</strong> ya se ha usado para otros gastos de esta aplicación y le quedan{" "}
+                        {fmt(p.availableBefore)}. El gasto <strong>{catName}</strong> ({fmt(p.amount)}) se pagará con esos{" "}
+                        {fmt(p.availableBefore)}, y los {fmt(p.normalAmount)} restantes se registrarán como gasto del mes.
+                      </>
+                    ) : (
+                      <>
+                        El fondo <strong>{fund.name}</strong> tiene {fmt(p.availableBefore)} pero el gasto <strong>{catName}</strong> es de{" "}
+                        {fmt(p.amount)}. Se pagarán {fmt(p.fundAmount)} del fondo y {fmt(p.normalAmount)} se registrarán como gasto del
+                        mes.
+                      </>
+                    )}
                   </p>
                 );
               })}

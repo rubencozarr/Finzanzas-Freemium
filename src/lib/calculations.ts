@@ -584,7 +584,10 @@ export interface FundedRecurringPlan {
   fundId: string;
   amount: number;
   fundAmount: number; // parte que se paga del fondo
-  normalAmount: number; // parte que se paga como gasto normal (0 si el fondo cubre todo)
+  normalAmount: number; // parte que se registra como gasto del mes (0 si el fondo cubre todo)
+  availableBefore: number; // saldo del fondo disponible justo antes de procesar este gasto (tras
+  // descontar lo ya consumido por gastos anteriores de esta misma aplicación) — NO el saldo inicial
+  // del fondo, para que el aviso al usuario muestre cifras que cuadran entre sí.
 }
 
 /** Simula el pago de varios gastos fijos "pagar desde un fondo" a la vez, descontando el saldo
@@ -605,7 +608,14 @@ export function planFundedRecurringApplications(
     const fundAmount = Math.min(item.amount, available);
     const normalAmount = round2(item.amount - fundAmount);
     remaining.set(item.fundedByFundId, available - fundAmount);
-    plans.push({ recurringId: item.id, fundId: item.fundedByFundId, amount: item.amount, fundAmount, normalAmount });
+    plans.push({
+      recurringId: item.id,
+      fundId: item.fundedByFundId,
+      amount: item.amount,
+      fundAmount,
+      normalAmount,
+      availableBefore: available,
+    });
   }
   return plans;
 }
