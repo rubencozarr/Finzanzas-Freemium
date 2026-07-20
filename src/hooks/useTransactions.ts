@@ -3,6 +3,7 @@ import { getSupabase } from "../lib/supabaseClient";
 import { fromTransactionRow, toTransactionInsert, toTransactionUpdate } from "../lib/mappers";
 import { isLocalBackend } from "../lib/env";
 import { readLocal, writeLocal } from "../lib/localStore";
+import { round2 } from "../lib/format";
 import type { TransactionRow } from "../types/db";
 import type { Transaction } from "../types";
 
@@ -12,6 +13,25 @@ export type NewTransaction = Omit<Transaction, "id"> & {
   splitFundId?: string | null;
   splitFundAmount?: number;
 };
+
+/** Reparte un gasto "pagado en parte con un fondo" en una o dos filas. Nunca genera una fila a 0€
+ * (la tabla transactions tiene check (amount > 0)): si el fondo cubre el importe completo, o si no
+ * cubre nada, se colapsa a una única fila normal en vez de forzar el split — antes, cuando el fondo
+ * cubría el 100% del gasto (p. ej. ahorro disponible 0€ y todo el importe cubierto por un fondo), la
+ * parte "ordinaria" salía en 0€ y Supabase rechazaba el insert sin que nada lo capturara, dejando el
+ * formulario colgado. Usado tanto en local como en Supabase para que ambos backends se comporten igual. */
+function splitGastoRows(tx: NewTransaction): Omit<Transaction, "id">[] {
+  const { splitFundId, splitFundAmount, ...base } = tx;
+  const fundAmount = round2(splitFundAmount ?? 0);
+  const ordinarioAmount = round2(Math.max(0, tx.amount - fundAmount));
+  if (ordinarioAmount <= 0) return [{ ...base, amount: tx.amount, fundedBy: splitFundId ?? null }];
+  if (fundAmount <= 0) return [{ ...base, amount: tx.amount, fundedBy: null }];
+  const splitId = crypto.randomUUID();
+  return [
+    { ...base, amount: ordinarioAmount, fundedBy: null, splitId },
+    { ...base, amount: fundAmount, fundedBy: splitFundId, splitId },
+  ];
+}
 
 export function useTransactions(userId: string | undefined) {
   const [transactions, setTransactions] = useState<Transaction[]>(() =>
@@ -58,19 +78,10 @@ export function useTransactions(userId: string | undefined) {
         // "transactions" del closure aquí haría que cada llamada partiera del mismo estado
         // desactualizado y solo sobreviviera la última (bug ya visto con los preestablecidos).
         setTransactions((prev) => {
-          let next: Transaction[];
-          if (tx.type === "gasto" && tx.splitFundId) {
-            const splitId = crypto.randomUUID();
-            const ordinarioAmount = Math.max(0, tx.amount - (tx.splitFundAmount ?? 0));
-            const { splitFundId, splitFundAmount, ...base } = tx;
-            next = [
-              ...prev,
-              { id: crypto.randomUUID(), ...base, amount: ordinarioAmount, fundedBy: null, splitId },
-              { id: crypto.randomUUID(), ...base, amount: splitFundAmount ?? 0, fundedBy: splitFundId, splitId },
-            ];
-          } else {
-            next = [...prev, { id: crypto.randomUUID(), ...tx }];
-          }
+          const next =
+            tx.type === "gasto" && tx.splitFundId
+              ? [...prev, ...splitGastoRows(tx).map((r) => ({ id: crypto.randomUUID(), ...r }))]
+              : [...prev, { id: crypto.randomUUID(), ...tx }];
           writeLocal(LOCAL_KEY, next);
           return next;
         });
@@ -78,18 +89,7 @@ export function useTransactions(userId: string | undefined) {
       }
       if (!userId) return;
       if (tx.type === "gasto" && tx.splitFundId) {
-        const splitId = crypto.randomUUID();
-        const ordinarioAmount = Math.max(0, tx.amount - (tx.splitFundAmount ?? 0));
-        const { splitFundId, splitFundAmount, ...base } = tx;
-        const rows = [
-          toTransactionInsert(userId, { ...base, amount: ordinarioAmount, fundedBy: null, splitId }),
-          toTransactionInsert(userId, {
-            ...base,
-            amount: splitFundAmount ?? 0,
-            fundedBy: splitFundId,
-            splitId,
-          }),
-        ];
+        const rows = splitGastoRows(tx).map((r) => toTransactionInsert(userId, r));
         const { error } = await getSupabase().from("transactions").insert(rows);
         if (error) throw error;
       } else {

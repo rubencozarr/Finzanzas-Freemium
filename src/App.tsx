@@ -822,15 +822,22 @@ function App() {
             setEditingTx(null);
           }}
           onSave={async (tx) => {
-            if (editingTx) {
-              await editTransaction(editingTx.id, tx);
-              showToast("Movimiento actualizado");
-            } else {
-              await addTransaction(tx);
-              showToast("Movimiento guardado");
+            // Sin este try/catch, un error al guardar (p. ej. de red o de la base de datos) dejaba el
+            // formulario abierto sin ningún aviso: el usuario veía el botón "sin reaccionar" porque
+            // setShowForm(false) nunca se llegaba a ejecutar.
+            try {
+              if (editingTx) {
+                await editTransaction(editingTx.id, tx);
+                showToast("Movimiento actualizado");
+              } else {
+                await addTransaction(tx);
+                showToast("Movimiento guardado");
+              }
+              setShowForm(false);
+              setEditingTx(null);
+            } catch (e) {
+              showToast(e instanceof Error ? e.message : "No se pudo guardar el movimiento.");
             }
-            setShowForm(false);
-            setEditingTx(null);
           }}
         />
       )}
