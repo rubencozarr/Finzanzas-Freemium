@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Crown, X } from "lucide-react";
 import { Chip } from "./Chip";
-import { PremiumGate } from "./PremiumGate";
 import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, FREE_MAX_FUNDS, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
 import { fmt, monthKey } from "../lib/format";
@@ -28,7 +27,6 @@ interface NuevoMovimientoFormProps {
   editingTx: Transaction | null;
   onClose: () => void;
   onSave: (tx: NewTransaction) => void;
-  onOpenPremiumScreen?: () => void;
 }
 
 const TYPE_OPTIONS: [TransactionType, string][] = [
@@ -78,7 +76,6 @@ export function NuevoMovimientoForm({
   editingTx,
   onClose,
   onSave,
-  onOpenPremiumScreen,
 }: NuevoMovimientoFormProps) {
   const [type, setType] = useState<TransactionType>(editingTx?.type || initial?.type || "gasto");
   const [categoryId, setCategoryId] = useState(() => {
@@ -215,7 +212,7 @@ export function NuevoMovimientoForm({
     if (retiroExcedeFondo) return;
     if (fundedExcede) return;
     if (type === "gasto" && !categoryId) return;
-    if (shortfall > 0 && isPremium) {
+    if (shortfall > 0) {
       setAskShortfall(true);
       return;
     }
@@ -489,23 +486,12 @@ export function NuevoMovimientoForm({
                 )}
               </>
             )}
-            {amt > 0 &&
-              !fundedByFund &&
-              remaining > 0 &&
-              amt > remaining &&
-              (isPremium ? (
-                <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-2 mb-3 mt-3">
-                  Este importe supera tu ahorro real disponible ({fmt(remaining)}). Al guardar te preguntaremos si quieres
-                  cubrir la diferencia con un fondo o tu ahorro libre.
-                </p>
-              ) : (
-                <div className="mb-3 mt-3">
-                  <PremiumGate
-                    message="Con Premium puedes cubrir la diferencia con tus fondos de ahorro"
-                    onOpenPremiumScreen={onOpenPremiumScreen}
-                  />
-                </div>
-              ))}
+            {amt > 0 && !fundedByFund && remaining > 0 && amt > remaining && (
+              <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-2 mb-3 mt-3">
+                Este importe supera tu ahorro real disponible ({fmt(remaining)}). Al guardar te preguntaremos si quieres cubrir la
+                diferencia con un fondo o tu ahorro libre.
+              </p>
+            )}
           </>
         )}
 

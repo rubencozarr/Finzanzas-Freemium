@@ -817,11 +817,6 @@ function App() {
             setShowForm(false);
             setEditingTx(null);
           }}
-          onOpenPremiumScreen={() => {
-            setShowForm(false);
-            setEditingTx(null);
-            setShowPremiumScreen(true);
-          }}
           onSave={async (tx) => {
             if (editingTx) {
               await editTransaction(editingTx.id, tx);
