@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import type { useAuth } from "../hooks/useAuth";
 
-type Mode = "login" | "signup";
+type Mode = "login" | "signup" | "forgot";
 
 interface LoginScreenProps {
   signInWithPassword: ReturnType<typeof useAuth>["signInWithPassword"];
   signUp: ReturnType<typeof useAuth>["signUp"];
+  resetPasswordForEmail: ReturnType<typeof useAuth>["resetPasswordForEmail"];
 }
 
 function friendlyError(message: string): string {
@@ -17,7 +18,7 @@ function friendlyError(message: string): string {
   return message;
 }
 
-export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
+export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail }: LoginScreenProps) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,6 +32,18 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
   const submit = async () => {
     setError(null);
     setInfo(null);
+    if (mode === "forgot") {
+      if (!email.trim()) {
+        setError("Escribe tu email.");
+        return;
+      }
+      setLoading(true);
+      const { error } = await resetPasswordForEmail(email.trim());
+      setLoading(false);
+      if (error) setError(friendlyError(error.message));
+      else setInfo("Te hemos enviado un enlace a tu correo para restablecer tu contraseña. Revisa tu bandeja de entrada.");
+      return;
+    }
     if (!email.trim() || !password) {
       setError("Rellena email y contraseña.");
       return;
@@ -72,7 +85,7 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
           }}
         >
           <p className="text-sm font-medium text-slate-800 mb-3">
-            {mode === "login" ? "Inicia sesión" : "Crea tu cuenta"}
+            {mode === "login" ? "Inicia sesión" : mode === "signup" ? "Crea tu cuenta" : "Recuperar contraseña"}
           </p>
 
           <input
@@ -83,23 +96,25 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
             placeholder="Email"
             className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base mb-3 bg-white"
           />
-          <div className="relative mb-3">
-            <input
-              type={showPassword ? "text" : "password"}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Contraseña"
-              className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-10 text-base bg-white"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
+          {mode !== "forgot" && (
+            <div className="relative mb-3">
+              <input
+                type={showPassword ? "text" : "password"}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-10 text-base bg-white"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          )}
 
           {mode === "signup" && (
             <div className="relative mb-3">
@@ -129,21 +144,53 @@ export function LoginScreen({ signInWithPassword, signUp }: LoginScreenProps) {
             disabled={loading}
             className="w-full bg-slate-800 disabled:opacity-40 text-white rounded-lg py-2.5 text-sm font-medium mb-3"
           >
-            {loading ? "Un momento..." : mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+            {loading
+              ? "Un momento..."
+              : mode === "login"
+                ? "Iniciar sesión"
+                : mode === "signup"
+                  ? "Crear cuenta"
+                  : "Enviar enlace de recuperación"}
           </button>
         </form>
 
-        <button
-          onClick={() => {
-            setMode(mode === "login" ? "signup" : "login");
-            setConfirmPassword("");
-            setError(null);
-            setInfo(null);
-          }}
-          className="w-full text-center text-xs text-stone-500"
-        >
-          {mode === "login" ? "¿No tienes cuenta? Crea una" : "¿Ya tienes cuenta? Inicia sesión"}
-        </button>
+        {mode === "login" && (
+          <button
+            onClick={() => {
+              setMode("forgot");
+              setError(null);
+              setInfo(null);
+            }}
+            className="w-full text-center text-xs text-stone-500 mb-2"
+          >
+            ¿Has olvidado tu contraseña?
+          </button>
+        )}
+
+        {mode === "forgot" ? (
+          <button
+            onClick={() => {
+              setMode("login");
+              setError(null);
+              setInfo(null);
+            }}
+            className="w-full text-center text-xs text-stone-500"
+          >
+            Volver a iniciar sesión
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setMode(mode === "login" ? "signup" : "login");
+              setConfirmPassword("");
+              setError(null);
+              setInfo(null);
+            }}
+            className="w-full text-center text-xs text-stone-500"
+          >
+            {mode === "login" ? "¿No tienes cuenta? Crea una" : "¿Ya tienes cuenta? Inicia sesión"}
+          </button>
+        )}
       </div>
     </div>
   );

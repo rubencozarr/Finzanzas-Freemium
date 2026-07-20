@@ -44,6 +44,7 @@ import { NuevoMovimientoForm, type FormPreset } from "./components/NuevoMovimien
 import { ApplyPresetsModal } from "./components/ApplyPresetsModal";
 import { ResolveOrphansModal } from "./components/ResolveOrphansModal";
 import { LoginScreen } from "./components/LoginScreen";
+import { ResetPasswordScreen } from "./components/ResetPasswordScreen";
 import { GuidedTour } from "./components/GuidedTour";
 import { buildTourSteps } from "./lib/tourSteps";
 import { HelpModal } from "./components/HelpModal";
@@ -58,7 +59,17 @@ import type { AssetWithTotal, FundWithBalance, Transaction } from "./types";
 type Tab = "movimientos" | "fondos" | "mensual" | "anual" | "ajustes";
 
 function App() {
-  const { user, loading: authLoading, signInWithPassword, signUp, signOut } = useAuth();
+  const {
+    user,
+    loading: authLoading,
+    passwordRecovery,
+    signInWithPassword,
+    signUp,
+    signOut,
+    resetPasswordForEmail,
+    updatePassword,
+    clearPasswordRecovery,
+  } = useAuth();
   const userId = user?.id;
 
   const { transactions, addTransaction, editTransaction, deleteTransaction, refetch: refetchTransactions } = useTransactions(userId);
@@ -625,8 +636,23 @@ function App() {
     );
   }
 
+  // Antes que el "if (!user)": al abrir el enlace de recuperación, Supabase ya deja al usuario con una
+  // sesión válida, así que sin comprobar esto primero se colaría directo a la app sin haber cambiado
+  // la contraseña.
+  if (passwordRecovery) {
+    return (
+      <ResetPasswordScreen
+        onSubmit={updatePassword}
+        onDone={() => {
+          clearPasswordRecovery();
+          showToast("Contraseña actualizada correctamente");
+        }}
+      />
+    );
+  }
+
   if (!user) {
-    return <LoginScreen signInWithPassword={signInWithPassword} signUp={signUp} />;
+    return <LoginScreen signInWithPassword={signInWithPassword} signUp={signUp} resetPasswordForEmail={resetPasswordForEmail} />;
   }
 
   return (
