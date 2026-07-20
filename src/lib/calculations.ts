@@ -903,7 +903,14 @@ export function mergeSplitDisplay(monthTx: Transaction[], funds: FundWithBalance
       group.forEach((g) => seen.add(g.id));
       const total = group.reduce((s, g) => s + g.amount, 0);
       const fundedPart = group.find((g) => g.fundedBy);
-      const fund = fundedPart ? funds.find((f) => f.id === fundedPart.fundedBy) : null;
+      // fundedBy puede ser el id de un fondo real o el sentinel AHORRO_LIBRE_ID ("ahorro_libre"), que
+      // no está en la lista de fondos — sin este caso especial, un gasto dividido pagado en parte con
+      // ahorro libre consolidado no mostraba ningún aviso (fund quedaba null y splitLabel se omitía).
+      const fundName = fundedPart
+        ? fundedPart.fundedBy === AHORRO_LIBRE_ID
+          ? "ahorro libre consolidado"
+          : (funds.find((f) => f.id === fundedPart.fundedBy)?.name ?? null)
+        : null;
       items.push({
         ids: group.map((g) => g.id),
         date: t.date,
@@ -915,7 +922,7 @@ export function mergeSplitDisplay(monthTx: Transaction[], funds: FundWithBalance
         type: "gasto",
         fixed: t.fixed,
         amount: total,
-        splitLabel: fund ? `parte pagada con ahorro (${fund.name}: ${fmt(fundedPart!.amount)})` : null,
+        splitLabel: fundName ? `parte pagada con ahorro (${fundName}: ${fmt(fundedPart!.amount)})` : null,
       });
     } else {
       seen.add(t.id);

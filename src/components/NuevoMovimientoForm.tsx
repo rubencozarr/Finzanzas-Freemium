@@ -3,7 +3,7 @@ import { Crown, X } from "lucide-react";
 import { Chip } from "./Chip";
 import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, FREE_MAX_FUNDS, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
-import { fmt, monthKey } from "../lib/format";
+import { fmt, monthKey, round2 } from "../lib/format";
 import type { NewTransaction } from "../hooks/useTransactions";
 import type { AssetWithTotal, Category, FundWithBalance, Transaction, TransactionType } from "../types";
 
@@ -153,11 +153,12 @@ export function NuevoMovimientoForm({
 
   const amt = parseFloat(amount) || 0;
   const remaining = ahorroRealDisponible ?? 0;
-  const shortfall = !editingTx && type === "gasto" && !fundedByFund && remaining > 0 ? Math.max(0, amt - remaining) : 0;
+  const shortfall = !editingTx && type === "gasto" && !fundedByFund && remaining > 0 ? Math.max(0, round2(amt - remaining)) : 0;
   const retiroExcedeFondo =
     type === "retiro" &&
     !!selectedFund &&
-    amt > selectedFund.balance + (editingTx?.type === "retiro" && editingTx.fundId === fundId ? editingTx.amount : 0);
+    round2(amt) >
+      round2(selectedFund.balance + (editingTx?.type === "retiro" && editingTx.fundId === fundId ? editingTx.amount : 0));
 
   const categoryBudget = type === "gasto" && currentCat?.type === "variable" ? currentCat.budget || 0 : 0;
   const spentInCategoryThisMonth =
@@ -182,10 +183,11 @@ export function NuevoMovimientoForm({
 
   const fundedFund = fundingOptions.find((f) => f.id === fundedId);
   const fundedYaContaba = editingTx?.type === "gasto" && editingTx.fundedBy === fundedId ? editingTx.amount : 0;
-  const fundedExcede = type === "gasto" && fundedByFund && !!fundedFund && amt > fundedFund.balance + fundedYaContaba;
+  const fundedExcede =
+    type === "gasto" && fundedByFund && !!fundedFund && round2(amt) > round2(fundedFund.balance + fundedYaContaba);
 
   const shortfallFund = fundingOptions.find((f) => f.id === shortfallFundId);
-  const shortfallExcede = !!shortfallFund && shortfall > shortfallFund.balance;
+  const shortfallExcede = !!shortfallFund && round2(shortfall) > round2(shortfallFund.balance);
 
   const buildBase = (): Omit<Transaction, "id" | "amount"> => {
     const fund = funds.find((f) => f.id === fundId);
