@@ -14,6 +14,9 @@ const PADDING = 8;
 const GAP = 14;
 const RING_Z = 9998;
 const TOOLTIP_Z = 9999;
+// No se mide la altura real del tooltip (varía con el texto); esta estimación conservadora basta para
+// decidir si hay hueco de sobra, y el margen de 12px absorbe el resto.
+const ESTIMATED_TOOLTIP_HEIGHT = 180;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), Math.max(min, max));
@@ -116,14 +119,25 @@ export function GuidedTour({ step, stepIndex, totalSteps, onNext, onPrev, onSkip
     const left = clamp(r.left, 12, vw - tooltipWidth - 12);
     const targetCenterX = (r.left + r.right) / 2;
     const targetCenterY = (r.top + r.bottom) / 2;
-    if (step.placement === "top") {
+    // El teclado móvil (o el scroll interno de un formulario largo) puede dejar al elemento señalado
+    // sin hueco suficiente en la dirección pedida — p. ej. "top" con el target ya pegado arriba de la
+    // pantalla visible. En ese caso se invierte al lado contrario en vez de solapar el tooltip con el
+    // propio contenido que se supone que debe explicar.
+    const minGap = ESTIMATED_TOOLTIP_HEIGHT + GAP + 12;
+    let placement = step.placement;
+    if (placement === "top" && r.top < minGap && vh - r.bottom >= minGap) {
+      placement = "bottom";
+    } else if (placement === "bottom" && vh - r.bottom < minGap && r.top >= minGap) {
+      placement = "top";
+    }
+    if (placement === "top") {
       tooltipStyle = { bottom: vh - r.top + GAP, left, width: tooltipWidth };
       arrowStyle = { left: clamp(targetCenterX - left, 16, tooltipWidth - 16) - 6, bottom: -6 };
-    } else if (step.placement === "left") {
+    } else if (placement === "left") {
       const top = clamp(r.top, 12, vh - 220);
       tooltipStyle = { top, right: vw - r.left + GAP, width: tooltipWidth };
       arrowStyle = { top: clamp(targetCenterY - top, 16, 188) - 6, right: -6 };
-    } else if (step.placement === "right") {
+    } else if (placement === "right") {
       const top = clamp(r.top, 12, vh - 220);
       tooltipStyle = { top, left: r.right + GAP, width: tooltipWidth };
       arrowStyle = { top: clamp(targetCenterY - top, 16, 188) - 6, left: -6 };

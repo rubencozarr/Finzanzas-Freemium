@@ -67,8 +67,12 @@ export function RecurringIncomeEditor({
           </div>
         ))}
       </div>
-      <div data-tour="recurring-income-form">
-        <p className="text-sm font-medium mb-2">Añadir nuevo</p>
+      <div>
+        {/* El tour señala solo esta cabecera (no el formulario entero, que es alto y cambia de
+         * posición según el teclado): así el tooltip nunca compite por espacio con los campos. */}
+        <p data-tour="recurring-income-form" className="text-sm font-medium mb-2">
+          Añadir nuevo
+        </p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {INCOME_CATS.map((c) => (
             <Chip key={c} label={c} active={incomeCat === c} onClick={() => setIncomeCat(c)} />

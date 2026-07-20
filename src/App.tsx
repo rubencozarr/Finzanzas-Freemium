@@ -442,7 +442,11 @@ function App() {
         amount: it.amount,
         date: dateWithDay(tpl.day),
         category: tpl.incomeCat,
-        subcategory: null,
+        // El nombre que el usuario le puso al ingreso recurrente (p. ej. "Nómina") se guarda en
+        // subcategory: MovimientosTab ya lo muestra para cualquier tipo de movimiento vía
+        // resolveSubcategoryName. Si no lo personalizó, name cae por defecto al propio incomeCat
+        // (ver RecurringIncomeEditor), y mostrarlo sería redundante con la categoría.
+        subcategory: tpl.name && tpl.name !== tpl.incomeCat ? tpl.name : null,
         note: tpl.note || "",
         recurringIncomeId: tpl.id,
       });
