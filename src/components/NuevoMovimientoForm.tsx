@@ -110,6 +110,10 @@ export function NuevoMovimientoForm({
   const [fundedId, setFundedId] = useState(editingTx?.fundedBy || AHORRO_LIBRE_ID);
   const [askShortfall, setAskShortfall] = useState(false);
   const [shortfallFundId, setShortfallFundId] = useState(AHORRO_LIBRE_ID);
+  // Se ha visto a usuarios darle a "Guardar" sin haber tocado ninguna categoría (el botón no hacía
+  // nada y no quedaba claro por qué). Solo se activa tras un intento real de guardar, para no mostrar
+  // el aviso antes de que el usuario haya llegado a esa parte del formulario.
+  const [showCategoryError, setShowCategoryError] = useState(false);
 
   // El ahorro libre disponible se recalcula según la fecha del movimiento y nunca incluye
   // el propio mes: solo puedes gastar como "ahorro" lo acumulado en meses anteriores a este.
@@ -213,7 +217,10 @@ export function NuevoMovimientoForm({
     if (needsAsset && !assetId) return;
     if (retiroExcedeFondo) return;
     if (fundedExcede) return;
-    if (type === "gasto" && !categoryId) return;
+    if (type === "gasto" && !categoryId) {
+      setShowCategoryError(true);
+      return;
+    }
     if (shortfall > 0) {
       setAskShortfall(true);
       return;
@@ -529,6 +536,9 @@ export function NuevoMovimientoForm({
           placeholder="Nota (opcional)"
           className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base mb-4"
         />
+        {showCategoryError && type === "gasto" && !categoryId && (
+          <p className="text-xs text-rose-500 mb-2">Elige una categoría arriba antes de guardar.</p>
+        )}
         <button
           onClick={submit}
           disabled={retiroExcedeFondo || fundedExcede}
