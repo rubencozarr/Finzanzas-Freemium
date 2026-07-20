@@ -24,10 +24,11 @@ interface FondosTabProps {
   canNavigateToMonth: (monthDate: Date) => boolean;
   funds: FundWithBalance[];
   transactions: Transaction[];
-  addFund: (name: string, icon?: string | null) => void;
+  addFund: (name: string, icon?: string | null, initialBalance?: number) => void;
   renameFund: (id: string, name: string) => void;
   deleteFund: (fund: FundWithBalance) => void;
   updateFundGoal: (id: string, amount: number | null) => void;
+  updateFundInitialBalance: (id: string, amount: number) => void;
   updateFundActive: (id: string, active: boolean) => void;
   updateFundIcon: (id: string, icon: string) => void;
   updateFundOrder: (id: string, direction: -1 | 1) => void;
@@ -142,6 +143,7 @@ export function FondosTab({
   renameFund,
   deleteFund,
   updateFundGoal,
+  updateFundInitialBalance,
   updateFundActive,
   updateFundIcon,
   assets,
@@ -165,10 +167,12 @@ export function FondosTab({
 }: FondosTabProps) {
   const [newName, setNewName] = useState("");
   const [newFundIcon, setNewFundIcon] = useState<string>(DEFAULT_FUND_ICON);
+  const [newInitialBalance, setNewInitialBalance] = useState("");
   const [creatingFund, setCreatingFund] = useState(false);
   const [editingFundId, setEditingFundId] = useState<string | null>(null);
   const [editFundName, setEditFundName] = useState("");
   const [editFundIcon, setEditFundIcon] = useState<string>(DEFAULT_FUND_ICON);
+  const [editInitialBalance, setEditInitialBalance] = useState("");
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
   const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
   const [goalAmountInput, setGoalAmountInput] = useState("");
@@ -292,9 +296,10 @@ export function FondosTab({
             <button
               onClick={() => {
                 if (newName.trim()) {
-                  addFund(newName.trim(), newFundIcon);
+                  addFund(newName.trim(), newFundIcon, parseFloat(newInitialBalance) || 0);
                   setNewName("");
                   setNewFundIcon(DEFAULT_FUND_ICON);
+                  setNewInitialBalance("");
                   setCreatingFund(false);
                 }
               }}
@@ -307,6 +312,7 @@ export function FondosTab({
                 onClick={() => {
                   setNewName("");
                   setNewFundIcon(DEFAULT_FUND_ICON);
+                  setNewInitialBalance("");
                   setCreatingFund(false);
                 }}
                 className="text-stone-400 px-1"
@@ -315,7 +321,25 @@ export function FondosTab({
               </button>
             )}
           </div>
-          {creatingFund && <FundIconPicker value={newFundIcon} onChange={setNewFundIcon} isPremium={isPremium} />}
+          {creatingFund && (
+            <>
+              <FundIconPicker value={newFundIcon} onChange={setNewFundIcon} isPremium={isPremium} />
+              <p className="text-xs text-stone-500 mb-1.5 mt-2">¿Ya tienes dinero ahorrado en este fondo?</p>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={newInitialBalance}
+                onChange={(e) => setNewInitialBalance(e.target.value)}
+                onWheel={(e) => e.currentTarget.blur()}
+                placeholder="Saldo inicial (€, opcional)"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base font-mono bg-white mb-1.5"
+              />
+              <p className="text-xs text-stone-400 mb-3">
+                Introduce lo que ya tenías ahorrado antes de empezar. Este dinero forma parte del saldo de tu fondo, pero no
+                cuenta como ingreso ni aparece en tus gráficos: es tu punto de partida.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="mb-4">
@@ -369,6 +393,7 @@ export function FondosTab({
                     onClick={() => {
                       renameFund(f.id, editFundName);
                       updateFundIcon(f.id, editFundIcon);
+                      updateFundInitialBalance(f.id, parseFloat(editInitialBalance) || 0);
                       setEditingFundId(null);
                     }}
                     className="text-teal-700"
@@ -380,6 +405,25 @@ export function FondosTab({
                   </button>
                 </div>
                 <FundIconPicker value={editFundIcon} onChange={setEditFundIcon} isPremium={isPremium} />
+                <p className="text-xs text-stone-500 mb-1.5 mt-2">¿Ya tienes dinero ahorrado en este fondo?</p>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={editInitialBalance}
+                  onChange={(e) => setEditInitialBalance(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  placeholder="Saldo inicial (€, opcional)"
+                  className="w-full border border-stone-200 rounded-md px-2 py-1 text-base font-mono mb-1.5"
+                />
+                <p className="text-xs text-stone-400 mb-1.5">
+                  Introduce lo que ya tenías ahorrado antes de empezar. Este dinero forma parte del saldo de tu fondo, pero no
+                  cuenta como ingreso ni aparece en tus gráficos: es tu punto de partida.
+                </p>
+                {transactions.some((t) => (t.type === "aportacion" || t.type === "retiro") && t.fundId === f.id) && (
+                  <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-2.5 py-1.5">
+                    Cambiar el saldo inicial modificará el saldo total de tu fondo.
+                  </p>
+                )}
               </div>
             ) : (
               <>
@@ -545,6 +589,7 @@ export function FondosTab({
                         setEditingFundId(f.id);
                         setEditFundName(f.name);
                         setEditFundIcon(f.icon ?? DEFAULT_FUND_ICON);
+                        setEditInitialBalance(f.initialBalance ? String(f.initialBalance) : "");
                       }}
                       className="text-stone-300 hover:text-slate-700"
                     >
@@ -657,7 +702,16 @@ export function FondosTab({
           <div className="bg-white rounded-t-2xl w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
             <p className="font-serif text-base mb-2">¿Eliminar "{deleteConfirmFund.name}"?</p>
             <p className="text-sm text-stone-600 mb-4">
-              Se devolverá el saldo de {fmt(deleteConfirmFund.balance)} a tu ahorro libre. Esta acción no se puede deshacer.
+              {deleteConfirmFund.initialBalance ? (
+                <>
+                  Se devolverán {fmt(deleteConfirmFund.flowBalance)} a tu ahorro libre. Los {fmt(deleteConfirmFund.initialBalance)} de
+                  saldo inicial no se contarán como ingreso. Esta acción no se puede deshacer.
+                </>
+              ) : (
+                <>
+                  Se devolverá el saldo de {fmt(deleteConfirmFund.balance)} a tu ahorro libre. Esta acción no se puede deshacer.
+                </>
+              )}
             </p>
             <button onClick={doDeleteFund} className="w-full bg-rose-600 text-white rounded-lg py-2.5 text-sm font-medium mb-2">
               Sí, eliminar

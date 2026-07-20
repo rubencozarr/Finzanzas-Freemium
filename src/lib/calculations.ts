@@ -40,7 +40,13 @@ export function fundsWithBalance(funds: Fund[], transactions: Transaction[]): Fu
     const usado = transactions
       .filter((t) => t.type === "gasto" && t.fundedBy === f.id)
       .reduce((s, t) => s + t.amount, 0);
-    return { ...f, balance: aportado - retirado - usado };
+    // flowBalance es el saldo derivado SOLO del historial de movimientos (lo que "balance" era antes
+    // de que existiera el saldo inicial). balance le suma initialBalance, el dinero que el usuario ya
+    // tenía ahorrado antes de usar la app: cuenta para el saldo total y el patrimonio, pero nunca debe
+    // tratarse como ingreso/aportación — por eso los pocos sitios que necesitan ignorarlo (el aviso de
+    // 500€ free, el retiro que se genera al borrar un fondo) leen flowBalance en vez de balance.
+    const flowBalance = aportado - retirado - usado;
+    return { ...f, balance: (f.initialBalance ?? 0) + flowBalance, flowBalance };
   });
 }
 
@@ -69,7 +75,9 @@ export function fundsBalanceHasta(funds: Fund[], transactions: Transaction[], mK
       .reduce((s, t) => s + t.amount, 0);
     const retirado = rel.filter((t) => t.type === "retiro" && t.fundId === f.id).reduce((s, t) => s + t.amount, 0);
     const usado = rel.filter((t) => t.type === "gasto" && t.fundedBy === f.id).reduce((s, t) => s + t.amount, 0);
-    return { ...f, balance: aportado - retirado - usado };
+    // Ver comentario en fundsWithBalance: mismo criterio balance/flowBalance.
+    const flowBalance = aportado - retirado - usado;
+    return { ...f, balance: (f.initialBalance ?? 0) + flowBalance, flowBalance };
   });
 }
 
@@ -136,10 +144,13 @@ export function ahorroLibrePseudoFund(transactions: Transaction[]): FundWithBala
   const gastoLibreTotal = transactions
     .filter((t) => t.type === "gasto" && t.fundedBy === AHORRO_LIBRE_ID)
     .reduce((s, t) => s + t.amount, 0);
+  const saldo = ahorroLibreBruto - gastoLibreTotal;
   return {
     id: AHORRO_LIBRE_ID,
     name: "Ahorro libre acumulado",
-    balance: ahorroLibreBruto - gastoLibreTotal,
+    balance: saldo,
+    // No es un fondo real (no tiene columna initial_balance): balance y flowBalance coinciden siempre.
+    flowBalance: saldo,
     virtualTotalAportado: ahorroLibreBruto,
   };
 }

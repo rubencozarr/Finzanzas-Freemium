@@ -68,6 +68,7 @@ function App() {
     renameFund,
     deleteFund,
     updateFundGoal,
+    updateFundInitialBalance,
     updateFundActive,
     updateFundIcon,
     updateFundOrder,
@@ -294,9 +295,11 @@ function App() {
 
   // Aviso de conversión free: la primera vez que el total ahorrado entre fondos llega a 500€, se avisa
   // una sola vez (savings_milestone_shown en Supabase evita que vuelva a salir en sesiones futuras).
+  // flowBalance, no balance: el saldo inicial que el usuario indique en un fondo no debe disparar este
+  // aviso — solo cuenta lo aportado de verdad desde la app.
   useEffect(() => {
     if (isPremium || savingsMilestoneShown || !userId) return;
-    const totalFondos = fundsWithBalance.reduce((s, f) => s + f.balance, 0);
+    const totalFondos = fundsWithBalance.reduce((s, f) => s + f.flowBalance, 0);
     if (totalFondos >= 500) {
       setMilestoneMsg("¡Ya llevas 500€ ahorrados! Con Premium puedes poner metas a cada fondo y ver tu progreso.");
       markSavingsMilestoneShown();
@@ -403,10 +406,13 @@ function App() {
   // igual que cualquier otro retiro) para que el dinero vuelva al ahorro libre del usuario y quede
   // en el historial, y solo entonces se borra el fondo — si no, el saldo simplemente desaparecería.
   const onDeleteFund = async (fund: FundWithBalance) => {
-    if (fund.balance > 0) {
+    // flowBalance, no balance: si el fondo tiene saldo inicial, esa parte nunca ha sido "ingreso" —
+    // registrarla como retiro la inyectaría de golpe en el ahorro libre/tasa de ahorro. Solo se
+    // devuelve al ahorro libre lo que de verdad se aportó/generó a través de la app.
+    if (fund.flowBalance > 0) {
       await addTransaction({
         type: "retiro",
-        amount: fund.balance,
+        amount: fund.flowBalance,
         date: todayISO(),
         category: fund.name,
         subcategory: null,
@@ -691,6 +697,7 @@ function App() {
             renameFund={renameFund}
             deleteFund={onDeleteFund}
             updateFundGoal={updateFundGoal}
+            updateFundInitialBalance={updateFundInitialBalance}
             updateFundActive={updateFundActive}
             updateFundIcon={updateFundIcon}
             updateFundOrder={updateFundOrder}

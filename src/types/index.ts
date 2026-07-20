@@ -25,10 +25,15 @@ export interface Fund {
   isActive?: boolean;
   icon?: string | null;
   sortOrder?: number;
+  initialBalance?: number;
 }
 
 export interface FundWithBalance extends Fund {
   balance: number;
+  // Saldo sin el initialBalance: aportado - retirado - usado, exactamente lo que "balance" era antes
+  // de que existiera el saldo inicial. Único campo que deben leer los cálculos de flujo que no deben
+  // verse afectados por el saldo inicial (ver comentario en fundsWithBalance, calculations.ts).
+  flowBalance: number;
   virtualTotalAportado?: number;
 }
 

@@ -50,11 +50,14 @@ export function useFunds(userId: string | undefined) {
   // en vez de leer "funds" del closure, para que llamadas seguidas en el mismo tick no se pisen
   // entre sí (mismo bug que en useTransactions con los preestablecidos).
   const addFund = useCallback(
-    async (name: string, icon?: string | null) => {
+    async (name: string, icon?: string | null, initialBalance?: number) => {
       if (isLocalBackend) {
         setFunds((prev) => {
           const nextOrder = prev.length ? Math.max(...prev.map((f) => f.sortOrder ?? 0)) + 1 : 0;
-          const next = [...prev, { id: crypto.randomUUID(), name, icon: icon ?? null, sortOrder: nextOrder }];
+          const next = [
+            ...prev,
+            { id: crypto.randomUUID(), name, icon: icon ?? null, sortOrder: nextOrder, initialBalance: initialBalance ?? 0 },
+          ];
           writeLocal(LOCAL_KEY, next);
           return next;
         });
@@ -62,7 +65,9 @@ export function useFunds(userId: string | undefined) {
       }
       if (!userId) return;
       const nextOrder = funds.length ? Math.max(...funds.map((f) => f.sortOrder ?? 0)) + 1 : 0;
-      const { error } = await getSupabase().from("funds").insert({ user_id: userId, name, icon: icon ?? null, sort_order: nextOrder });
+      const { error } = await getSupabase()
+        .from("funds")
+        .insert({ user_id: userId, name, icon: icon ?? null, sort_order: nextOrder, initial_balance: initialBalance ?? 0 });
       if (error) throw error;
       await refetch();
     },
@@ -114,6 +119,23 @@ export function useFunds(userId: string | undefined) {
         return;
       }
       const { error } = await getSupabase().from("funds").update({ goal_amount: amount }).eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
+  const updateFundInitialBalance = useCallback(
+    async (id: string, amount: number) => {
+      if (isLocalBackend) {
+        setFunds((prev) => {
+          const next = prev.map((f) => (f.id === id ? { ...f, initialBalance: amount } : f));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("funds").update({ initial_balance: amount }).eq("id", id);
       if (error) throw error;
       await refetch();
     },
@@ -199,6 +221,7 @@ export function useFunds(userId: string | undefined) {
     renameFund,
     deleteFund,
     updateFundGoal,
+    updateFundInitialBalance,
     updateFundActive,
     updateFundIcon,
     updateFundOrder,

@@ -6,7 +6,8 @@
 
 -- =========================================================
 -- FUNDS (fondos de ahorro)
--- REGLA CRÍTICA: el saldo nunca se guarda, siempre se deriva de transactions.
+-- REGLA CRÍTICA: el saldo nunca se guarda, siempre se deriva de transactions (más initial_balance,
+-- el único valor "de partida" que sí se guarda explícito: ver más abajo).
 -- =========================================================
 create table if not exists public.funds (
   id uuid primary key default gen_random_uuid(),
@@ -21,6 +22,11 @@ create table if not exists public.funds (
   -- src/lib/fundIcons.ts). Null = usar el icono por defecto ("piggy-bank") en la app.
   icon text,
   sort_order integer not null default 0,
+  -- Dinero que el usuario ya tenía ahorrado en este fondo antes de usar la app. Suma al saldo total
+  -- (y por tanto al patrimonio) pero NUNCA cuenta como ingreso/aportación en ningún cálculo de flujo
+  -- (ahorro libre, tasa de ahorro, gráficos, aviso de 500€ free) — ver fundsWithBalance/
+  -- fundsBalanceHasta en calculations.ts, que devuelven balance (con este campo) y flowBalance (sin él).
+  initial_balance numeric(12, 2) not null default 0,
   created_at timestamptz not null default now()
 );
 

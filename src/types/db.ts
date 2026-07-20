@@ -31,6 +31,7 @@ export interface FundRow {
   is_active: boolean;
   icon: string | null;
   sort_order: number;
+  initial_balance: number;
   created_at: string;
 }
 
