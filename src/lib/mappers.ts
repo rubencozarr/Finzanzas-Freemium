@@ -89,6 +89,7 @@ export function fromFundRow(row: FundRow): Fund {
     icon: row.icon,
     sortOrder: row.sort_order,
     initialBalance: row.initial_balance,
+    goalNotified: row.goal_notified,
   };
 }
 

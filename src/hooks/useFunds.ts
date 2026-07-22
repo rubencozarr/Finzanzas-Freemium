@@ -112,13 +112,38 @@ export function useFunds(userId: string | undefined) {
     async (id: string, amount: number | null) => {
       if (isLocalBackend) {
         setFunds((prev) => {
-          const next = prev.map((f) => (f.id === id ? { ...f, goalAmount: amount } : f));
+          // Cambiar la meta resetea goal_notified: si ya se había avisado de la meta anterior, hay
+          // que poder avisar de nuevo cuando se alcance la nueva.
+          const next = prev.map((f) => (f.id === id ? { ...f, goalAmount: amount, goalNotified: false } : f));
           writeLocal(LOCAL_KEY, next);
           return next;
         });
         return;
       }
-      const { error } = await getSupabase().from("funds").update({ goal_amount: amount }).eq("id", id);
+      const { error } = await getSupabase()
+        .from("funds")
+        .update({ goal_amount: amount, goal_notified: false })
+        .eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
+  // Marca/desmarca si ya se avisó de que este fondo alcanzó su meta. App.tsx la llama al detectar que
+  // el saldo cruza goal_amount (true) o vuelve a caer por debajo (false, sin aviso, para poder
+  // notificar de nuevo la próxima vez que se alcance).
+  const setFundGoalNotified = useCallback(
+    async (id: string, notified: boolean) => {
+      if (isLocalBackend) {
+        setFunds((prev) => {
+          const next = prev.map((f) => (f.id === id ? { ...f, goalNotified: notified } : f));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("funds").update({ goal_notified: notified }).eq("id", id);
       if (error) throw error;
       await refetch();
     },
@@ -221,6 +246,7 @@ export function useFunds(userId: string | undefined) {
     renameFund,
     deleteFund,
     updateFundGoal,
+    setFundGoalNotified,
     updateFundInitialBalance,
     updateFundActive,
     updateFundIcon,

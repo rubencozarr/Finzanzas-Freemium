@@ -27,6 +27,10 @@ create table if not exists public.funds (
   -- (ahorro libre, tasa de ahorro, gráficos, aviso de 500€ free) — ver fundsWithBalance/
   -- fundsBalanceHasta en calculations.ts, que devuelven balance (con este campo) y flowBalance (sin él).
   initial_balance numeric(12, 2) not null default 0,
+  -- Evita repetir el aviso "¡Has alcanzado tu meta!" (App.tsx) cada vez que el saldo sigue por encima
+  -- de goal_amount. Se resetea a false si se cambia goal_amount o si el saldo vuelve a bajar por debajo
+  -- de la meta (p. ej. un retiro), para que se avise de nuevo la próxima vez que se alcance.
+  goal_notified boolean not null default false,
   created_at timestamptz not null default now()
 );
 
