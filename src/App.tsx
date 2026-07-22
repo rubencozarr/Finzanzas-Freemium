@@ -75,7 +75,14 @@ function App() {
   } = useAuth();
   const userId = user?.id;
 
-  const { transactions, addTransaction, editTransaction, deleteTransaction, refetch: refetchTransactions } = useTransactions(userId);
+  const {
+    transactions,
+    addTransaction,
+    editTransaction,
+    deleteTransaction,
+    loading: transactionsLoading,
+    refetch: refetchTransactions,
+  } = useTransactions(userId);
   const {
     funds,
     addFund,
@@ -338,19 +345,19 @@ function App() {
   // Aviso premium al alcanzar la meta de un fondo. Vive aquí (no en FondosTab) porque App no se
   // desmonta al cambiar de pestaña: si esto estuviera en FondosTab, guardar la aportación desde
   // Movimientos y volver a Fondos remontaría el componente. Se basa en goal_notified (persistido en
-  // Supabase, no en un ref en memoria): un ref que solo guarda "la base" en el primer render es
-  // vulnerable a que funds/transactions lleguen en dos tandas asíncronas al recargar la página (fondos
-  // antes que transacciones, o viceversa) — la primera tanda parcial se toma como base y la segunda,
-  // con los datos reales, parece un cruce nuevo y repite el aviso en cada recarga. Con el flag en BD
-  // no hay "primer render": si ya está notificado no se vuelve a avisar, se recargue lo que se recargue.
+  // Supabase, no en un ref en memoria).
+  // IMPORTANTE: no evaluar nada mientras funds o transactions siguen cargando. fundsWithBalance se
+  // recalcula en cuanto CUALQUIERA de los dos llega, así que si funds ya está pero transactions
+  // todavía no, el saldo se ve momentáneamente en 0 (por debajo de la meta) — sin este guard, esa
+  // lectura a medias resetea goal_notified a false, y al llegar transactions de verdad el saldo
+  // "cruza" la meta otra vez y repite el aviso en cada recarga.
   useEffect(() => {
-    if (!isPremium) return;
-    const totalFondos = fundsWithBalance.reduce((s, f) => s + f.balance, 0);
+    if (!isPremium || fundsLoading || transactionsLoading) return;
     fundsWithBalance.forEach((f) => {
       if (f.goalAmount == null) return;
       const reached = f.balance >= f.goalAmount;
       if (reached && !f.goalNotified) {
-        setMilestoneMsg(`¡Has alcanzado tu meta de ${f.name}! Llevas ${fmt(totalFondos)} ahorrados en total entre todos tus fondos.`);
+        setMilestoneMsg(`¡Has alcanzado tu meta de ${fmt(f.goalAmount)} en ${f.name}!`);
         setFundGoalNotified(f.id, true);
       } else if (!reached && f.goalNotified) {
         // El saldo volvió a bajar de la meta (p. ej. un retiro): se resetea sin avisar, para poder
@@ -359,7 +366,7 @@ function App() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPremium, fundsWithBalance]);
+  }, [isPremium, fundsLoading, transactionsLoading, fundsWithBalance]);
 
   const assetsWithTotal = useMemo(() => computeAssetsWithTotal(assets, transactions), [assets, transactions]);
   const fundsForUsageDisplay = useMemo(
