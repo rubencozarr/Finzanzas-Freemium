@@ -12,6 +12,7 @@ import { useVariableBudget } from "./hooks/useVariableBudget";
 import { useOnboardingStatus } from "./hooks/useOnboardingStatus";
 import { useSubscription } from "./hooks/useSubscription";
 import { useSavingsMilestone } from "./hooks/useSavingsMilestone";
+import { usePrivacyAcceptance } from "./hooks/usePrivacyAcceptance";
 import { FREE_MAX_CATEGORIES, FREE_MAX_FUNDS } from "./lib/constants";
 import {
   ahorroLibreDisponibleParaMes,
@@ -49,6 +50,7 @@ import { GuidedTour } from "./components/GuidedTour";
 import { buildTourSteps } from "./lib/tourSteps";
 import { HelpModal } from "./components/HelpModal";
 import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
+import { PrivacyReacceptanceModal } from "./components/PrivacyReacceptanceModal";
 import { PremiumScreen } from "./components/PremiumScreen";
 import { MovimientosTab } from "./features/movimientos/MovimientosTab";
 import { FondosTab } from "./features/fondos/FondosTab";
@@ -120,6 +122,7 @@ function App() {
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
   const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
   const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
+  const { needsReacceptance, loading: privacyLoading, recordAcceptance: recordPrivacyAcceptance } = usePrivacyAcceptance(userId);
 
   // Downgrade/importación: un free puede heredar más fondos/categorías "activos" que su límite (los
   // datos importados o los de una cuenta que antes era premium llegan con is_active = true). En cuanto
@@ -660,6 +663,17 @@ function App() {
 
   if (!user) {
     return <LoginScreen signInWithPassword={signInWithPassword} signUp={signUp} resetPasswordForEmail={resetPasswordForEmail} />;
+  }
+
+  // Se muestra encima de todo, antes de cargar cualquier pestaña: bloquea el uso de la app hasta que
+  // se reacepte una política de privacidad actualizada (privacy_version desactualizado o nulo).
+  if (privacyLoading) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-sm">Cargando...</div>
+    );
+  }
+  if (needsReacceptance) {
+    return <PrivacyReacceptanceModal onAccept={() => recordPrivacyAcceptance(userId!)} />;
   }
 
   return (
