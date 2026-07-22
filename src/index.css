@@ -6,6 +6,10 @@
 
 body {
   margin: 0;
+  /* Evita el rebote elástico (overscroll) al final del scroll: sin esto, en iOS se puede ver
+     brevemente el hueco de fuera del documento (con el theme-color de turno) al hacer scroll rápido
+     o al cambiar de pantalla con distinta altura, hasta que el usuario desliza y fuerza el repintado. */
+  overscroll-behavior-y: none;
 }
 
 /* Oculta las flechas nativas de los inputs numéricos (se combina con onWheel={blur} en los

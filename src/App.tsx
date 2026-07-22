@@ -125,6 +125,17 @@ function App() {
   const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
   const { needsReacceptance, loading: privacyLoading, recordAcceptance: recordPrivacyAcceptance } = usePrivacyAcceptance(userId);
 
+  // <meta name="theme-color"> es fijo en index.html (navy, a juego con la cabecera bg-slate-800 de la
+  // app). Las pantallas de login/carga/privacidad son claras (bg-stone-50) sin esa cabecera, así que si
+  // no se actualiza aquí, iOS sigue pintando el hueco del rebote elástico (overscroll) con el navy
+  // desactualizado — se nota sobre todo al cerrar sesión, cuando la página pasa de una pantalla alta
+  // (con scroll) a una corta y el navegador muestra ese hueco brevemente antes de que el usuario
+  // deslice y fuerce el repintado.
+  const showingMainApp = !authLoading && !passwordRecovery && !!user && !privacyLoading && !needsReacceptance;
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", showingMainApp ? "#1e293b" : "#fafaf9");
+  }, [showingMainApp]);
+
   // Downgrade/importación: un free puede heredar más fondos/categorías "activos" que su límite (los
   // datos importados o los de una cuenta que antes era premium llegan con is_active = true). En cuanto
   // se detecta ese estado se desactivan todos, para que el usuario elija su selección desde cero dentro
