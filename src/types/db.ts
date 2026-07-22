@@ -94,6 +94,8 @@ export interface UserSettingsRow {
   user_id: string;
   onboarding_completed: boolean;
   savings_milestone_shown: boolean;
+  privacy_accepted_at: string | null;
+  privacy_version: string | null;
   updated_at: string;
 }
 

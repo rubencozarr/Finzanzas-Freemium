@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
+import { usePrivacyAcceptance } from "../hooks/usePrivacyAcceptance";
 import type { useAuth } from "../hooks/useAuth";
 
 type Mode = "login" | "signup" | "forgot";
@@ -30,6 +31,8 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const { recordAcceptance } = usePrivacyAcceptance();
 
   const submit = async () => {
     setError(null);
@@ -54,6 +57,10 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
       setError("Las contraseñas no coinciden.");
       return;
     }
+    if (mode === "signup" && !acceptedPrivacy) {
+      setError("Debes aceptar la política de privacidad para crear una cuenta.");
+      return;
+    }
     setLoading(true);
     if (mode === "login") {
       const { error } = await signInWithPassword(email.trim(), password);
@@ -62,11 +69,22 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
       const { data, error } = await signUp(email.trim(), password);
       if (error) {
         setError(friendlyError(error.message));
-      } else if (!data.session) {
-        setInfo("Cuenta creada. Revisa tu email para confirmar la cuenta y luego inicia sesión.");
-        setMode("login");
-        setPassword("");
-        setConfirmPassword("");
+      } else {
+        if (data.user) {
+          try {
+            await recordAcceptance(data.user.id);
+          } catch {
+            // No bloquea el registro si falla solo el guardado de la aceptación: el usuario ya
+            // marcó el checkbox y vio el enlace, y esto es solo el registro/constancia interna.
+          }
+        }
+        if (!data.session) {
+          setInfo("Cuenta creada. Revisa tu email para confirmar la cuenta y luego inicia sesión.");
+          setMode("login");
+          setPassword("");
+          setConfirmPassword("");
+          setAcceptedPrivacy(false);
+        }
       }
     }
     setLoading(false);
@@ -138,12 +156,33 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
             </div>
           )}
 
+          {mode === "signup" && (
+            <label className="flex items-start gap-2 text-xs text-stone-500 mb-3">
+              <input
+                type="checkbox"
+                checked={acceptedPrivacy}
+                onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                className="mt-0.5 shrink-0"
+              />
+              <span>
+                He leído y acepto la{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacy(true)}
+                  className="text-stone-700 underline"
+                >
+                  Política de Privacidad
+                </button>
+              </span>
+            </label>
+          )}
+
           {error && <p className="text-xs text-rose-600 mb-3">{error}</p>}
           {info && <p className="text-xs text-emerald-700 mb-3">{info}</p>}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === "signup" && !acceptedPrivacy)}
             className="w-full bg-slate-800 disabled:opacity-40 text-white rounded-lg py-2.5 text-sm font-medium mb-3"
           >
             {loading
@@ -185,6 +224,7 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
             onClick={() => {
               setMode(mode === "login" ? "signup" : "login");
               setConfirmPassword("");
+              setAcceptedPrivacy(false);
               setError(null);
               setInfo(null);
             }}

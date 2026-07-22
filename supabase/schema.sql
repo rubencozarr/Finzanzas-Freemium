@@ -120,6 +120,11 @@ create table if not exists public.user_settings (
   onboarding_completed boolean not null default false,
   -- Aviso de conversión free "ya llevas 500€ ahorrados": se muestra una sola vez.
   savings_milestone_shown boolean not null default false,
+  -- Cuándo y qué versión de la política de privacidad aceptó el usuario al registrarse (ver
+  -- PRIVACY_POLICY_VERSION en constants.ts). Si en el futuro se sube la versión y no coincide con la
+  -- guardada aquí, se le puede pedir que la acepte de nuevo.
+  privacy_accepted_at timestamptz,
+  privacy_version text,
   updated_at timestamptz not null default now()
 );
 

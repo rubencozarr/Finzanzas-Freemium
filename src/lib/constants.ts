@@ -8,6 +8,10 @@ export const LEMONSQUEEZY_STORE_SLUG = "nitidfinanzas";
 // hay variant id por separado en la URL).
 export const LEMONSQUEEZY_CHECKOUT_UUID = "2053c35e-9035-4db7-8034-71d5b90160e5";
 
+// Sube este valor cuando cambie el contenido de PrivacyPolicyModal.tsx, para poder distinguir más
+// adelante qué usuarios aceptaron una versión antigua (user_settings.privacy_version).
+export const PRIVACY_POLICY_VERSION = "v1";
+
 // Límites del plan free (ver MASTER-PLAN-FREEMIUM.md, sección 4).
 export const FREE_MAX_FUNDS = 2;
 export const FREE_MAX_CATEGORIES: Record<CategoryType, number> = { fixed: 6, variable: 6 };
