@@ -12,7 +12,7 @@ export default defineConfig({
       // hacer que los cambios de código parezcan no aplicarse aunque recargues la página.
       // El PWA/offline solo se prueba con `npm run build && npm run preview`.
       devOptions: { enabled: false },
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'favicon.ico', 'favicon-96x96.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Klaro',
         short_name: 'Klaro',
@@ -25,13 +25,16 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         icons: [
-          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'web-app-manifest-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'web-app-manifest-512x512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // favicon.svg pesa ~4.2MB (lleva embebida una variante en PNG para el modo claro/oscuro) y
+        // supera el límite de precaché de Workbox (2MiB por defecto). Se sirve igual como favicon
+        // normal del navegador, solo se excluye de la caché offline de la PWA.
+        globIgnores: ['favicon.svg'],
       },
     }),
   ],
