@@ -77,7 +77,7 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "¿Necesito dar acceso a mi banco?",
     answer:
-      "No, nunca. Klaro funciona con entrada manual precisamente para que tú tengas el control total y tu información financiera sea completamente privada. No conectamos con tu banco ni accedemos a tus cuentas.",
+      "No, nunca. Nitid funciona con entrada manual precisamente para que tú tengas el control total y tu información financiera sea completamente privada. No conectamos con tu banco ni accedemos a tus cuentas.",
   },
   {
     question: "¿Cómo se gestiona el pago?",
@@ -219,7 +219,7 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose }: Premium
                 Tu plan actual: Premium <Check size={14} className="text-emerald-600" />
               </p>
               <a
-                href="https://klarofinanzas.lemonsqueezy.com/billing"
+                href="https://nitidfinanzas.lemonsqueezy.com/billing"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-amber-800 underline mt-1 inline-block"

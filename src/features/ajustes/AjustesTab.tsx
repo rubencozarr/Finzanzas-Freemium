@@ -18,7 +18,7 @@ function PlanCard({ isPremium, onOpenPremiumScreen }: { isPremium: boolean; onOp
           <Check size={14} className="text-emerald-600" />
         </p>
         <a
-          href="https://klarofinanzas.lemonsqueezy.com/billing"
+          href="https://nitidfinanzas.lemonsqueezy.com/billing"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-amber-800 underline mt-1 inline-block"

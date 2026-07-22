@@ -35,7 +35,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
     body: (
       <>
         <p className="mb-3">
-          Klaro recoge únicamente los datos mínimos necesarios para prestar el servicio. No recogemos datos innecesarios ni
+          Nitid recoge únicamente los datos mínimos necesarios para prestar el servicio. No recogemos datos innecesarios ni
           datos que no nos hayas proporcionado tú directamente.
         </p>
 
@@ -58,7 +58,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
           <li>Cualquier otra información financiera que introduzcas voluntariamente en la aplicación.</li>
         </ul>
         <p className="mb-3">
-          Todos estos datos financieros los introduces tú de forma manual. Klaro no se conecta con tu banco, no accede a tus
+          Todos estos datos financieros los introduces tú de forma manual. Nitid no se conecta con tu banco, no accede a tus
           cuentas bancarias, y no obtiene información financiera de ninguna fuente externa.
         </p>
 
@@ -72,7 +72,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
         <p className="font-medium text-slate-700 mb-1">2.4. Datos técnicos:</p>
         <ul className="list-disc pl-4 space-y-1">
           <li>
-            Klaro no utiliza cookies de rastreo, ni herramientas de analítica de terceros, ni tecnologías de seguimiento
+            Nitid no utiliza cookies de rastreo, ni herramientas de analítica de terceros, ni tecnologías de seguimiento
             publicitario.
           </li>
           <li>No recopilamos datos de tu dispositivo, tu ubicación, tus contactos, tu cámara ni ningún otro sensor o recurso de tu teléfono.</li>
@@ -91,7 +91,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
           <li>Gestión de suscripciones: procesar altas, bajas y cambios en tu plan Premium.</li>
           <li>Comunicaciones esenciales del servicio: como el envío de correos de recuperación de contraseña.</li>
         </ul>
-        <p className="mb-2">Klaro no utiliza tus datos para:</p>
+        <p className="mb-2">Nitid no utiliza tus datos para:</p>
         <ul className="list-disc pl-4 space-y-1">
           <li>Enviarte publicidad o comunicaciones comerciales no solicitadas.</li>
           <li>Crear perfiles publicitarios o de comportamiento.</li>
@@ -145,7 +145,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
           <li>
             <strong>Lemon Squeezy</strong> (lemonsqueezy.com): nuestro proveedor de pagos, que actúa como Merchant of Record
             (intermediario de pago) para las suscripciones Premium. Gestiona el cobro y la facturación. Procesa los datos de
-            pago necesarios (tarjeta de crédito/débito) directamente, sin que Klaro tenga acceso a ellos. Puedes consultar su
+            pago necesarios (tarjeta de crédito/débito) directamente, sin que Nitid tenga acceso a ellos. Puedes consultar su
             política de privacidad en{" "}
             <a
               href="https://www.lemonsqueezy.com/privacy"
@@ -187,7 +187,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
     title: "6. Cuánto tiempo conservamos tus datos",
     body: (
       <>
-        <p className="mb-2">Conservamos tus datos mientras mantengas tu cuenta activa en Klaro.</p>
+        <p className="mb-2">Conservamos tus datos mientras mantengas tu cuenta activa en Nitid.</p>
         <p className="mb-2">Si eliminas tu cuenta, tus datos personales y financieros se eliminarán de nuestros sistemas. Ten en cuenta que:</p>
         <ul className="list-disc pl-4 space-y-1">
           <li>Puedes exportar todos tus datos antes de eliminar tu cuenta (Ajustes {">"} Exportar).</li>
@@ -215,7 +215,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
           <li>Derecho a la portabilidad: puedes exportar tus datos en formato JSON o Excel desde la aplicación.</li>
           <li>Derecho de oposición: puedes oponerte al tratamiento de tus datos en determinadas circunstancias contactando con nosotros.</li>
           <li>Derecho a la limitación del tratamiento: puedes solicitar que limitemos el uso de tus datos en determinadas circunstancias.</li>
-          <li>Derecho a no ser objeto de decisiones automatizadas: Klaro no realiza decisiones automatizadas ni perfilado que produzca efectos jurídicos sobre ti.</li>
+          <li>Derecho a no ser objeto de decisiones automatizadas: Nitid no realiza decisiones automatizadas ni perfilado que produzca efectos jurídicos sobre ti.</li>
         </ul>
         <p className="mb-2">
           Para ejercer cualquiera de estos derechos, contacta con nosotros en {CONTACT_EMAIL}. Responderemos en un plazo
@@ -232,7 +232,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
         <p>
           Para usuarios en California (EE.UU.): de acuerdo con la Ley de Privacidad del Consumidor de California (CCPA/CPRA),
           tienes derecho a saber qué datos personales recogemos, a solicitar su eliminación y a no ser discriminado por
-          ejercer tus derechos de privacidad. Klaro no vende ni comparte datos personales según la definición de la CCPA.
+          ejercer tus derechos de privacidad. Nitid no vende ni comparte datos personales según la definición de la CCPA.
         </p>
       </>
     ),
@@ -262,7 +262,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
     title: "9. Menores de edad",
     body: (
       <p>
-        Klaro no está dirigido a menores de 16 años. No recogemos conscientemente datos de menores de 16 años. Si eres padre o
+        Nitid no está dirigido a menores de 16 años. No recogemos conscientemente datos de menores de 16 años. Si eres padre o
         tutor y crees que un menor ha proporcionado datos personales sin tu consentimiento, contacta con nosotros en{" "}
         {CONTACT_EMAIL} y eliminaremos esa información.
       </p>
@@ -287,10 +287,10 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
       <>
         <p className="mb-2">De conformidad con las directrices de Google Play:</p>
         <ul className="list-disc pl-4 space-y-1 mb-3">
-          <li>Klaro no recopila datos de ubicación.</li>
-          <li>Klaro no recopila datos de contactos, SMS, registro de llamadas ni contenido multimedia del dispositivo.</li>
-          <li>Klaro no contiene publicidad ni utiliza SDKs publicitarios.</li>
-          <li>Klaro no comparte datos con terceros para fines publicitarios.</li>
+          <li>Nitid no recopila datos de ubicación.</li>
+          <li>Nitid no recopila datos de contactos, SMS, registro de llamadas ni contenido multimedia del dispositivo.</li>
+          <li>Nitid no contiene publicidad ni utiliza SDKs publicitarios.</li>
+          <li>Nitid no comparte datos con terceros para fines publicitarios.</li>
           <li>
             Los datos financieros que el usuario introduce son tratados como información sensible y se protegen con las
             medidas de seguridad descritas en esta política.
@@ -335,7 +335,7 @@ export function PrivacyPolicyModal({ onClose }: PrivacyPolicyModalProps) {
           <p className="text-xs text-stone-400">Fecha de entrada en vigor: {EFFECTIVE_DATE}</p>
           <p className="text-xs text-stone-400 mb-2">Última actualización: {LAST_UPDATED}</p>
           <p className="text-sm text-stone-600">
-            En Klaro nos tomamos muy en serio la privacidad de tus datos. Esta política de privacidad explica qué información
+            En Nitid nos tomamos muy en serio la privacidad de tus datos. Esta política de privacidad explica qué información
             recogemos, cómo la utilizamos, con quién la compartimos, y cuáles son tus derechos. Te recomendamos que la leas
             detenidamente.
           </p>

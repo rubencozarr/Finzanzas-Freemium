@@ -14,8 +14,8 @@ export default defineConfig({
       devOptions: { enabled: false },
       includeAssets: ['favicon.svg', 'favicon.ico', 'favicon-96x96.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Klaro',
-        short_name: 'Klaro',
+        name: 'Nitid',
+        short_name: 'Nitid',
         description: 'Gestor de finanzas personales: ingresos, gastos, fondos de ahorro e inversión.',
         lang: 'es',
         theme_color: '#1e293b',

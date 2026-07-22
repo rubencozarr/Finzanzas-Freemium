@@ -35,7 +35,7 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "¿Qué es la tasa de ahorro?",
     answer:
-      "La tasa de ahorro es el porcentaje de tus ingresos que consigues ahorrar cada mes, ya sea como ahorro libre o aportándolo a tus fondos. No incluye la inversión, porque en Klaro la inversión se trata por separado del ahorro (puede cambiar de valor). Por ejemplo, si ingresas 2.000€ y ahorras 400€ entre ahorro libre y fondos, tu tasa de ahorro es del 20%.",
+      "La tasa de ahorro es el porcentaje de tus ingresos que consigues ahorrar cada mes, ya sea como ahorro libre o aportándolo a tus fondos. No incluye la inversión, porque en Nitid la inversión se trata por separado del ahorro (puede cambiar de valor). Por ejemplo, si ingresas 2.000€ y ahorras 400€ entre ahorro libre y fondos, tu tasa de ahorro es del 20%.",
   },
   {
     question: "¿Cómo funcionan los fondos de ahorro?",

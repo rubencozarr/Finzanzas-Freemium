@@ -669,7 +669,7 @@ function App() {
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
       >
         <div>
-          <h1 className="font-serif text-xl tracking-tight">Klaro</h1>
+          <h1 className="font-serif text-xl tracking-tight">Nitid</h1>
           <p className="text-stone-300 text-sm mt-0.5">Registro, fondos y resúmenes</p>
         </div>
         <button onClick={() => setShowHelp(true)} className="text-stone-300 hover:text-white mt-0.5">

@@ -76,7 +76,7 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
     <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-xs">
         <div className="text-center mb-8">
-          <h1 className="font-serif text-2xl text-slate-800 tracking-tight">Klaro</h1>
+          <h1 className="font-serif text-2xl text-slate-800 tracking-tight">Nitid</h1>
           <p className="text-stone-500 text-sm mt-1">Registro, fondos y resúmenes</p>
         </div>
 

@@ -1,4 +1,4 @@
-# Klaro
+# Nitid
 
 App de gestión de finanzas personales: registro de ingresos y gastos, fondos de ahorro, inversión, presupuestos y análisis con gráficos. Mobile-first, pensada como PWA instalable.
 

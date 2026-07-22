@@ -3,7 +3,7 @@ import type { Category, CategoryType, TransactionType } from "../types";
 export const AHORRO_LIBRE_ID = "ahorro_libre";
 
 // No son secretos (van en URLs de checkout públicas), por eso van como constantes y no como env vars.
-export const LEMONSQUEEZY_STORE_SLUG = "klarofinanzas";
+export const LEMONSQUEEZY_STORE_SLUG = "nitidfinanzas";
 // UUID del checkout único (mensual y anual se eligen dentro de la propia página de Lemon Squeezy, no
 // hay variant id por separado en la URL).
 export const LEMONSQUEEZY_CHECKOUT_UUID = "2053c35e-9035-4db7-8034-71d5b90160e5";

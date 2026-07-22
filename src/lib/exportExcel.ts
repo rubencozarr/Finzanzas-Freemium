@@ -123,7 +123,7 @@ export async function exportToExcel({ transactions, funds, categories }: ExportE
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `Klaro_datos_${todayISO()}.xlsx`;
+  a.download = `Nitid_datos_${todayISO()}.xlsx`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

@@ -1,4 +1,4 @@
-# Finanzas Freemium ("Klaro") — Documento de contexto para revisión con IA
+# Finanzas Freemium ("Nitid") — Documento de contexto para revisión con IA
 
 Este documento está pensado para entregarse a otra IA como contexto completo antes de un análisis
 profundo (revisión de arquitectura, auditoría de bugs, propuestas de optimización, etc.). Reúne la
@@ -13,7 +13,7 @@ Supabase: proyecto `tdmfqrxkeindubkwoijs.supabase.co`.
 
 ## 1. Qué es la app
 
-Una PWA de finanzas personales ("Klaro") con un modelo freemium añadido posteriormente sobre una
+Una PWA de finanzas personales ("Nitid") con un modelo freemium añadido posteriormente sobre una
 base ya funcional. Permite registrar ingresos/gastos, ahorrar en "fondos" con objetivo, invertir un %
 de los ingresos, ver desgloses mensuales/anuales, y tiene un sistema de categorías configurable con
 presupuestos. La versión free tiene límites de uso (no de datos): puede importar/tener datos ilimitados,

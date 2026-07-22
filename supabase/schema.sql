@@ -1,4 +1,4 @@
--- Esquema de base de datos para "Klaro"
+-- Esquema de base de datos para "Nitid"
 -- Pegar en el SQL Editor de Supabase (Project > SQL Editor > New query) y ejecutar.
 -- Fuente de verdad del modelo de datos: docs/ESPECIFICACION-APP-FINANZAS.md
 
