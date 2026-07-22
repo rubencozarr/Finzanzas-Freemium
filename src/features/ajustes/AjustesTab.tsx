@@ -89,6 +89,7 @@ interface AjustesTabProps {
   onExportExcel: () => void;
   onImport: (data: unknown) => Promise<boolean>;
   onSignOut: () => void | Promise<unknown>;
+  onShowPrivacy: () => void;
 }
 
 // Botón "Exportar Excel" (premium). En free se ve deshabilitado con una coronita; tocar el botón o la
@@ -164,6 +165,7 @@ export function AjustesTab({
   onExportExcel,
   onImport,
   onSignOut,
+  onShowPrivacy,
 }: AjustesTabProps) {
   const [section, setSection] = useState<Section>((initialSection as Section) || "categorias");
   // initialSection también puede cambiar con la pestaña ya montada (p. ej. el tour guiado salta
@@ -306,6 +308,9 @@ export function AjustesTab({
           className="w-full flex items-center justify-center gap-1.5 text-stone-400 py-2 text-xs mt-3"
         >
           <LogOut size={13} /> Cerrar sesión
+        </button>
+        <button onClick={onShowPrivacy} className="w-full text-center text-stone-400 text-xs mt-2 underline">
+          Política de privacidad
         </button>
       </div>
 

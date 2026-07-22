@@ -48,6 +48,7 @@ import { ResetPasswordScreen } from "./components/ResetPasswordScreen";
 import { GuidedTour } from "./components/GuidedTour";
 import { buildTourSteps } from "./lib/tourSteps";
 import { HelpModal } from "./components/HelpModal";
+import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
 import { PremiumScreen } from "./components/PremiumScreen";
 import { MovimientosTab } from "./features/movimientos/MovimientosTab";
 import { FondosTab } from "./features/fondos/FondosTab";
@@ -212,6 +213,7 @@ function App() {
   const [showApplyPresets, setShowApplyPresets] = useState(false);
   const [showResolveOrphans, setShowResolveOrphans] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [showPremiumScreen, setShowPremiumScreen] = useState(false);
   const onOpenPremiumScreen = () => setShowPremiumScreen(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -583,7 +585,12 @@ function App() {
   // El formulario de nuevo movimiento no pausa el tour en los pasos que señalan algo dentro de él
   // (formOpen: true): ahí el modal debe permanecer abierto y visible por encima del overlay.
   const tourPaused =
-    (showForm && !tourSteps[tourStep]?.formOpen) || showApplyPresets || showResolveOrphans || showHelp || showPremiumScreen;
+    (showForm && !tourSteps[tourStep]?.formOpen) ||
+    showApplyPresets ||
+    showResolveOrphans ||
+    showHelp ||
+    showPrivacy ||
+    showPremiumScreen;
 
   // Aplica el prerrequisito de estado de cada paso al entrar en él (p. ej. cambiar de pestaña, abrir
   // o cerrar el formulario de movimiento), tanto avanzando con "Siguiente" como retrocediendo con
@@ -832,6 +839,7 @@ function App() {
             onExportExcel={onExportExcel}
             onImport={onImport}
             onSignOut={handleSignOut}
+            onShowPrivacy={() => setShowPrivacy(true)}
           />
           </div>
         )}
@@ -908,6 +916,7 @@ function App() {
         />
       )}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} onRestartTour={restartTour} />}
+      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
 
       {showPremiumScreen && (
         <PremiumScreen

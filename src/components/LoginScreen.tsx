@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import type { useAuth } from "../hooks/useAuth";
 
 type Mode = "login" | "signup" | "forgot";
@@ -28,6 +29,7 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   const submit = async () => {
     setError(null);
@@ -191,7 +193,13 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
             {mode === "login" ? "¿No tienes cuenta? Crea una" : "¿Ya tienes cuenta? Inicia sesión"}
           </button>
         )}
+
+        <button onClick={() => setShowPrivacy(true)} className="w-full text-center text-xs text-stone-400 mt-4 underline">
+          Política de privacidad
+        </button>
       </div>
+
+      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
     </div>
   );
 }
