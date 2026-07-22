@@ -37,7 +37,7 @@ export function buildTourSteps(actions: TourActions, isPremium: boolean): TourSt
     {
       target: null,
       placement: "center",
-      text: "Bienvenido a Mis cuentas. Aquí podrás controlar tus gastos, ahorrar con objetivos e invertir, todo desde tu móvil y sin dar acceso a tu banco.",
+      text: "Bienvenido a Klaro. Aquí podrás controlar tus gastos, ahorrar con objetivos e invertir, todo desde tu móvil y sin dar acceso a tu banco.",
     },
     {
       target: '[data-tour="nav-ajustes"]',

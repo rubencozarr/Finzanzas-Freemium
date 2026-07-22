@@ -14,8 +14,8 @@ export default defineConfig({
       devOptions: { enabled: false },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Mis cuentas',
-        short_name: 'Mis cuentas',
+        name: 'Klaro',
+        short_name: 'Klaro',
         description: 'Gestor de finanzas personales: ingresos, gastos, fondos de ahorro e inversión.',
         lang: 'es',
         theme_color: '#1e293b',
