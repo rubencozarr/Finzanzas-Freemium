@@ -6,9 +6,12 @@ import type { GroupTone } from "./GroupHeader";
 interface CategoryCardProps {
   name: string;
   total: number;
-  pct: number | null;
-  /** % que representa esta categoría sobre el total de gasto variable del mes (solo tone="variable"). */
-  pctOfVariable?: number | null;
+  /** % que representa esta categoría sobre el total de su bloque (fijo/variable/inversión). */
+  blockPct: number | null;
+  /** Etiqueta para mostrar blockPct como texto ("de gastos fijos", "de inversión"). Sin etiqueta
+   * (variable) se sigue calculando blockPct para dimensionar la barra, pero no se muestra como texto:
+   * ese dato ya se ve en el donut de composición del variable. */
+  blockPctLabel?: string;
   subcats: { name: string; total: number }[];
   sinClasificar: number;
   tone: GroupTone;
@@ -37,21 +40,17 @@ const SUB_BAR: Record<GroupTone, string> = {
   fondos: "bg-teal-200",
 };
 
-export function CategoryCard({ name, total, pct, pctOfVariable, subcats, sinClasificar, tone, budget }: CategoryCardProps) {
+export function CategoryCard({ name, total, blockPct, blockPctLabel, subcats, sinClasificar, tone, budget }: CategoryCardProps) {
   const [expanded, setExpanded] = usePersistentState(`mensual.categoryCard.${tone}.${name}`, false);
 
   const hasBudget = budget > 0;
   const budgetPct = hasBudget ? (total / budget) * 100 : 0;
   const overBudget = hasBudget && total > budget;
   const budgetBarColor = overBudget ? "bg-rose-500" : budgetPct >= 80 ? "bg-amber-500" : "bg-emerald-500";
-  const hasVariablePct = tone === "variable" && pctOfVariable != null;
-  const hasDetail = subcats.length > 0 || sinClasificar > 0 || hasBudget || hasVariablePct;
+  const showBlockPctText = blockPctLabel != null && blockPct != null;
+  const hasDetail = subcats.length > 0 || sinClasificar > 0 || hasBudget;
 
-  // El importe/presupuesto y el "% del variable" van en líneas separadas: en móvil estrecho
-  // (320-414px) no caben juntos en una sola fila sin que el € se baje de línea.
-  const amountLabel = hasBudget
-    ? `${fmt(total)} / ${fmt(budget)}`
-    : `${fmt(total)}${!hasVariablePct && pct != null ? ` · ${pct.toFixed(0)}%` : ""}`;
+  const amountLabel = hasBudget ? `${fmt(total)} / ${fmt(budget)}` : fmt(total);
 
   return (
     <div className={`border-l-4 ${ACCENT[tone]} border-y border-r border-stone-100 bg-white rounded-r-lg mb-2 overflow-hidden`}>
@@ -66,20 +65,23 @@ export function CategoryCard({ name, total, pct, pctOfVariable, subcats, sinClas
             {hasDetail && (expanded ? <ChevronUp size={14} className="text-stone-400" /> : <ChevronDown size={14} className="text-stone-400" />)}
           </span>
         </div>
-        {hasVariablePct && <p className="text-right text-[11px] text-stone-400 mb-1">{pctOfVariable!.toFixed(0)}% del variable</p>}
-        {(hasBudget || pct != null) && (
+        {showBlockPctText && (
+          <p className="text-right text-[11px] text-stone-400 mb-1">
+            {blockPct!.toFixed(0)}% {blockPctLabel}
+          </p>
+        )}
+        {(hasBudget || blockPct != null) && (
           <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
-            <div className={`h-full ${hasBudget ? budgetBarColor : BAR[tone]}`} style={{ width: `${Math.min(100, hasBudget ? budgetPct : pct ?? 0)}%` }} />
+            <div
+              className={`h-full ${hasBudget ? budgetBarColor : BAR[tone]}`}
+              style={{ width: `${Math.min(100, hasBudget ? budgetPct : blockPct ?? 0)}%` }}
+            />
           </div>
         )}
       </button>
       {expanded && (
         <div className="px-3 pb-2.5">
-          {hasBudget && (
-            <p className={`text-xs mb-2 ${overBudget ? "text-rose-600 font-medium" : "text-stone-400"}`}>
-              {overBudget ? `Presupuesto superado en ${fmt(total - budget)}` : `${budgetPct.toFixed(0)}% del presupuesto`}
-            </p>
-          )}
+          {overBudget && <p className="text-xs mb-2 text-rose-600 font-medium">Presupuesto superado en {fmt(total - budget)}</p>}
           {subcats.length > 0 && (
             <div className="border-l-2 border-stone-100 ml-1 pl-3 space-y-1.5">
               {subcats.map((sc) => {

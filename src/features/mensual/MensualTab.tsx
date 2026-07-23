@@ -72,9 +72,6 @@ export function MensualTab({
     [transactions, categories, year, monthIdx, isPremium],
   );
 
-  const pctFijo = stats.ingresos ? (stats.fixedOrdinario / stats.ingresos) * 100 : 0;
-  const pctVariable = stats.ingresos ? (stats.variableOrdinario / stats.ingresos) * 100 : 0;
-  const pctInversion = stats.ingresos ? (stats.inversion / stats.ingresos) * 100 : 0;
   const gastosTotales = stats.fixedOrdinario + stats.variableOrdinario + stats.inversion;
   const pctGastosTotales = stats.ingresos ? (gastosTotales / stats.ingresos) * 100 : 0;
 
@@ -125,25 +122,9 @@ export function MensualTab({
         </button>
       </div>
 
-      <CategoryGroup title="Gasto fijo" total={stats.fixedOrdinario} pct={pctFijo} cats={fixedCats} tone="fixed" showPct />
-      <CategoryGroup
-        title="Gasto variable"
-        total={stats.variableOrdinario}
-        pct={pctVariable}
-        cats={variableCats}
-        tone="variable"
-        showPct
-        budget={variableBudget}
-      />
-      <CategoryGroup
-        title="Inversión"
-        total={stats.inversion}
-        pct={pctInversion}
-        cats={isPremium ? assetCats : []}
-        tone="inversion"
-        showPct
-        hideDetail={!isPremium}
-      />
+      <CategoryGroup title="Gasto fijo" total={stats.fixedOrdinario} cats={fixedCats} tone="fixed" />
+      <CategoryGroup title="Gasto variable" total={stats.variableOrdinario} cats={variableCats} tone="variable" budget={variableBudget} />
+      <CategoryGroup title="Inversión" total={stats.inversion} cats={isPremium ? assetCats : []} tone="inversion" hideDetail={!isPremium} />
       <FundUsageGroup total={stats.gastosFinanciados} funds={fundUsage} />
 
       <SparklineTrend data={trend6Meses} isPremium={isPremium} />

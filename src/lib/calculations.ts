@@ -537,8 +537,15 @@ export function buildMonthlyInsights(
 
   if (isPremium) {
     const rachaAhorro = positiveSavingsStreak(transactions, mKey);
-    if (rachaAhorro >= 3) {
-      insights.push({ type: "racha_ahorro", tone: "emerald", text: `Llevas ${rachaAhorro} meses consecutivos ahorrando` });
+    // A partir de 7 meses deja de mostrarse: pasado ese punto ya no aporta nada nuevo saberlo cada mes.
+    // Si la racha se rompe, positiveSavingsStreak vuelve a contar desde el mes actual hacia atrás (sin
+    // estado persistido), así que "se resetea" sola sin necesidad de lógica extra aquí.
+    if (rachaAhorro >= 3 && rachaAhorro <= 6) {
+      insights.push({
+        type: "racha_ahorro",
+        tone: "emerald",
+        text: `Llevas ${rachaAhorro} meses consecutivos con dinero de sobra a fin de mes`,
+      });
     }
   }
 

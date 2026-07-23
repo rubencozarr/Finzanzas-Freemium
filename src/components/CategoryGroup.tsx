@@ -8,15 +8,21 @@ import type { CategoryBreakdown } from "../lib/calculations";
 interface CategoryGroupProps {
   title: string;
   total: number;
-  pct: number;
   cats: CategoryBreakdown[];
   tone: GroupTone;
-  showPct?: boolean;
   budget?: number;
   /** Cabecera informativa sin desglose: ni chevron ni expandir, solo el total. Para bloques cuyo
    * detalle por elemento individual no debe verse (p. ej. inversión por activo en free). */
   hideDetail?: boolean;
 }
+
+// Etiqueta del % de cada categoría sobre el total de su bloque (CategoryCard). Sin entrada (variable)
+// ese % se sigue calculando para dimensionar la barra, pero no se muestra como texto: ya se ve en el
+// donut de composición del variable.
+const BLOCK_PCT_LABEL: Partial<Record<GroupTone, string>> = {
+  fixed: "de gastos fijos",
+  inversion: "de inversión",
+};
 
 // Paleta cualitativa (base Tableau10): tonos claramente distintos entre sí en vez de varios matices de
 // un mismo color, para que las categorías se distingan bien también con daltonismo.
@@ -33,16 +39,17 @@ const VARIABLE_PALETTE = [
   "#D37295", // malva
 ];
 
-export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget = 0, hideDetail }: CategoryGroupProps) {
+export function CategoryGroup({ title, total, cats, tone, budget = 0, hideDetail }: CategoryGroupProps) {
   const [expanded, setExpanded] = usePersistentState(`mensual.categoryGroup.${tone}`, false);
   const hasBudget = budget > 0;
   const budgetPct = hasBudget ? (total / budget) * 100 : 0;
   const overBudget = hasBudget && total > budget;
   const isEmpty = total === 0;
   const isVariable = tone === "variable";
+  const blockPctLabel = BLOCK_PCT_LABEL[tone];
 
   const compositionData: DonutDatum[] =
-    isVariable && cats.length >= 3
+    isVariable && cats.length >= 2
       ? cats.map((c, i) => ({ name: c.name, value: c.total, color: VARIABLE_PALETTE[i % VARIABLE_PALETTE.length] }))
       : [];
 
@@ -52,7 +59,6 @@ export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget =
         title={title}
         total={total}
         tone={tone}
-        extra={showPct ? `${pct.toFixed(0)}% de tus ingresos` : null}
         expanded={expanded}
         onToggle={() => !isEmpty && setExpanded((e) => !e)}
         interactive={!hideDetail}
@@ -78,8 +84,8 @@ export function CategoryGroup({ title, total, pct, cats, tone, showPct, budget =
                 key={c.name}
                 name={c.name}
                 total={c.total}
-                pct={showPct ? (total ? (c.total / total) * pct : 0) : null}
-                pctOfVariable={isVariable ? (total ? (c.total / total) * 100 : 0) : null}
+                blockPct={total ? (c.total / total) * 100 : 0}
+                blockPctLabel={blockPctLabel}
                 subcats={c.subcats}
                 sinClasificar={c.sinClasificar}
                 tone={tone}
