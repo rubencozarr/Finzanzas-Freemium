@@ -49,7 +49,7 @@ const TECH_GROUPS: { title: string; items: string[] }[] = [
   { title: "Inversión", items: ["Gestión de activos con porcentajes de reparto", "Distribución real vs objetivo"] },
   {
     title: "Otros",
-    items: ["Historial completo sin límite de 6 meses", "Exportación a Excel", "Iconos exclusivos para fondos", "Modo oscuro"],
+    items: ["Historial completo sin límite de 6 meses", "Exportación a Excel", "Iconos exclusivos para fondos"],
   },
 ];
 
