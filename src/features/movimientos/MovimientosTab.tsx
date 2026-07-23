@@ -112,7 +112,7 @@ export function MovimientosTab({
 
   const searchResults = useMemo(() => {
     if (!search.trim() && !filterType) return [];
-    if (filterType === ORPHAN_FILTER) return orphanTx.sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 50);
+    if (filterType === ORPHAN_FILTER) return orphanTx.sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1)).slice(0, 50);
     const q = search.trim().toLowerCase();
     return allTransactions
       .filter(
@@ -123,7 +123,7 @@ export function MovimientosTab({
             (t.subcategory || "").toLowerCase().includes(q) ||
             (t.note || "").toLowerCase().includes(q)),
       )
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1))
       .slice(0, 50);
   }, [search, filterType, allTransactions, orphanTx]);
 

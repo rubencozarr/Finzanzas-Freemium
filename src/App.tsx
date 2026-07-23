@@ -398,7 +398,11 @@ function App() {
     () =>
       transactions
         .filter((t) => monthKey(t.date) === selectedMonthKey)
-        .sort((a, b) => (a.date < b.date ? 1 : -1)),
+        // Empate (0) en vez de forzar -1 en fechas iguales: el comparador anterior nunca devolvía 0,
+        // así que para dos movimientos del mismo día "a antes que b" y "b antes que a" eran ambos
+        // ciertos a la vez (comparador inválido), desordenando el date desc, created_at desc que ya
+        // trae la query de useTransactions. Con 0, el sort (estable) respeta ese orden para el empate.
+        .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1)),
     [transactions, selectedMonthKey],
   );
 

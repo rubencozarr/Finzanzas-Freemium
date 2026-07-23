@@ -44,7 +44,7 @@ export async function exportToExcel({ transactions, funds, categories }: ExportE
     { header: "Pagado con", key: "pagadoCon", width: 18 },
   ];
   [...transactions]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1))
     .forEach((t) => {
       movimientosSheet.addRow({
         fecha: t.date,
