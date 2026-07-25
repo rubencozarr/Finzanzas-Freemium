@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
-import { usePrivacyAcceptance } from "../hooks/usePrivacyAcceptance";
+import type { usePrivacyAcceptance } from "../hooks/usePrivacyAcceptance";
 import type { useAuth } from "../hooks/useAuth";
 
 type Mode = "login" | "signup" | "forgot";
@@ -10,6 +10,9 @@ interface LoginScreenProps {
   signInWithPassword: ReturnType<typeof useAuth>["signInWithPassword"];
   signUp: ReturnType<typeof useAuth>["signUp"];
   resetPasswordForEmail: ReturnType<typeof useAuth>["resetPasswordForEmail"];
+  // La MISMA instancia que usa App.tsx para decidir si mostrar el modal de reaceptación, no una propia
+  // (ver comentario en usePrivacyAcceptance.ts sobre la carrera que esto arregla).
+  recordPrivacyAcceptance: ReturnType<typeof usePrivacyAcceptance>["recordAcceptance"];
 }
 
 function friendlyError(message: string): string {
@@ -20,7 +23,7 @@ function friendlyError(message: string): string {
   return message;
 }
 
-export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail }: LoginScreenProps) {
+export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail, recordPrivacyAcceptance }: LoginScreenProps) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +35,6 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
   const [info, setInfo] = useState<string | null>(null);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
-  const { recordAcceptance } = usePrivacyAcceptance();
 
   const submit = async () => {
     setError(null);
@@ -72,7 +74,7 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail 
       } else {
         if (data.user) {
           try {
-            await recordAcceptance(data.user.id);
+            await recordPrivacyAcceptance(data.user.id);
           } catch {
             // No bloquea el registro si falla solo el guardado de la aceptación: el usuario ya
             // marcó el checkbox y vio el enlace, y esto es solo el registro/constancia interna.

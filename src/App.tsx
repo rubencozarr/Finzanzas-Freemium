@@ -128,7 +128,13 @@ function App() {
   const { assets, addAsset, renameAsset, updateAssetPct, removeAsset, refetch: refetchAssets } = useAssets(userId);
   const { investmentConfig, setGlobalPct, refetch: refetchInvestmentConfig } = useInvestmentConfig(userId);
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
-  const { isPremium, canCreateCategory, canCreateFund, canNavigateToMonth } = useSubscription(userId);
+  const {
+    isPremium,
+    canCreateCategory,
+    canCreateFund,
+    canNavigateToMonth,
+    refetch: refetchSubscription,
+  } = useSubscription(userId);
   const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
   const { needsReacceptance, loading: privacyLoading, recordAcceptance: recordPrivacyAcceptance } = usePrivacyAcceptance(userId);
 
@@ -687,7 +693,14 @@ function App() {
   }
 
   if (!user) {
-    return <LoginScreen signInWithPassword={signInWithPassword} signUp={signUp} resetPasswordForEmail={resetPasswordForEmail} />;
+    return (
+      <LoginScreen
+        signInWithPassword={signInWithPassword}
+        signUp={signUp}
+        resetPasswordForEmail={resetPasswordForEmail}
+        recordPrivacyAcceptance={recordPrivacyAcceptance}
+      />
+    );
   }
 
   // Se muestra encima de todo, antes de cargar cualquier pestaña: bloquea el uso de la app hasta que
@@ -963,6 +976,14 @@ function App() {
           userId={userId}
           userEmail={user?.email ?? undefined}
           onClose={() => setShowPremiumScreen(false)}
+          onCheckoutSuccess={() => {
+            showToast("¡Pago completado! Activando Premium...");
+            // El webhook que activa "subscriptions" en Supabase llega por separado y puede tardar
+            // unos segundos; un solo refetch no basta si aún no ha procesado, así que se reintenta
+            // una vez más a los pocos segundos.
+            refetchSubscription();
+            setTimeout(refetchSubscription, 4000);
+          }}
         />
       )}
 

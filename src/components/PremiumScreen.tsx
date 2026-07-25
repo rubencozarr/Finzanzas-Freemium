@@ -90,9 +90,12 @@ interface PremiumScreenProps {
   userId?: string;
   userEmail?: string;
   onClose: () => void;
+  /** Se llama justo cuando el pago se completa (overlay ya cerrado). Pensado para refrescar el plan
+   * y avisar al usuario, ya que el webhook que activa Premium de verdad llega por separado. */
+  onCheckoutSuccess?: () => void;
 }
 
-export function PremiumScreen({ isPremium, userId, userEmail, onClose }: PremiumScreenProps) {
+export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckoutSuccess }: PremiumScreenProps) {
   const [showTech, setShowTech] = useState(false);
   const [openFaq, setOpenFaq] = useState<Set<number>>(new Set());
 
@@ -105,7 +108,7 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose }: Premium
     });
 
   const startCheckout = () => {
-    if (userId) openCheckout(userId, userEmail);
+    if (userId) openCheckout(userId, userEmail, onCheckoutSuccess);
   };
 
   return (
