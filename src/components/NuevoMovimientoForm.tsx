@@ -158,6 +158,12 @@ export function NuevoMovimientoForm({
   const amt = parseFloat(amount) || 0;
   const remaining = ahorroRealDisponible ?? 0;
   const shortfall = !editingTx && type === "gasto" && !fundedByFund && remaining > 0 ? Math.max(0, round2(amt - remaining)) : 0;
+  // Aviso sutil para el caso que el flujo de shortfall (líneas de abajo) no cubre: si el ahorro real ya
+  // estaba en 0/negativo ANTES de este gasto (no es un cruce de positivo a negativo), shortfall se
+  // queda en 0 y no salta ni el aviso ni la pantalla de confirmación — el usuario tenía que acordarse
+  // de marcar el checkbox por su cuenta. Solo se sugiere si hay algún fondo con saldo real desde el
+  // que se podría pagar; si no, no tiene sentido sugerirlo.
+  const showNegativeSavingsHint = type === "gasto" && remaining <= 0 && !fundedByFund && funds.some((f) => f.balance > 0);
   const retiroExcedeFondo =
     type === "retiro" &&
     !!selectedFund &&
@@ -471,6 +477,9 @@ export function NuevoMovimientoForm({
               <input type="checkbox" checked={fundedByFund} onChange={(e) => setFundedByFund(e.target.checked)} />
               Pagado con ahorro (fondo o ahorro libre acumulado)
             </label>
+            {showNegativeSavingsHint && (
+              <p className="text-xs text-amber-700 mb-2">Tu ahorro libre este mes está en negativo. Puedes pagar este gasto desde un fondo.</p>
+            )}
             {fundedByFund && (
               <>
                 <p className="text-xs text-stone-400 mb-2">
