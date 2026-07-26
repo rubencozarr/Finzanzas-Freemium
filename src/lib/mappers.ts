@@ -38,6 +38,7 @@ export function fromTransactionRow(row: TransactionRow): Transaction {
     splitId: row.split_id,
     recurringId: row.recurring_id,
     recurringIncomeId: row.recurring_income_id,
+    createdAt: row.created_at,
   };
 }
 

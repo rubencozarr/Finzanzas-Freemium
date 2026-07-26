@@ -16,6 +16,10 @@ export interface Transaction {
   splitId?: string | null; // gastos divididos entre ingreso y fondo
   recurringId?: string | null;
   recurringIncomeId?: string | null;
+  // Solo presente en movimientos leídos de Supabase (fromTransactionRow); un movimiento recién creado
+  // en memoria no lo tiene todavía (lo asigna la base de datos al insertar). Se usa para desempatar el
+  // orden de movimientos del mismo día y para preservar ese orden al exportar/reimportar un backup.
+  createdAt?: string;
 }
 
 export interface Fund {

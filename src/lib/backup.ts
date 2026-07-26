@@ -179,6 +179,11 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
           split_id: t.splitId ?? null,
           recurring_id: t.recurringId ? (recurringIdMap.get(t.recurringId) ?? null) : null,
           recurring_income_id: t.recurringIncomeId ? (recurringIncomeIdMap.get(t.recurringIncomeId) ?? null) : null,
+          // Si el backup trae su created_at original (exportado tras este fix), se preserva: si no se
+          // pasa, todas las filas de este insert en lote comparten el mismo now() de Supabase y se
+          // pierde el orden relativo entre movimientos del mismo día (bug original). Backups antiguos,
+          // exportados antes de que Transaction incluyera este campo, no lo traen y caen al default.
+          ...(t.createdAt ? { created_at: t.createdAt } : {}),
         })),
       ),
     );
