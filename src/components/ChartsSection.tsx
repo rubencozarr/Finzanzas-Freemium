@@ -237,8 +237,8 @@ export function ChartsSection({
           )}
 
           <ChartCard
-            title="Ahorro libre consolidado, mes a mes"
-            explanation="Tu saldo real acumulado. Si esta línea baja de forma sostenida, estás usando ahorro más rápido de lo que generas."
+            title={`Ahorro libre generado en ${year}`}
+            explanation="Cuánto te ha ido sobrando cada mes a lo largo del año. Cada punto suma lo generado en los meses anteriores."
             height={180}
           >
             {(animate) => (
@@ -281,7 +281,7 @@ export function ChartsSection({
                       stroke="#d97706"
                       strokeWidth={2}
                       dot={{ r: 2 }}
-                      name="Ahorro libre consolidado"
+                      name="Ahorro libre generado"
                       isAnimationActive={animate}
                     />
                   </LineChart>

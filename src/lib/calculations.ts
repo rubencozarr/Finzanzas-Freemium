@@ -231,21 +231,18 @@ export interface YearMonthData {
 }
 
 export function yearMonthsData(transactions: Transaction[], year: number): YearMonthData[] {
-  let acumulado = ahorroLibreHasta(transactions, `${year - 1}-12`);
+  // "acumulado" es la suma de ahorroReal generado SOLO dentro de `year`, empezando en 0 cada enero —
+  // NO el ahorro libre consolidado de toda la vida (ese es otro concepto, el que sigue mostrando
+  // FondosTab vía ahorroLibreDisponibleParaMes/ahorroLibreHasta, sin relación con esta función). El
+  // punto de diciembre debe coincidir exactamente con yearTotals(...).ahorroReal (la tarjeta "Ahorro
+  // libre" de Anual, que también es una suma simple de los 12 ahorroReal del año), así que aquí no se
+  // resta gastosFinanciadosLibre ni se parte de ahorroLibreHasta(año anterior): es solo lo generado
+  // mes a mes, sin importar si parte de ese ahorro se gastó después desde un fondo.
+  let acumulado = 0;
   return Array.from({ length: 12 }, (_, i) => {
     const mKey = `${year}-${String(i + 1).padStart(2, "0")}`;
     const s = computeMonth(transactions, mKey);
-    // "acumulado" es el ahorro libre CONSOLIDADO de ese mes (lo generado en meses anteriores, sin
-    // contar todavía lo que sobra este mismo mes) — el mismo valor que ahorroLibreDisponibleParaMes()
-    // le mostraría a FondosTab si navegases a este mes. Por eso se guarda el snapshot ANTES de sumar la
-    // contribución del propio mes: sumarla antes convertiría esto en "ahorro libre total a fin de mes"
-    // (consolidado + en curso), que es un concepto distinto aunque tenga el mismo nombre en el gráfico.
-    // También hay que restar los gastos pagados con ahorro libre DE ESTE MES (gastosFinanciadosLibre):
-    // igual que en Fondos, ese dinero sale del consolidado ya acumulado en cuanto se gasta, no solo al
-    // cerrar el mes — si no, este punto del gráfico y "Consolidado" en Fondos divergerían para el mismo
-    // mes. El acumulador que pasa al mes siguiente no cambia, ya restaba gastosFinanciadosLibre.
-    const consolidadoEsteMes = acumulado - s.gastosFinanciadosLibre;
-    acumulado += s.ahorroReal - s.gastosFinanciadosLibre;
+    acumulado += s.ahorroReal;
     return {
       mes: MONTHS_ES[i],
       ingresos: s.ingresos,
@@ -256,7 +253,7 @@ export function yearMonthsData(transactions: Transaction[], year: number): YearM
       inversion: s.inversion,
       ahorroReal: s.ahorroReal,
       tasaAhorro: tasaAhorroPct(s),
-      acumulado: consolidadoEsteMes,
+      acumulado,
     };
   });
 }
