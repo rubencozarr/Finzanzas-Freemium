@@ -422,21 +422,45 @@ function App() {
     [monthTx, recurring, recurringIncome, investmentConfig, assets, isPremium],
   );
 
+  // Cambiar de mes/año no debe mover el scroll: el usuario puede estar mirando algo a media pestaña
+  // (p. ej. la lista de fondos) y esperar seguir viéndolo en la misma posición con los datos del nuevo
+  // mes. Sin esto, el navegador puede recolocar el scroll si el contenido del mes/año nuevo tiene menos
+  // altura que el anterior. Se guarda el scrollTop justo ANTES del cambio de estado (no después: para
+  // entonces React ya habría podido repintar con el contenido nuevo y el valor capturado sería el del
+  // mes nuevo, no el que había al pulsar el botón) y se reafirma en el useLayoutEffect de más abajo tras
+  // el re-render, igual que el mecanismo de restauración de scroll al cambiar de pestaña.
+  const preCursorChangeScrollRef = useRef<number | null>(null);
+  const captureScrollBeforeCursorChange = () => {
+    if (mainRef.current) preCursorChangeScrollRef.current = mainRef.current.scrollTop;
+  };
   const changeMonth = (delta: number) => {
+    captureScrollBeforeCursorChange();
     const d = new Date(cursor);
     d.setMonth(d.getMonth() + delta);
     setCursor(d);
   };
   const changeYear = (delta: number) => {
+    captureScrollBeforeCursorChange();
     const d = new Date(cursor);
     d.setFullYear(d.getFullYear() + delta);
     setCursor(d);
   };
   const goToMonthIndex = (m: number) => {
+    captureScrollBeforeCursorChange();
     const d = new Date(cursor);
     d.setMonth(m);
     setCursor(d);
   };
+  useLayoutEffect(() => {
+    const saved = preCursorChangeScrollRef.current;
+    if (saved == null) return;
+    preCursorChangeScrollRef.current = null;
+    if (mainRef.current) mainRef.current.scrollTop = saved;
+    const raf = requestAnimationFrame(() => {
+      if (mainRef.current) mainRef.current.scrollTop = saved;
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [cursor]);
 
   const onQuickMove = (fund: FundWithBalance, type: "aportacion" | "retiro") => {
     setFormPreset({ type, fundId: fund.id });
@@ -715,7 +739,14 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 text-slate-800 flex flex-col font-sans">
+    // h-dvh (no min-h-screen): min-h-screen es solo un SUELO, no un techo — con contenido más alto que
+    // la pantalla, este contenedor flex crecía más allá del viewport y "arrastraba" a <main> con él, así
+    // que overflow-y-auto de <main> nunca llegaba a activarse de verdad: quien hacía scroll era la
+    // ventana/documento entero, no <main>. Todo el scroll interno (restaurar posición al cambiar de
+    // pestaña, preservarlo al cambiar de mes/año, y el header sticky) depende de que <main> sea el
+    // contenedor que de verdad hace scroll — con h-dvh, la altura queda fija a la pantalla y flex-1 +
+    // overflow-y-auto en <main> sí generan una región de scroll interna real.
+    <div className="h-dvh bg-stone-50 text-slate-800 flex flex-col font-sans">
       <header
         className="bg-slate-800 text-stone-50 px-5 pb-4 flex items-start justify-between"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}

@@ -102,14 +102,21 @@ export function AnualTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={() => changeYear(-1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
-          <ChevronLeft size={18} />
-        </button>
-        <span className="font-serif text-base">{year}</span>
-        <button onClick={() => changeYear(1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
-          <ChevronRight size={18} />
-        </button>
+      {/* sticky top-0: mismo patrón que MonthSwitcher.tsx (ver comentario ahí) — fondo sólido para que
+          el contenido no se transparente por debajo, z-[5] por debajo de cualquier modal de la app.
+          La fila con flex va DENTRO del div sticky (que en sí es block), no aplicada al propio elemento
+          sticky: con flex directamente en el elemento sticky (o en un ancestro con flex-1) se ha visto
+          dejar de pegarse al hacer scroll. */}
+      <div className="sticky top-0 z-[5] bg-stone-50 pb-2 mb-1">
+        <div className="flex items-center justify-between">
+          <button onClick={() => changeYear(-1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
+            <ChevronLeft size={18} />
+          </button>
+          <span className="font-serif text-base">{year}</span>
+          <button onClick={() => changeYear(1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
+            <ChevronRight size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-4">

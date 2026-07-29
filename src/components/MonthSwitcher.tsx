@@ -34,7 +34,12 @@ export function MonthSwitcher({
   const canGoBackYear = canNavigateToMonth(new Date(year - 1, 11, 1));
 
   return (
-    <div className="mb-3">
+    // sticky top-0: se queda fijo arriba del scroll de <main> al bajar, para poder cambiar de mes sin
+    // volver arriba. bg-stone-50 (fondo de la app) para que el contenido que pasa por debajo no se vea
+    // a través. z-[5]: por encima del contenido normal (sin z-index) pero por debajo de cualquier modal
+    // de la app (los más bajos usan z-10) — si empatara con un modal, el orden de pintado dependería de
+    // la posición en el DOM en vez de ser explícito, y este selector podría acabar tapando el modal.
+    <div className="sticky top-0 z-[5] bg-stone-50 pb-2 mb-1">
       <div className="flex items-center justify-between">
         <button
           onClick={() => changeMonth(-1)}

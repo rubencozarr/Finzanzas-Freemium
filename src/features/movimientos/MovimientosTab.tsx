@@ -205,21 +205,19 @@ export function MovimientosTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex-1">
-          <MonthSwitcher
-            isPremium={isPremium}
-            canNavigateToMonth={canNavigateToMonth}
-            monthIdx={monthIdx}
-            year={year}
-            changeMonth={changeMonth}
-            changeYear={changeYear}
-            goToMonthIndex={goToMonthIndex}
-            getAhorroReal={getAhorroReal}
-            onOpenPremiumScreen={onOpenPremiumScreen}
-          />
-        </div>
-      </div>
+      {/* Sin envoltorio flex/flex-1 (ya no hace falta, solo tenía este único hijo): un ancestro con
+          flex-1 aquí encima del sticky de MonthSwitcher le impedía quedarse fijo al hacer scroll. */}
+      <MonthSwitcher
+        isPremium={isPremium}
+        canNavigateToMonth={canNavigateToMonth}
+        monthIdx={monthIdx}
+        year={year}
+        changeMonth={changeMonth}
+        changeYear={changeYear}
+        goToMonthIndex={goToMonthIndex}
+        getAhorroReal={getAhorroReal}
+        onOpenPremiumScreen={onOpenPremiumScreen}
+      />
       <div className="flex justify-between items-center -mt-2 mb-2">
         <button onClick={onGoToAjustes} className="flex items-center gap-1 text-xs text-stone-400">
           <Repeat size={13} /> Preestablecidos
