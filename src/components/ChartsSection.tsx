@@ -250,6 +250,7 @@ export function ChartsSection({
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <ReferenceLine y={0} stroke="#c3c2b7" />
                     <Line
                       type="monotone"
                       dataKey="acumulado"
@@ -275,6 +276,7 @@ export function ChartsSection({
                     <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip trigger="click" formatter={(v) => fmt(Number(v))} />
+                    <ReferenceLine y={0} stroke="#c3c2b7" />
                     <Line
                       type="monotone"
                       dataKey="acumulado"
