@@ -148,13 +148,15 @@ export function AnualTab({
                 ))}
               </select>
               {compareYear && comparisonTotals && (
-                <YearComparisonCards
-                  year={year}
-                  compareYear={compareYear}
-                  current={comparisonTotals.current}
-                  compare={comparisonTotals.compare}
-                  monthsLabel={monthsLabel}
-                />
+                <>
+                  <p className="text-xs text-amber-700 mt-2 mb-2">Comparando {monthsLabel} de ambos años.</p>
+                  <YearComparisonCards
+                    year={year}
+                    compareYear={compareYear}
+                    current={comparisonTotals.current}
+                    compare={comparisonTotals.compare}
+                  />
+                </>
               )}
             </div>
           )}

@@ -22,10 +22,9 @@ interface YearComparisonCardsProps {
   compareYear: number;
   current: YearTotals;
   compare: YearTotals;
-  monthsLabel: string;
 }
 
-export function YearComparisonCards({ year, compareYear, current, compare, monthsLabel }: YearComparisonCardsProps) {
+export function YearComparisonCards({ year, compareYear, current, compare }: YearComparisonCardsProps) {
   return (
     <div className="mb-5">
       <div className="space-y-2">
@@ -60,7 +59,6 @@ export function YearComparisonCards({ year, compareYear, current, compare, month
           );
         })}
       </div>
-      <p className="text-xs text-stone-400 mt-2">Comparando {monthsLabel} de ambos años.</p>
     </div>
   );
 }
