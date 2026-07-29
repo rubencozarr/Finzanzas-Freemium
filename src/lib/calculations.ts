@@ -849,8 +849,11 @@ export function buildFundUsage(
       fundTx.forEach((t) => {
         catMap[t.category] = (catMap[t.category] || 0) + t.amount;
       });
+      // % de cada categoría sobre el gasto de ESTE fondo este mes (no sobre el total histórico
+      // aportado, que es lo que usa el pct del fondo en sí, un nivel más arriba): así "Transporte 60% /
+      // Ocio 40%" siempre suma 100% entre las categorías del mismo fondo.
       const cats = Object.entries(catMap)
-        .map(([name, amt]) => ({ name, total: amt, pct: totalAportado ? (amt / totalAportado) * 100 : 0 }))
+        .map(([name, amt]) => ({ name, total: amt, pct: total ? (amt / total) * 100 : 0 }))
         .sort((a, b) => b.total - a.total);
       return {
         id: fund.id,

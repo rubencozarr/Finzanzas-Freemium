@@ -30,7 +30,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
                 <div className="flex justify-between text-xs text-stone-500">
                   <span>{c.name}</span>
                   <span className="font-mono">
-                    {fmt(c.total)} · {c.pct.toFixed(0)}% del fondo
+                    {fmt(c.total)} · {c.pct.toFixed(0)}% del gasto
                   </span>
                 </div>
                 <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">

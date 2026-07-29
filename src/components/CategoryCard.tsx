@@ -100,12 +100,23 @@ export function CategoryCard({ name, total, blockPct, blockPctLabel, subcats, si
                   </div>
                 );
               })}
-              {sinClasificar > 0 && (
-                <div className="flex justify-between text-xs text-stone-400">
-                  <span>Sin subcategoría</span>
-                  <span className="font-mono">{fmt(sinClasificar)}</span>
-                </div>
-              )}
+              {sinClasificar > 0 &&
+                (() => {
+                  const sinClasificarPct = total ? (sinClasificar / total) * 100 : 0;
+                  return (
+                    <div>
+                      <div className="flex justify-between text-xs text-stone-400">
+                        <span>Sin subcategoría</span>
+                        <span className="font-mono">
+                          {fmt(sinClasificar)} · {sinClasificarPct.toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${SUB_BAR[tone]}`} style={{ width: `${Math.min(100, sinClasificarPct)}%` }} />
+                      </div>
+                    </div>
+                  );
+                })()}
             </div>
           )}
         </div>

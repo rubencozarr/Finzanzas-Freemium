@@ -486,8 +486,15 @@ export function FondosTab({
                   />
                   <button
                     onClick={() => {
-                      const amount = parseFloat(goalAmountInput);
-                      if (amount > 0) updateFundGoal(f.id, amount);
+                      const trimmed = goalAmountInput.trim();
+                      if (trimmed === "") {
+                        // Campo vacío + confirmar = quitar la meta, igual que el botón de papelera de
+                        // abajo (que solo aparece si ya había una meta puesta).
+                        updateFundGoal(f.id, null);
+                      } else {
+                        const amount = parseFloat(trimmed);
+                        if (amount > 0) updateFundGoal(f.id, amount);
+                      }
                       setEditingGoalFundId(null);
                     }}
                     className="text-emerald-700 shrink-0"
