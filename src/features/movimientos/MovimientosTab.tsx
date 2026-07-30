@@ -218,7 +218,10 @@ export function MovimientosTab({
         getAhorroReal={getAhorroReal}
         onOpenPremiumScreen={onOpenPremiumScreen}
       />
-      <div className="flex justify-between items-center -mt-2 mb-2">
+      {/* Sin -mt-2 (lo tenía cuando el selector era un elemento normal, para acercar esta fila): ahora
+          que el selector es sticky con su propio pb-2 pintado (bg-stone-50), ese margen negativo metía
+          esta fila por debajo de esa franja y los botones quedaban tapados un poco. */}
+      <div className="flex justify-between items-center mb-2">
         <button onClick={onGoToAjustes} className="flex items-center gap-1 text-xs text-stone-400">
           <Repeat size={13} /> Preestablecidos
         </button>
