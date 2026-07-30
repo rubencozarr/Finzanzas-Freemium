@@ -10,14 +10,26 @@ interface InvestmentEditorProps {
   removeAsset: (id: string) => void;
   config: InvestmentConfig;
   setGlobalPct: (pct: number) => void;
+  /** Free: la propia AjustesTab pasa datos de ejemplo (no reales) y funciones no-op; esto solo se
+   * encarga de que nada sea interactuable y de que se vea atenuado. */
+  disabled?: boolean;
 }
 
-export function InvestmentEditor({ assets, addAsset, renameAsset, updateAssetPct, removeAsset, config, setGlobalPct }: InvestmentEditorProps) {
+export function InvestmentEditor({
+  assets,
+  addAsset,
+  renameAsset,
+  updateAssetPct,
+  removeAsset,
+  config,
+  setGlobalPct,
+  disabled = false,
+}: InvestmentEditorProps) {
   const [newName, setNewName] = useState("");
   const totalPct = assets.reduce((s, a) => s + (a.pct || 0), 0);
 
   return (
-    <div>
+    <div className={disabled ? "opacity-60 pointer-events-none" : ""}>
       <p className="text-sm font-semibold mb-2">% de tus ingresos destinado a inversión</p>
       <div className="flex items-center gap-2 mb-1">
         <input
@@ -25,6 +37,7 @@ export function InvestmentEditor({ assets, addAsset, renameAsset, updateAssetPct
           inputMode="decimal"
           value={config.globalPct || ""}
           onChange={(e) => setGlobalPct(parseFloat(e.target.value) || 0)}
+          disabled={disabled}
           className="w-24 border border-stone-200 rounded-lg px-3 py-2 text-base font-mono"
         />
         <span className="text-sm text-stone-500">% de los ingresos de cada mes</span>
@@ -42,6 +55,7 @@ export function InvestmentEditor({ assets, addAsset, renameAsset, updateAssetPct
             <input
               value={a.name}
               onChange={(e) => renameAsset(a.id, e.target.value)}
+              disabled={disabled}
               className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base min-w-0"
             />
             <div className="flex items-center gap-1 shrink-0">
@@ -49,11 +63,12 @@ export function InvestmentEditor({ assets, addAsset, renameAsset, updateAssetPct
                 type="number"
                 value={a.pct || ""}
                 onChange={(e) => updateAssetPct(a.id, parseFloat(e.target.value) || 0)}
+                disabled={disabled}
                 className="w-14 border border-stone-200 rounded-md px-1.5 py-1 text-base font-mono text-right"
               />
               <span className="text-xs text-stone-400">%</span>
             </div>
-            <button onClick={() => removeAsset(a.id)} className="text-stone-300 hover:text-rose-600 shrink-0">
+            <button onClick={() => removeAsset(a.id)} disabled={disabled} className="text-stone-300 hover:text-rose-600 shrink-0">
               <Trash2 size={14} />
             </button>
           </div>
@@ -69,6 +84,7 @@ export function InvestmentEditor({ assets, addAsset, renameAsset, updateAssetPct
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Nuevo activo (ej. Oro, SP500)"
+          disabled={disabled}
           className="flex-1 border border-stone-200 rounded-md px-2 py-1.5 text-base"
         />
         <button
@@ -78,6 +94,7 @@ export function InvestmentEditor({ assets, addAsset, renameAsset, updateAssetPct
               setNewName("");
             }
           }}
+          disabled={disabled}
           className="bg-indigo-700 text-white rounded-md px-2.5 text-xs"
         >
           <Plus size={14} />

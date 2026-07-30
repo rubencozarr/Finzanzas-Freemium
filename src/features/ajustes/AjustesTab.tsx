@@ -7,6 +7,20 @@ import { InvestmentEditor } from "./InvestmentEditor";
 import { PremiumGate } from "../../components/PremiumGate";
 import type { Asset, Category, CategoryType, FundWithBalance, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
 
+// Datos de muestra para que un free vea cómo se vería la sección de Inversión funcionando, sin exponer
+// nunca datos reales suyos (aunque los tenga de cuando era premium). InvestmentEditor los recibe con
+// disabled=true, y las funciones de mutación de abajo son no-ops: nada de esto puede escribir de verdad.
+const EXAMPLE_ASSETS: Asset[] = [
+  { id: "example-1", name: "Fondo indexado", pct: 60 },
+  { id: "example-2", name: "Plan de pensiones", pct: 40 },
+];
+const EXAMPLE_INVESTMENT_CONFIG: InvestmentConfig = { globalPct: 15 };
+const NOOP_ADD_ASSET = () => {};
+const NOOP_RENAME_ASSET = () => {};
+const NOOP_UPDATE_ASSET_PCT = () => {};
+const NOOP_REMOVE_ASSET = () => {};
+const NOOP_SET_GLOBAL_PCT = () => {};
+
 // Tarjeta "Tu plan": encima del selector de secciones (no una 5ª sección), porque es un concern de
 // cuenta transversal, no una categoría de ajustes — así se ve siempre, elijas la sección que elijas.
 function PlanCard({ isPremium, onOpenPremiumScreen }: { isPremium: boolean; onOpenPremiumScreen: () => void }) {
@@ -274,19 +288,21 @@ export function AjustesTab({
       )}
       {section === "inversion" && (
         <div data-tour="ajustes-inversion-section">
-          {isPremium ? (
-            <InvestmentEditor
-              assets={assets}
-              addAsset={addAsset}
-              renameAsset={renameAsset}
-              updateAssetPct={updateAssetPct}
-              removeAsset={removeAsset}
-              config={investmentConfig}
-              setGlobalPct={setGlobalPct}
-            />
-          ) : (
-            <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onOpenPremiumScreen={onOpenPremiumScreen} />
+          {!isPremium && (
+            <div className="mb-3">
+              <PremiumGate message="Gestiona tus activos y reparto de inversión con Premium" onOpenPremiumScreen={onOpenPremiumScreen} />
+            </div>
           )}
+          <InvestmentEditor
+            assets={isPremium ? assets : EXAMPLE_ASSETS}
+            addAsset={isPremium ? addAsset : NOOP_ADD_ASSET}
+            renameAsset={isPremium ? renameAsset : NOOP_RENAME_ASSET}
+            updateAssetPct={isPremium ? updateAssetPct : NOOP_UPDATE_ASSET_PCT}
+            removeAsset={isPremium ? removeAsset : NOOP_REMOVE_ASSET}
+            config={isPremium ? investmentConfig : EXAMPLE_INVESTMENT_CONFIG}
+            setGlobalPct={isPremium ? setGlobalPct : NOOP_SET_GLOBAL_PCT}
+            disabled={!isPremium}
+          />
         </div>
       )}
 
