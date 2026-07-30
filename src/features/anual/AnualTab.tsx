@@ -106,8 +106,10 @@ export function AnualTab({
           el contenido no se transparente por debajo, z-[5] por debajo de cualquier modal de la app.
           La fila con flex va DENTRO del div sticky (que en sí es block), no aplicada al propio elemento
           sticky: con flex directamente en el elemento sticky (o en un ancestro con flex-1) se ha visto
-          dejar de pegarse al hacer scroll. */}
-      <div className="sticky top-0 z-[5] bg-stone-50 pb-2 mb-1">
+          dejar de pegarse al hacer scroll. pt-4: <main> ya no trae su propio padding-top (ver App.tsx),
+          este componente pone ese espacio dentro de su propia caja sticky para que se quede fijo con
+          ella, en vez de un hueco del contenedor que ninguna caja sticky puede cubrir. */}
+      <div className="sticky top-0 z-[5] bg-stone-50 pt-4 pb-2 mb-1">
         <div className="flex items-center justify-between">
           <button onClick={() => changeYear(-1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
             <ChevronLeft size={18} />

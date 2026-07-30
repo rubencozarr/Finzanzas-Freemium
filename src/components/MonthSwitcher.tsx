@@ -39,7 +39,10 @@ export function MonthSwitcher({
     // a través. z-[5]: por encima del contenido normal (sin z-index) pero por debajo de cualquier modal
     // de la app (los más bajos usan z-10) — si empatara con un modal, el orden de pintado dependería de
     // la posición en el DOM en vez de ser explícito, y este selector podría acabar tapando el modal.
-    <div className="sticky top-0 z-[5] bg-stone-50 pb-2 mb-1">
+    // pt-4: <main> ya NO tiene su propio padding-top (ver comentario en App.tsx) — ese espacio lo pone
+    // este componente, para que quede DENTRO de la caja sticky (con su propio bg-stone-50) y se quede
+    // fijo junto con el resto del selector, en vez de ser un hueco del contenedor que nunca cubre.
+    <div className="sticky top-0 z-[5] bg-stone-50 pt-4 pb-2 mb-1">
       <div className="flex items-center justify-between">
         <button
           onClick={() => changeMonth(-1)}

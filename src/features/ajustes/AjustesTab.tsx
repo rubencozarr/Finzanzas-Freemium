@@ -213,7 +213,10 @@ export function AjustesTab({
   };
 
   return (
-    <div>
+    // pt-4: Ajustes es la única pestaña sin selector de mes/año sticky (ver comentario en App.tsx sobre
+    // por qué <main> ya no trae su propio padding-top), así que este pt-4 compensa aquí ese espaciado
+    // superior que antes venía gratis del contenedor.
+    <div className="pt-4">
       <PlanCard isPremium={isPremium} onOpenPremiumScreen={onOpenPremiumScreen} />
 
       <div className="grid grid-cols-2 gap-2 mb-5">

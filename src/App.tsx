@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, HelpCircle, PiggyBank, Settings2, Wallet } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { useTransactions } from "./hooks/useTransactions";
@@ -433,23 +433,31 @@ function App() {
   const captureScrollBeforeCursorChange = () => {
     if (mainRef.current) preCursorChangeScrollRef.current = mainRef.current.scrollTop;
   };
+  // startTransition: cursor alimenta monthTx/monthStats/yearData, que a su vez alimentan los gráficos
+  // (Recharts) de TODAS las pestañas ya visitadas, no solo la activa — siguen montadas aunque estén
+  // ocultas (ver visitedTabs más abajo), así que cambiar de mes vuelve a renderizarlas todas de golpe.
+  // Sin startTransition ese render es una sola tanda sincrónica que bloquea el hilo principal, y el
+  // navegador no puede procesar un segundo clic en "mes siguiente" hasta que termina. Marcándolo como
+  // transición, React puede interrumpir ese render a medio hacer en cuanto llega un clic nuevo (evento
+  // de prioridad más alta) y saltar directo al mes más reciente pedido, en vez de renderizar cada mes
+  // intermedio de uno en uno.
   const changeMonth = (delta: number) => {
     captureScrollBeforeCursorChange();
     const d = new Date(cursor);
     d.setMonth(d.getMonth() + delta);
-    setCursor(d);
+    startTransition(() => setCursor(d));
   };
   const changeYear = (delta: number) => {
     captureScrollBeforeCursorChange();
     const d = new Date(cursor);
     d.setFullYear(d.getFullYear() + delta);
-    setCursor(d);
+    startTransition(() => setCursor(d));
   };
   const goToMonthIndex = (m: number) => {
     captureScrollBeforeCursorChange();
     const d = new Date(cursor);
     d.setMonth(m);
-    setCursor(d);
+    startTransition(() => setCursor(d));
   };
   useLayoutEffect(() => {
     const saved = preCursorChangeScrollRef.current;
@@ -760,7 +768,14 @@ function App() {
         </button>
       </header>
 
-      <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-24 max-w-md w-full mx-auto">
+      {/* Sin pt-4 aquí: position:sticky con top:0 "clampa" contra el padding-box del contenedor con
+          scroll y anula cualquier margen negativo que un hijo intente usar para colarse en él, así que
+          un padding-top del propio <main> siempre deja un hueco por encima del selector sticky de mes/
+          año que ninguna de las 4 pestañas con selector puede cubrir. En vez de eso, ese hueco lo pone
+          cada pestaña por su cuenta: MonthSwitcher/AnualTab lo llevan como su propio pt-4 (pintado con
+          su propio fondo, así se queda fijo con ellos), y AjustesTab (la única sin selector) lo lleva en
+          su primer elemento para no perder el espaciado que antes venía gratis de aquí. */}
+      <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pb-24 max-w-md w-full mx-auto">
         {visitedTabs.has("movimientos") && (
           <div className={tab === "movimientos" ? "" : "invisible h-0 overflow-hidden pointer-events-none"}>
           <MovimientosTab
