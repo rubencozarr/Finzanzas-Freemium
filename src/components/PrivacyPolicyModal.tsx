@@ -6,11 +6,9 @@ interface PrivacySection {
   body: React.ReactNode;
 }
 
-// Marcadores [FECHA]/[TU NOMBRE COMPLETO]/[TU EMAIL]/[TU CIUDAD, PAÍS] deliberadamente sin rellenar:
-// los completa el usuario más adelante.
-const EFFECTIVE_DATE = "[FECHA]";
-const LAST_UPDATED = "[FECHA]";
-const CONTACT_EMAIL = "[TU EMAIL]";
+const EFFECTIVE_DATE = "30/07/2026";
+const LAST_UPDATED = "30/07/2026";
+const CONTACT_EMAIL = "contacto@nitidapp.com";
 
 const PRIVACY_SECTIONS: PrivacySection[] = [
   {
@@ -19,9 +17,9 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
       <>
         <p className="mb-2">El responsable del tratamiento de tus datos personales es:</p>
         <ul className="list-disc pl-4 space-y-1 mb-2">
-          <li>Nombre: [TU NOMBRE COMPLETO]</li>
+          <li>Nombre: Rubén Cózar Mármol</li>
           <li>Correo electrónico de contacto: {CONTACT_EMAIL}</li>
-          <li>Ubicación: [TU CIUDAD, PAÍS]</li>
+          <li>Ubicación: Jaén, España</li>
         </ul>
         <p>
           Si tienes cualquier duda o consulta sobre esta política o el tratamiento de tus datos, puedes contactar con nosotros
