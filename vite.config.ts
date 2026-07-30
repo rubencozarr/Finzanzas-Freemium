@@ -30,7 +30,7 @@ export default defineConfig({
         // "any" y "maskable" van en entradas SEPARADAS (nunca "any maskable" combinado en una sola):
         // un icono "any" combinado con maskable en Android recorta el propio icono "any" al círculo/
         // forma del sistema, perdiendo el diseño completo en los launchers que no lo tratan como
-        // adaptativo. icon-maskable-*.png todavía no existen en public/ — siguiente paso.
+        // adaptativo.
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -44,6 +44,13 @@ export default defineConfig({
         // supera el límite de precaché de Workbox (2MiB por defecto). Se sirve igual como favicon
         // normal del navegador, solo se excluye de la caché offline de la PWA.
         globIgnores: ['favicon.svg'],
+        // Página de fallback offline (public/offline.html, con la marca de Nitid): se sirve cuando una
+        // navegación no se puede resolver ni por red ni por caché — típicamente al abrir la app sin
+        // conexión antes de que el service worker haya podido precachear nada, o al navegar a una URL
+        // que no está precacheada. No afecta a "/" ni a "/privacy.html": al estar precacheados con
+        // coincidencia EXACTA de URL, Workbox los sirve directamente antes de llegar a este fallback,
+        // que es siempre el último recurso.
+        navigateFallback: '/offline.html',
       },
     }),
   ],

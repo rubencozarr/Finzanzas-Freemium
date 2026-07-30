@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#fafaf9" />
+<title>Sin conexión — Nitid</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: #fafaf9;
+    color: #1e293b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: 24px;
+    text-align: center;
+  }
+  img {
+    width: 88px;
+    height: 88px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.4rem;
+    letter-spacing: -0.01em;
+    color: #1e293b;
+    margin: 0 0 10px;
+  }
+  p {
+    color: #57534e;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0 0 24px;
+  }
+  button {
+    background: #0d9488;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  button:active {
+    opacity: 0.85;
+  }
+  .hint {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: #a8a29e;
+    max-width: 280px;
+  }
+</style>
+</head>
+<body>
+  <img src="/icon-192.png" alt="Nitid" />
+  <h1>Sin conexión</h1>
+  <p>No hemos podido conectar con internet. Vuelve a intentarlo cuando tengas conexión — tus datos están a salvo.</p>
+  <button onclick="location.reload()">Reintentar</button>
+  <p class="hint">Si ya habías abierto Nitid antes con conexión, algunas pantallas pueden seguir disponibles sin conexión.</p>
+</body>
+</html>
