@@ -27,6 +27,10 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
+        // Identidad estable de la app para el manifest (distinta de start_url): si start_url cambiara
+        // en el futuro (p. ej. añadir un parámetro de tracking), Android seguiría reconociéndola como
+        // la MISMA app instalada en vez de ofrecerla como una instalación nueva.
+        id: '/',
         // "any" y "maskable" van en entradas SEPARADAS (nunca "any maskable" combinado en una sola):
         // un icono "any" combinado con maskable en Android recorta el propio icono "any" al círculo/
         // forma del sistema, perdiendo el diseño completo en los launchers que no lo tratan como
