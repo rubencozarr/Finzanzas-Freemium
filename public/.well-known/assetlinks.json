@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.nitidapp.gastos",
+        "sha256_cert_fingerprints": ["28:0C:A2:3D:23:21:08:D7:7D:3F:DF:BD:5E:72:11:36:C5:13:E0:F3:B8:B9:86:5B:2A:19:4B:62:13:5A:6B:84"]
+      }
+    }]
