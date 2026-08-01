@@ -69,6 +69,11 @@
   <h1>Sin conexión</h1>
   <p>No hemos podido conectar con internet. Vuelve a intentarlo cuando tengas conexión — tus datos están a salvo.</p>
   <button onclick="location.reload()">Reintentar</button>
-  <p class="hint">Si ya habías abierto Nitid antes con conexión, algunas pantallas pueden seguir disponibles sin conexión.</p>
+  <p class="hint">Se recargará sola en cuanto detecte conexión de nuevo.</p>
+  <script>
+    // Complementa al botón manual: si el propio navegador avisa de que la conexión ha vuelto, no hace
+    // falta esperar a que el usuario pulse "Reintentar" él mismo.
+    window.addEventListener("online", () => location.reload());
+  </script>
 </body>
 </html>
