@@ -72,6 +72,7 @@ function App() {
     resetPasswordForEmail,
     updatePassword,
     clearPasswordRecovery,
+    deleteAccount,
   } = useAuth();
   const userId = user?.id;
 
@@ -237,6 +238,17 @@ function App() {
     await signOut();
     setTab("movimientos");
     setAjustesSection("categorias");
+  };
+  // Mismo reset que handleSignOut: tras un borrado con éxito, App tampoco se desmonta (solo cambia qué
+  // se renderiza según `user`, que pasa a null dentro de deleteAccount), así que sin esto la próxima
+  // vez que alguien inicie sesión en esta pestaña del navegador aparecería en Ajustes.
+  const handleDeleteAccount = async () => {
+    const result = await deleteAccount();
+    if (!result.error) {
+      setTab("movimientos");
+      setAjustesSection("categorias");
+    }
+    return result;
   };
   const [cursor, setCursor] = useState(() => new Date());
   const [showForm, setShowForm] = useState(false);
@@ -947,6 +959,7 @@ function App() {
             onImport={onImport}
             onSignOut={handleSignOut}
             onShowPrivacy={() => setShowPrivacy(true)}
+            onDeleteAccount={handleDeleteAccount}
           />
           </div>
         )}

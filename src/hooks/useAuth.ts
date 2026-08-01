@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { isLocalBackend } from "../lib/env";
 import { getSupabase } from "../lib/supabaseClient";
+import { clearAllLocal } from "../lib/localStore";
 
 export interface AppUser {
   id: string;
@@ -42,6 +43,39 @@ export function useAuth() {
     isLocalBackend ? Promise.resolve({ data: { user: null }, error: null }) : getSupabase().auth.updateUser({ password });
   const clearPasswordRecovery = () => setPasswordRecovery(false);
 
+  // Borra la cuenta y TODOS sus datos de forma permanente. El borrado real (auth.admin.deleteUser, que
+  // en cascada se lleva por delante todas las tablas — ver api/delete-account.ts) solo puede hacerse
+  // con la service role key, así que esto delega en esa función serverless en vez de intentarlo desde
+  // aquí; el cliente nunca tiene esa clave. Al terminar con éxito cierra la sesión local, lo que hace
+  // que App.tsx muestre el login solo (mismo mecanismo que un signOut normal).
+  const deleteAccount = async (): Promise<{ error: string | null }> => {
+    if (isLocalBackend) {
+      clearAllLocal();
+      return { error: null };
+    }
+    const supabase = getSupabase();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) return { error: "No se pudo verificar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo." };
+
+    let response: Response;
+    try {
+      response = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } catch {
+      return { error: "No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo." };
+    }
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}) as { error?: string });
+      return { error: body.error || "No se pudo eliminar la cuenta." };
+    }
+
+    await supabase.auth.signOut();
+    return { error: null };
+  };
+
   return {
     user,
     loading,
@@ -52,5 +86,6 @@ export function useAuth() {
     resetPasswordForEmail,
     updatePassword,
     clearPasswordRecovery,
+    deleteAccount,
   };
 }

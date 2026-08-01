@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Crown, Download, FileSpreadsheet, LogOut, Upload } from "lucide-react";
+import { Check, Crown, Download, FileSpreadsheet, LogOut, Trash2, Upload } from "lucide-react";
 import { CategoriasEditor } from "./CategoriasEditor";
 import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
@@ -104,6 +104,7 @@ interface AjustesTabProps {
   onImport: (data: unknown) => Promise<boolean>;
   onSignOut: () => void | Promise<unknown>;
   onShowPrivacy: () => void;
+  onDeleteAccount: () => Promise<{ error: string | null }>;
 }
 
 // Botón "Exportar Excel" (premium). En free se ve deshabilitado con una coronita; tocar el botón o la
@@ -180,6 +181,7 @@ export function AjustesTab({
   onImport,
   onSignOut,
   onShowPrivacy,
+  onDeleteAccount,
 }: AjustesTabProps) {
   const [section, setSection] = useState<Section>((initialSection as Section) || "categorias");
   // initialSection también puede cambiar con la pestaña ya montada (p. ej. el tour guiado salta
@@ -195,6 +197,9 @@ export function AjustesTab({
   }, [section, onSectionChange]);
   const [importConfirm, setImportConfirm] = useState<unknown | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -331,7 +336,56 @@ export function AjustesTab({
         <button onClick={onShowPrivacy} className="w-full text-center text-stone-400 text-xs mt-2 underline">
           Política de privacidad
         </button>
+        <button
+          onClick={() => {
+            setDeleteAccountError(null);
+            setShowDeleteAccountConfirm(true);
+          }}
+          className="w-full flex items-center justify-center gap-1.5 text-rose-600 py-2 text-xs mt-4"
+        >
+          <Trash2 size={13} /> Eliminar mi cuenta
+        </button>
       </div>
+
+      {showDeleteAccountConfirm && (
+        <div
+          className="fixed inset-0 bg-black/30 flex items-end justify-center z-30"
+          onClick={() => !deletingAccount && setShowDeleteAccountConfirm(false)}
+        >
+          <div className="bg-white rounded-t-2xl w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
+            <p className="font-serif text-base mb-2">¿Eliminar tu cuenta?</p>
+            <p className="text-sm text-stone-600 mb-2">
+              Se eliminará tu cuenta y todos tus datos: transacciones, fondos, categorías, configuración y suscripción.
+            </p>
+            <p className="text-sm text-rose-600 font-medium mb-4">Esta acción es irreversible.</p>
+            {deleteAccountError && <p className="text-xs text-rose-600 mb-3">{deleteAccountError}</p>}
+            <button
+              onClick={async () => {
+                setDeletingAccount(true);
+                setDeleteAccountError(null);
+                const { error } = await onDeleteAccount();
+                if (error) {
+                  setDeleteAccountError(error);
+                  setDeletingAccount(false);
+                }
+                // Sin error: signOut() dentro de onDeleteAccount hace que App.tsx muestre el login solo
+                // (este componente se desmonta), no hace falta cerrar el modal a mano aquí.
+              }}
+              disabled={deletingAccount}
+              className="w-full bg-rose-600 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-medium mb-2"
+            >
+              {deletingAccount ? "Eliminando..." : "Eliminar mi cuenta"}
+            </button>
+            <button
+              onClick={() => setShowDeleteAccountConfirm(false)}
+              disabled={deletingAccount}
+              className="w-full border border-stone-200 text-stone-600 disabled:opacity-50 rounded-lg py-2.5 text-sm font-medium"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {importConfirm !== null && (
         <div className="fixed inset-0 bg-black/30 flex items-end justify-center z-30" onClick={() => setImportConfirm(null)}>
