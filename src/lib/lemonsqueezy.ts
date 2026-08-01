@@ -37,17 +37,39 @@ function ensureLoaded() {
   loaded = true;
 }
 
-/** Abre el overlay de checkout de Lemon Squeezy (mensual/anual se eligen dentro de esa misma
- * página), con el user_id como custom data (así el webhook sabe a qué usuario activar) y el email
- * prellenado si se conoce. onSuccess se llama justo después de cerrar el overlay al completarse el
- * pago (no espera a la confirmación del webhook, que llega por separado y puede tardar unos segundos). */
+// El TWA empaquetado para Play Store renderiza la PWA igual que una instalada normal (display-mode:
+// standalone), así que esa señal sola no distingue "TWA de Play Store" de "PWA añadida a la pantalla
+// de inicio desde el propio navegador". document.referrer sí lo hace: Chrome lo pone a
+// "android-app://<paquete>" únicamente cuando la página se abre dentro de una Trusted Web Activity.
+function isRunningAsTWA(): boolean {
+  if (document.referrer.startsWith("android-app://")) return true;
+  return typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches;
+}
+
+/** Abre el checkout de Lemon Squeezy (mensual/anual se eligen dentro de esa misma página), con el
+ * user_id como custom data (así el webhook sabe a qué usuario activar) y el email prellenado si se
+ * conoce. onSuccess se llama justo después de cerrar el overlay al completarse el pago (no espera a la
+ * confirmación del webhook, que llega por separado y puede tardar unos segundos).
+ *
+ * Dentro del TWA de Play Store el cobro tiene que salir del "shell" de la app y completarse en el
+ * navegador del sistema, no en el overlay de lemon.js (que dentro de un TWA se vería como parte de la
+ * propia app nativa) — es lo que exige la política de pagos de Google Play para compras que no pasan
+ * por Play Billing. En ese caso no hay overlay ni evento "Checkout.Success" que escuchar, así que
+ * onCheckoutSuccess no se invoca en esta rama: la suscripción se activa igual vía el webhook, y la app
+ * la recoge la próxima vez que consulte el estado (p. ej. al volver a abrirla). */
 export function openCheckout(userId: string, email?: string, onCheckoutSuccess?: () => void) {
-  ensureLoaded();
-  onSuccess = onCheckoutSuccess ?? null;
   const params = new URLSearchParams();
   params.set("checkout[custom][user_id]", userId);
   if (email) params.set("checkout[email]", email);
   const url = `https://${LEMONSQUEEZY_STORE_SLUG}.lemonsqueezy.com/checkout/buy/${LEMONSQUEEZY_CHECKOUT_UUID}?${params.toString()}`;
+
+  if (isRunningAsTWA()) {
+    window.open(url, "_blank");
+    return;
+  }
+
+  ensureLoaded();
+  onSuccess = onCheckoutSuccess ?? null;
   if (window.LemonSqueezy) {
     window.LemonSqueezy.Url.Open(url);
   } else {
