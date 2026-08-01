@@ -135,7 +135,11 @@ function App() {
     canNavigateToMonth,
     refetch: refetchSubscription,
   } = useSubscription(userId);
-  const { shown: savingsMilestoneShown, markShown: markSavingsMilestoneShown } = useSavingsMilestone(userId);
+  const {
+    shown: savingsMilestoneShown,
+    loading: savingsMilestoneLoading,
+    markShown: markSavingsMilestoneShown,
+  } = useSavingsMilestone(userId);
   const { needsReacceptance, loading: privacyLoading, recordAcceptance: recordPrivacyAcceptance } = usePrivacyAcceptance(userId);
 
   // <meta name="theme-color"> es fijo en index.html (navy, a juego con la cabecera bg-slate-800 de la
@@ -338,15 +342,20 @@ function App() {
   // una sola vez (savings_milestone_shown en Supabase evita que vuelva a salir en sesiones futuras).
   // flowBalance, no balance: el saldo inicial que el usuario indique en un fondo no debe disparar este
   // aviso — solo cuenta lo aportado de verdad desde la app.
+  // IMPORTANTE: no evaluar nada mientras savingsMilestoneLoading siga en curso. Antes de que esa
+  // consulta responda, savingsMilestoneShown vale false por DEFECTO (no porque la fila diga que no se
+  // ha mostrado todavía) — sin este guard, si funds/transactions ya habían cargado y sumaban ≥500€, el
+  // aviso podía disparar con ese false provisional, y como el estado inicial siempre vuelve a false en
+  // cada recarga, repetía el aviso cada vez en vez de solo la primera.
   useEffect(() => {
-    if (isPremium || savingsMilestoneShown || !userId) return;
+    if (isPremium || savingsMilestoneShown || !userId || savingsMilestoneLoading) return;
     const totalFondos = fundsWithBalance.reduce((s, f) => s + f.flowBalance, 0);
     if (totalFondos >= 500) {
       setMilestoneMsg("¡Ya llevas 500€ ahorrados! Con Premium puedes poner metas a cada fondo y ver tu progreso.");
       markSavingsMilestoneShown();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPremium, savingsMilestoneShown, userId, fundsWithBalance]);
+  }, [isPremium, savingsMilestoneShown, userId, savingsMilestoneLoading, fundsWithBalance]);
 
   // Aviso premium al alcanzar la meta de un fondo. Vive aquí (no en FondosTab) porque App no se
   // desmonta al cambiar de pestaña: si esto estuviera en FondosTab, guardar la aportación desde

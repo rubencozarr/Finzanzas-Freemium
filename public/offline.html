@@ -68,12 +68,14 @@
   <img src="/icon-192.png" alt="Nitid" />
   <h1>Sin conexión</h1>
   <p>No hemos podido conectar con internet. Vuelve a intentarlo cuando tengas conexión — tus datos están a salvo.</p>
-  <button onclick="location.reload()">Reintentar</button>
+  <button onclick="location.href = '/'">Reintentar</button>
   <p class="hint">Se recargará sola en cuanto detecte conexión de nuevo.</p>
   <script>
+    // location.reload() aquí solo recargaría esta misma página offline.html (seguirías viéndola tal
+    // cual, sin conexión de verdad o no) — hace falta navegar a "/" para volver a la app de verdad.
     // Complementa al botón manual: si el propio navegador avisa de que la conexión ha vuelto, no hace
     // falta esperar a que el usuario pulse "Reintentar" él mismo.
-    window.addEventListener("online", () => location.reload());
+    window.addEventListener("online", () => { location.href = "/"; });
   </script>
 </body>
 </html>

@@ -12,18 +12,28 @@ const LOCAL_KEY = "savingsMilestoneShown";
 // reabrir la PWA, y no conviene mezclarle una responsabilidad distinta.
 export function useSavingsMilestone(userId: string | undefined) {
   const [shown, setShown] = useState<boolean>(() => (isLocalBackend ? readLocal<boolean>(LOCAL_KEY, false) : false));
+  // Antes de que la consulta a Supabase responda, "shown" empieza en false por DEFECTO, no porque la
+  // fila realmente diga que no se ha mostrado. Sin este loading, el aviso de App.tsx (que solo mira
+  // "shown") podía disparar con ese false provisional si funds/transactions ya habían cargado y sumaban
+  // ≥500€ — y como esto se repite en cada recarga (el estado inicial siempre vuelve a false hasta que
+  // la consulta real responde), el aviso podía reaparecer cada vez en vez de solo la primera vez.
+  const [loading, setLoading] = useState(!isLocalBackend);
 
   const refetch = useCallback(async () => {
     if (isLocalBackend) {
       setShown(readLocal<boolean>(LOCAL_KEY, false));
+      setLoading(false);
       return;
     }
     if (!userId) {
       setShown(false);
+      setLoading(false);
       return;
     }
+    setLoading(true);
     const { data, error } = await getSupabase().from("user_settings").select("*").eq("user_id", userId).maybeSingle();
     if (!error) setShown(fromSavingsMilestoneRow(data as UserSettingsRow | null));
+    setLoading(false);
   }, [userId]);
 
   useEffect(() => {
@@ -44,5 +54,5 @@ export function useSavingsMilestone(userId: string | undefined) {
     if (error) throw error;
   }, [userId]);
 
-  return { shown, markShown, refetch };
+  return { shown, loading, markShown, refetch };
 }
