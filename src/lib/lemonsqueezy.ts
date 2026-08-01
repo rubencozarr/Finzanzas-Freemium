@@ -48,16 +48,24 @@ function isRunningAsTWA(): boolean {
 
 /** Abre el checkout de Lemon Squeezy (mensual/anual se eligen dentro de esa misma página), con el
  * user_id como custom data (así el webhook sabe a qué usuario activar) y el email prellenado si se
- * conoce. onSuccess se llama justo después de cerrar el overlay al completarse el pago (no espera a la
- * confirmación del webhook, que llega por separado y puede tardar unos segundos).
+ * conoce. onCheckoutSuccess se llama justo después de cerrar el overlay al completarse el pago (no
+ * espera a la confirmación del webhook, que llega por separado y puede tardar unos segundos).
  *
  * Dentro del TWA de Play Store el cobro tiene que salir del "shell" de la app y completarse en el
  * navegador del sistema, no en el overlay de lemon.js (que dentro de un TWA se vería como parte de la
  * propia app nativa) — es lo que exige la política de pagos de Google Play para compras que no pasan
- * por Play Billing. En ese caso no hay overlay ni evento "Checkout.Success" que escuchar, así que
- * onCheckoutSuccess no se invoca en esta rama: la suscripción se activa igual vía el webhook, y la app
- * la recoge la próxima vez que consulte el estado (p. ej. al volver a abrirla). */
-export function openCheckout(userId: string, email?: string, onCheckoutSuccess?: () => void) {
+ * por Play Billing. Ahí no hay overlay ni evento "Checkout.Success" que escuchar, así que
+ * onCheckoutSuccess no se invoca en esa rama (no sabemos si de verdad pagó, solo que volvió a la app —
+ * mostrar "¡Pago completado!" sería presuponer algo que no sabemos). En su lugar, onReturnFromExternalCheckout
+ * se llama en cuanto la pestaña de Nitid vuelve a primer plano tras abrir el navegador externo, para
+ * refrescar la suscripción en silencio: si el webhook ya activó Premium mientras tanto, la interfaz se
+ * pone al día sola sin necesidad de que el usuario cierre y reabra la app. */
+export function openCheckout(
+  userId: string,
+  email?: string,
+  onCheckoutSuccess?: () => void,
+  onReturnFromExternalCheckout?: () => void,
+) {
   const params = new URLSearchParams();
   params.set("checkout[custom][user_id]", userId);
   if (email) params.set("checkout[email]", email);
@@ -65,6 +73,14 @@ export function openCheckout(userId: string, email?: string, onCheckoutSuccess?:
 
   if (isRunningAsTWA()) {
     window.open(url, "_blank");
+    if (onReturnFromExternalCheckout) {
+      const handleVisibility = () => {
+        if (document.visibilityState !== "visible") return;
+        document.removeEventListener("visibilitychange", handleVisibility);
+        onReturnFromExternalCheckout();
+      };
+      document.addEventListener("visibilitychange", handleVisibility);
+    }
     return;
   }
 

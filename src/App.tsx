@@ -1039,6 +1039,14 @@ function App() {
             refetchSubscription();
             setTimeout(refetchSubscription, 4000);
           }}
+          onReturnFromExternalCheckout={() => {
+            // TWA: no sabemos si pagó de verdad, solo que volvió a la app tras abrir el navegador
+            // externo — sin toast de "completado" (sería presuponer). Si el webhook ya activó Premium
+            // mientras tanto, isPremium se actualiza solo y la interfaz se pone al día en cuanto
+            // refetchSubscription resuelva, sin que el usuario tenga que cerrar y reabrir la app.
+            refetchSubscription();
+            setTimeout(refetchSubscription, 4000);
+          }}
         />
       )}
 

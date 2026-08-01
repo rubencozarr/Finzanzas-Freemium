@@ -91,11 +91,15 @@ interface PremiumScreenProps {
   userEmail?: string;
   onClose: () => void;
   /** Se llama justo cuando el pago se completa (overlay ya cerrado). Pensado para refrescar el plan
-   * y avisar al usuario, ya que el webhook que activa Premium de verdad llega por separado. */
+   * y avisar al usuario, ya que el webhook que activa Premium de verdad llega por separado. Solo
+   * aplica al checkout en overlay (web normal); en TWA no hay overlay, ver onReturnFromExternalCheckout. */
   onCheckoutSuccess?: () => void;
+  /** Solo aplica en TWA (checkout en el navegador externo): se llama al volver a la app, para
+   * refrescar la suscripción en silencio sin presuponer que el pago se completó. */
+  onReturnFromExternalCheckout?: () => void;
 }
 
-export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckoutSuccess }: PremiumScreenProps) {
+export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckoutSuccess, onReturnFromExternalCheckout }: PremiumScreenProps) {
   const [showTech, setShowTech] = useState(false);
   const [openFaq, setOpenFaq] = useState<Set<number>>(new Set());
 
@@ -108,7 +112,7 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckou
     });
 
   const startCheckout = () => {
-    if (userId) openCheckout(userId, userEmail, onCheckoutSuccess);
+    if (userId) openCheckout(userId, userEmail, onCheckoutSuccess, onReturnFromExternalCheckout);
   };
 
   return (
