@@ -13,6 +13,7 @@ import {
   BarChart3,
   Calendar,
   Download,
+  Check,
 } from "lucide-react";
 import { PLAY_STORE_URL } from "../lib/constants";
 
@@ -101,6 +102,12 @@ function DeviceFrame({ src, alt, eager = false, className = "" }: { src: string;
   );
 }
 
+function SectionTitleAccent() {
+  return <div className="w-10 h-[3px] bg-teal-500 rounded-full mx-auto mt-2 mb-6" />;
+}
+
+const TRUST_BADGES = ["Gratis", "Sin anuncios", "Sin banco"];
+
 const EASY_STEPS = [
   { icon: Zap, text: "Registra en 3 toques" },
   { icon: PieChart, text: "Ve tus hábitos" },
@@ -137,23 +144,34 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
       {/* HERO */}
       <section className="px-5 pt-4 pb-8 sm:py-16">
         <div className="max-w-[1024px] mx-auto flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left sm:w-[55%]">
+          <div className="flex flex-col items-center sm:items-start sm:w-[55%]">
             <img src="/icon-512.png" alt="Nitid" width={36} height={36} className="rounded-lg mb-3" />
-            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-stone-900 max-w-md">
-              ¿Sabes en qué se va tu dinero cada mes?
-            </h1>
-            <p className="mt-2 text-stone-500 text-sm sm:text-base max-w-sm">
-              Controla tus gastos, ahorra con metas y entiende tus finanzas.
-            </p>
-            <a
-              href={PLAY_STORE_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center justify-center rounded-xl bg-teal-600 px-6 py-3 text-white font-semibold text-sm sm:text-base shadow-md hover:bg-teal-700 active:scale-[0.98] transition-all"
-            >
-              Descargar gratis en Google Play
-            </a>
-            <p className="mt-2.5 text-xs text-stone-400 whitespace-nowrap">✓ Gratis · ✓ Sin anuncios · ✓ Sin banco</p>
+            <div className="w-full bg-stone-50 border border-stone-200 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col items-center sm:items-start text-center sm:text-left">
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-stone-900 max-w-md">
+                ¿Sabes en qué se va tu dinero cada mes?
+              </h1>
+              <p className="mt-2 text-stone-500 text-sm sm:text-base max-w-sm">
+                Controla tus gastos, ahorra con metas y entiende tus finanzas.
+              </p>
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-teal-600 px-6 py-3 text-white font-semibold text-sm sm:text-base shadow-md hover:bg-teal-700 active:scale-[0.98] transition-all"
+              >
+                Descargar gratis en Google Play
+              </a>
+              <div className="mt-3 flex items-center justify-center sm:justify-start gap-3">
+                {TRUST_BADGES.map((label) => (
+                  <span key={label} className="flex items-center gap-1.5 text-xs text-stone-600 whitespace-nowrap">
+                    <span className="flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 shrink-0">
+                      <Check className="text-emerald-600" size={10} strokeWidth={3} />
+                    </span>
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="sm:w-[45%] flex flex-col items-center gap-3">
             <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Pantalla de movimientos de Nitid" eager />
@@ -189,7 +207,8 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
       <section className="px-5 py-12">
         <div className="max-w-[1024px] mx-auto">
           <Reveal>
-            <h2 className="text-xl sm:text-2xl font-bold text-center text-stone-800 mb-8">Tu dinero, con claridad</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-center text-stone-800">Tu dinero, con claridad</h2>
+            <SectionTitleAccent />
           </Reveal>
           <Reveal>
             <div className="flex gap-4 overflow-x-auto pb-2 sm:justify-center sm:overflow-visible snap-x snap-mandatory sm:snap-none -mx-5 px-10 sm:mx-0 sm:px-0">
@@ -210,11 +229,15 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
       <section className="px-5 py-12 bg-stone-50">
         <div className="max-w-[1024px] mx-auto">
           <Reveal>
-            <h2 className="text-xl sm:text-2xl font-bold text-center text-stone-800 mb-8">¿Por qué Nitid?</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-center text-stone-800">¿Por qué Nitid?</h2>
+            <SectionTitleAccent />
           </Reveal>
           <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto">
             {DIFFERENTIATORS.map((item) => (
-              <Reveal key={item.title} className="flex flex-col items-start p-4 rounded-2xl bg-white border border-stone-200 shadow-sm">
+              <Reveal
+                key={item.title}
+                className="flex flex-col items-start p-4 rounded-2xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-shadow"
+              >
                 <span className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-50 shrink-0">
                   <item.icon className="text-teal-600" size={18} strokeWidth={1.75} />
                 </span>
@@ -231,16 +254,19 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
         <div className="max-w-[1024px] mx-auto text-center">
           <Reveal>
             <h2 className="text-xl sm:text-2xl font-bold text-stone-800">Empieza gratis. De verdad.</h2>
-            <p className="mt-2 text-stone-500 text-sm">Sin trucos. Sin límite de tiempo.</p>
-            <div className="mt-7 grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
-              {FREE_ITEMS.map((item) => (
-                <div key={item.text} className="flex flex-col items-center gap-2 bg-stone-50 rounded-xl p-3">
-                  <span className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-50 shrink-0">
-                    <item.icon className="text-teal-600" size={18} strokeWidth={1.75} />
-                  </span>
-                  <span className="text-sm text-stone-700 text-center">{item.text}</span>
-                </div>
-              ))}
+            <SectionTitleAccent />
+            <p className="-mt-3 text-stone-500 text-sm">Sin trucos. Sin límite de tiempo.</p>
+            <div className="mt-7 bg-stone-50 rounded-2xl p-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
+                {FREE_ITEMS.map((item) => (
+                  <div key={item.text} className="flex flex-col items-center gap-2 bg-white border border-stone-200 rounded-xl p-3">
+                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-50 shrink-0">
+                      <item.icon className="text-teal-600" size={18} strokeWidth={1.75} />
+                    </span>
+                    <span className="text-sm text-stone-700 text-center">{item.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <p className="mt-6 text-xs text-stone-400 italic">¿Necesitas más? Premium desde 2,50€/mes. Sin permanencia.</p>
           </Reveal>

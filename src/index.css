@@ -56,7 +56,7 @@ input[type="number"] {
   }
 }
 .landing-marquee-track {
-  animation: landing-marquee 35s linear infinite;
+  animation: landing-marquee 25s linear infinite;
 }
 @media (hover: hover) {
   .landing-marquee-track:hover {
