@@ -45,7 +45,9 @@ import { NuevoMovimientoForm, type FormPreset } from "./components/NuevoMovimien
 import { ApplyPresetsModal } from "./components/ApplyPresetsModal";
 import { ResolveOrphansModal } from "./components/ResolveOrphansModal";
 import { LoginScreen } from "./components/LoginScreen";
+import { LandingPage } from "./components/LandingPage";
 import { ResetPasswordScreen } from "./components/ResetPasswordScreen";
+import { isRunningAsTWA } from "./lib/platform";
 import { GuidedTour } from "./components/GuidedTour";
 import { buildTourSteps } from "./lib/tourSteps";
 import { HelpModal } from "./components/HelpModal";
@@ -75,6 +77,10 @@ function App() {
     deleteAccount,
   } = useAuth();
   const userId = user?.id;
+  // Solo importa cuando !user: dentro del TWA de Play Store siempre se salta directo al login (no
+  // tiene sentido enseñar la landing dentro de la propia app instalada), así que este estado solo se
+  // usa para el flujo de navegador web normal.
+  const [showLoginScreen, setShowLoginScreen] = useState(false);
 
   const {
     transactions,
@@ -746,6 +752,13 @@ function App() {
   }
 
   if (!user) {
+    // Dentro del TWA, ir directo al login: es la propia app instalada, no un visitante del navegador.
+    // Fuera del TWA (navegador web normal), la landing es la puerta de entrada hasta que el visitante
+    // pulsa "Ya tengo cuenta" o vuelve a intentar el login (showLoginScreen no se resetea a propósito:
+    // no tiene sentido devolver a la landing a alguien que ya pidió ver el login).
+    if (!isRunningAsTWA() && !showLoginScreen) {
+      return <LandingPage onLoginClick={() => setShowLoginScreen(true)} />;
+    }
     return (
       <LoginScreen
         signInWithPassword={signInWithPassword}

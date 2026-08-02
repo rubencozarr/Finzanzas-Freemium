@@ -1,4 +1,5 @@
 import { LEMONSQUEEZY_CHECKOUT_UUID, LEMONSQUEEZY_STORE_SLUG } from "./constants";
+import { isRunningAsTWA } from "./platform";
 
 // lemon.js (cargado en index.html) engancha window.createLemonSqueezy, que a su vez expone
 // window.LemonSqueezy con los helpers del overlay de checkout.
@@ -35,15 +36,6 @@ function ensureLoaded() {
     },
   });
   loaded = true;
-}
-
-// El TWA empaquetado para Play Store renderiza la PWA igual que una instalada normal (display-mode:
-// standalone), así que esa señal sola no distingue "TWA de Play Store" de "PWA añadida a la pantalla
-// de inicio desde el propio navegador". document.referrer sí lo hace: Chrome lo pone a
-// "android-app://<paquete>" únicamente cuando la página se abre dentro de una Trusted Web Activity.
-function isRunningAsTWA(): boolean {
-  if (document.referrer.startsWith("android-app://")) return true;
-  return typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches;
 }
 
 /** Abre el checkout de Lemon Squeezy (mensual/anual se eligen dentro de esa misma página), con el

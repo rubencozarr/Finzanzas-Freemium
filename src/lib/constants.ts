@@ -8,6 +8,8 @@ export const LEMONSQUEEZY_STORE_SLUG = "nitidfinanzas";
 // hay variant id por separado en la URL).
 export const LEMONSQUEEZY_CHECKOUT_UUID = "2053c35e-9035-4db7-8034-71d5b90160e5";
 
+export const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.nitidapp.gastos";
+
 // Sube este valor cuando cambie el contenido de PrivacyPolicyModal.tsx, para poder distinguir más
 // adelante qué usuarios aceptaron una versión antigua (user_settings.privacy_version).
 export const PRIVACY_POLICY_VERSION = "v1";
