@@ -88,29 +88,15 @@ function Reveal({ children, className = "" }: PropsWithChildren<{ className?: st
   );
 }
 
-function DeviceFrame({
-  src,
-  alt,
-  eager = false,
-  className = "",
-  cropMobile = false,
-}: {
-  src: string;
-  alt: string;
-  eager?: boolean;
-  className?: string;
-  cropMobile?: boolean;
-}) {
+function DeviceFrame({ src, alt, eager = false, className = "" }: { src: string; alt: string; eager?: boolean; className?: string }) {
   return (
-    <div
-      className={`w-[220px] sm:w-full sm:max-w-[260px] rounded-[24px] border border-stone-200 shadow-xl bg-white overflow-hidden ${cropMobile ? "max-h-[230px] sm:max-h-none" : ""} ${className}`}
-    >
+    <div className={`w-[220px] sm:w-full sm:max-w-[260px] rounded-[24px] border border-stone-200 shadow-xl bg-white overflow-hidden ${className}`}>
       <div className="flex items-center justify-center gap-1.5 py-2 bg-white">
         <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
         <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
         <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
       </div>
-      <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} className="w-full block" />
+      <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} className="w-full block object-contain" />
     </div>
   );
 }
@@ -169,27 +155,32 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
             </a>
             <p className="mt-2.5 text-xs text-stone-400 whitespace-nowrap">✓ Gratis · ✓ Sin anuncios · ✓ Sin banco</p>
           </div>
-          <div className="sm:w-[45%] flex flex-col items-center gap-2">
-            <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Pantalla de movimientos de Nitid" eager cropMobile />
-            <button onClick={onLoginClick} className="text-xs text-stone-400 hover:text-stone-600">
+          <div className="sm:w-[45%] flex flex-col items-center gap-3">
+            <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Pantalla de movimientos de Nitid" eager />
+            <button
+              onClick={onLoginClick}
+              className="rounded-lg border border-stone-300 px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 transition-colors"
+            >
               Ya tengo cuenta → Iniciar sesión
             </button>
           </div>
         </div>
       </section>
 
-      {/* FRANJA "ASÍ DE FÁCIL" */}
-      <section className="px-5 py-3 bg-stone-50">
+      {/* FRANJA "ASÍ DE FÁCIL" (marquee continuo, ver @keyframes landing-marquee en index.css) */}
+      <section className="py-3 bg-stone-50">
         <Reveal>
-          <div className="max-w-[1024px] mx-auto flex items-center justify-center gap-4 sm:gap-10 overflow-x-auto">
-            {EASY_STEPS.map((step) => (
-              <div key={step.text} className="flex items-center gap-2 shrink-0">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-50 shrink-0">
-                  <step.icon className="text-teal-600" size={14} strokeWidth={2} />
-                </span>
-                <span className="text-xs sm:text-sm text-stone-600 whitespace-nowrap">{step.text}</span>
-              </div>
-            ))}
+          <div className="overflow-hidden">
+            <div className="landing-marquee-track flex w-max items-center gap-10 sm:gap-16">
+              {[...EASY_STEPS, ...EASY_STEPS].map((step, i) => (
+                <div key={i} className="flex items-center gap-2 shrink-0">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-50 shrink-0">
+                    <step.icon className="text-teal-600" size={14} strokeWidth={2} />
+                  </span>
+                  <span className="text-xs sm:text-sm text-stone-600 whitespace-nowrap">{step.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </Reveal>
       </section>
