@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PropsWithChildren } from "react";
-import { Zap, PieChart, Target, ShieldCheck, Ban, Layers, Heart, Lock, Check } from "lucide-react";
+import { Zap, PieChart, Target, ShieldCheck, Ban, Layers, Heart, Lock, Check, TrendingUp } from "lucide-react";
 import { PLAY_STORE_URL } from "../lib/constants";
 
 interface LandingPageProps {
@@ -121,7 +121,15 @@ const DIFFERENTIATORS = [
   { icon: Ban, title: "Sin anuncios", description: "Experiencia limpia, sin interrupciones." },
   { icon: Layers, title: "Todo en una app", description: "Gastos, ahorro e inversión en un solo lugar." },
   { icon: Heart, title: "Precio justo", description: "Gratis para empezar. Premium desde 2,50€/mes." },
+  {
+    icon: TrendingUp,
+    title: "Crece con la app",
+    description: "Empieza controlando gastos. Cuando estés listo: inversión, análisis anual y más con Premium.",
+  },
 ];
+
+const SEO_PARAGRAPH =
+  "Nitid es una app de control de gastos y finanzas personales para quienes quieren saber en qué gastan, cuánto ahorran y cómo evoluciona su dinero. Registra tus gastos e ingresos, organiza tu ahorro personal con fondos y metas, y gestiona tu presupuesto mes a mes. Y si buscas más profundidad: inversión desglosada por activos, análisis anual con comparativa entre años e insights automáticos de tus hábitos de gasto.";
 
 const FREE_FEATURES = [
   "Transacciones ilimitadas",
@@ -222,6 +230,13 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
           </div>
         </section>
 
+        {/* PÁRRAFO SEO */}
+        <section className="px-5 py-8 sm:py-10">
+          <Reveal>
+            <p className="max-w-2xl mx-auto text-center text-stone-500 text-sm leading-relaxed">{SEO_PARAGRAPH}</p>
+          </Reveal>
+        </section>
+
         {/* DIFERENCIADORES */}
         <section className="px-5 py-12 bg-stone-50">
           <div className="max-w-[1024px] mx-auto">
@@ -229,11 +244,11 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
               <h2 className="text-xl sm:text-2xl font-bold text-center text-stone-800">¿Por qué Nitid?</h2>
               <SectionTitleAccent />
             </Reveal>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto">
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-xl sm:max-w-2xl mx-auto">
               {DIFFERENTIATORS.map((item) => (
                 <Reveal
                   key={item.title}
-                  className="flex flex-col items-start p-4 rounded-2xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-shadow"
+                  className="w-[calc(50%-6px)] sm:w-[calc(33.333%-11px)] flex flex-col items-start p-4 rounded-2xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <span className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-50 shrink-0">
                     <item.icon className="text-teal-600" size={18} strokeWidth={1.75} />
@@ -255,9 +270,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
               <p className="-mt-3 text-stone-500 text-sm">Sin trucos. Sin límite de tiempo.</p>
               <div className="mt-7 max-w-[400px] mx-auto bg-white border border-teal-400 rounded-2xl shadow-lg p-6 text-left">
                 <div className="flex justify-center">
-                  <span className="inline-block bg-teal-600 text-white text-sm font-semibold px-4 py-1 rounded-full">
-                    Plan Gratuito · Para siempre
-                  </span>
+                  <span className="inline-block bg-teal-600 text-white text-sm font-semibold px-4 py-1 rounded-full">Plan Gratuito</span>
                 </div>
                 <div className="mt-5 flex flex-col">
                   {FREE_FEATURES.map((feature) => (
@@ -265,7 +278,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
                   ))}
                 </div>
                 <div className="border-t border-stone-200 my-4" />
-                <p className="text-center text-xs text-stone-400 italic">¿Necesitas más? Premium desde 2,50€/mes. Sin permanencia.</p>
+                <p className="text-center text-xs text-stone-400 italic">Cuando quieras ir más allá: Premium desde 2,50€/mes.</p>
               </div>
             </Reveal>
           </div>
