@@ -13,6 +13,7 @@ import { useOnboardingStatus } from "./hooks/useOnboardingStatus";
 import { useSubscription } from "./hooks/useSubscription";
 import { useSavingsMilestone } from "./hooks/useSavingsMilestone";
 import { usePrivacyAcceptance } from "./hooks/usePrivacyAcceptance";
+import { useKeyboardInset } from "./hooks/useKeyboardInset";
 import { FREE_MAX_CATEGORIES, FREE_MAX_FUNDS } from "./lib/constants";
 import {
   ahorroLibreDisponibleParaMes,
@@ -81,6 +82,7 @@ function App() {
   // tiene sentido enseñar la landing dentro de la propia app instalada), así que este estado solo se
   // usa para el flujo de navegador web normal.
   const [showLoginScreen, setShowLoginScreen] = useState(false);
+  const keyboardInset = useKeyboardInset();
 
   const {
     transactions,
@@ -1077,8 +1079,15 @@ function App() {
       )}
 
       <nav
-        className="sticky bottom-0 bg-white border-t border-stone-200 flex justify-around pt-2 max-w-md w-full mx-auto"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.5rem)" }}
+        // position: fixed (no sticky) anclado con el hueco de useKeyboardInset: con sticky, al abrir el
+        // teclado el layout viewport/100dvh no siempre se actualiza en el mismo frame y la barra se
+        // queda mal colocada hasta el próximo scroll (ver comentario en useKeyboardInset.ts). Fixed +
+        // visualViewport la mantiene pegada a lo que sea visible de verdad en todo momento.
+        className="fixed left-0 right-0 bottom-0 bg-white border-t border-stone-200 flex justify-around pt-2 max-w-md w-full mx-auto"
+        style={{
+          bottom: keyboardInset,
+          paddingBottom: keyboardInset > 0 ? "0.5rem" : "calc(env(safe-area-inset-bottom) + 0.5rem)",
+        }}
       >
         <NavButton icon={<Wallet size={18} />} label="Movim." active={tab === "movimientos"} onClick={() => setTab("movimientos")} tourId="nav-movimientos" />
         <NavButton icon={<PiggyBank size={18} />} label="Fondos" active={tab === "fondos"} onClick={() => setTab("fondos")} tourId="nav-fondos" />

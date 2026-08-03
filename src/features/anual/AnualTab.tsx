@@ -138,6 +138,11 @@ export function AnualTab({
         Estos datos son solo de {year}, comparables entre años. Tu posición patrimonial acumulada (cuánto tienes en total) la ves en Fondos e
         inversión.
       </p>
+      {!isPremium && (
+        <p className="text-xs text-stone-400 text-center mb-4">
+          El resumen incluye todos los meses del año, incluidos los anteriores a los últimos 6 meses.
+        </p>
+      )}
 
       {isPremium ? (
         <>

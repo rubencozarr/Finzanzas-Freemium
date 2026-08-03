@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Crown } from "lucide-react";
 import { MONTHS_ES, MONTHS_FULL } from "../lib/constants";
 import { round2 } from "../lib/format";
 import { PremiumGate } from "./PremiumGate";
@@ -28,6 +28,9 @@ export function MonthSwitcher({
   onOpenPremiumScreen,
 }: MonthSwitcherProps) {
   const [open, setOpen] = useState(false);
+  // Se reinicia cada vez que se abre/cierra el selector (ver el onClick del botón de cabecera), para
+  // que el aviso no quede pegado de una apertura anterior del picker.
+  const [showLockedNotice, setShowLockedNotice] = useState(false);
   const hasPicker = !!(changeYear && goToMonthIndex);
 
   const canGoBack = canNavigateToMonth(new Date(year, monthIdx - 1, 1));
@@ -52,7 +55,13 @@ export function MonthSwitcher({
           <ChevronLeft size={18} />
         </button>
         {hasPicker ? (
-          <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1 font-serif text-base capitalize">
+          <button
+            onClick={() => {
+              setOpen((o) => !o);
+              setShowLockedNotice(false);
+            }}
+            className="flex items-center gap-1 font-serif text-base capitalize"
+          >
             {MONTHS_FULL[monthIdx]} {year}
             <ChevronDown size={15} className={`text-stone-400 transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
@@ -97,15 +106,20 @@ export function MonthSwitcher({
               return (
                 <button
                   key={m}
-                  disabled={!accessible}
                   onClick={() => {
-                    if (!accessible) return;
+                    if (!accessible) {
+                      setShowLockedNotice(true);
+                      return;
+                    }
                     goToMonthIndex!(i);
                     setOpen(false);
                   }}
                   className={`flex flex-col items-center gap-1 rounded-lg py-2 text-xs ${active ? "bg-slate-800 text-white" : "bg-stone-50 text-slate-600"} ${!accessible ? "opacity-40" : ""}`}
                 >
-                  {m}
+                  <span className="flex items-center gap-0.5">
+                    {m}
+                    {!accessible && <Crown size={10} className="text-amber-500" />}
+                  </span>
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${dot} ${active ? "ring-2 ring-white ring-offset-1 ring-offset-slate-800" : ""}`}
                   />
@@ -114,6 +128,11 @@ export function MonthSwitcher({
             })}
           </div>
           <p className="text-[11px] text-stone-400 mt-2">Verde: positivo · Ámbar: cero · Rojo: negativo</p>
+          {showLockedNotice && (
+            <div className="mt-2">
+              <PremiumGate message="Con Premium tienes acceso a todo tu historial" onOpenPremiumScreen={onOpenPremiumScreen} />
+            </div>
+          )}
         </div>
       )}
     </div>
