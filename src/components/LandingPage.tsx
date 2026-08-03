@@ -128,7 +128,7 @@ const DIFFERENTIATORS = [
 ];
 
 const SEO_PARAGRAPH =
-  "Nitid es una app de control de gastos y finanzas personales para quienes quieren saber en qué gastan, cuánto ahorran y cómo evoluciona su dinero. Registra tus gastos e ingresos, organiza tu ahorro personal con fondos y metas, y gestiona tu presupuesto mes a mes. Y si buscas más profundidad: inversión desglosada por activos, análisis anual con comparativa entre años e insights automáticos de tus hábitos de gasto.";
+  "Nitid es una app de control de gastos y finanzas personales para quienes quieren saber en qué gastan, cuánto ahorran y cómo evoluciona su dinero. Registra tus gastos e ingresos, organiza tu ahorro personal con fondos y metas, y gestiona tu presupuesto mes a mes. Y si buscas más profundidad, el plan Premium incluye inversión desglosada por activos, análisis anual con comparativa entre años e insights automáticos de tus hábitos de gasto.";
 
 const FREE_FEATURES = [
   "Transacciones ilimitadas",
@@ -264,9 +264,9 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
         <section className="px-5 py-12">
           <div className="max-w-[1024px] mx-auto text-center">
             <Reveal>
-              <h2 className="text-xl sm:text-2xl font-bold text-stone-800">Empieza gratis. De verdad.</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-800">Gratis. Sin letra pequeña.</h2>
               <SectionTitleAccent />
-              <p className="-mt-3 text-stone-500 text-sm">Sin trucos. Sin límite de tiempo.</p>
+              <p className="-mt-3 text-stone-500 text-sm">Todo esto incluido, sin pagar nada.</p>
               <div className="mt-7 max-w-[400px] mx-auto bg-white border border-teal-400 rounded-2xl shadow-lg p-6 text-left">
                 <div className="flex justify-center">
                   <span className="inline-block bg-teal-600 text-white text-sm font-semibold px-4 py-1 rounded-full">Plan Gratuito</span>
