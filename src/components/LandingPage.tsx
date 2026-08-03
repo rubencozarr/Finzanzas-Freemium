@@ -187,7 +187,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
           <Reveal>
             <div className="overflow-hidden">
               <div className="landing-marquee-track flex w-max items-center gap-10 sm:gap-16">
-                {[...EASY_STEPS, ...EASY_STEPS].map((step, i) => (
+                {[...EASY_STEPS, ...EASY_STEPS, ...EASY_STEPS].map((step, i) => (
                   <div key={i} className="flex items-center gap-2 shrink-0">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-50 shrink-0">
                       <step.icon className="text-teal-600" size={14} strokeWidth={2} />
