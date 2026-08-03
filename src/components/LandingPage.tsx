@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PropsWithChildren } from "react";
-import { Zap, PieChart, Target, ShieldCheck, Ban, Layers, Heart, Lock, Check, TrendingUp } from "lucide-react";
+import { Zap, PieChart, Target, ShieldCheck, Ban, Layers, Lock, Check, TrendingUp } from "lucide-react";
 import { PLAY_STORE_URL } from "../lib/constants";
 
 interface LandingPageProps {
@@ -120,7 +120,6 @@ const DIFFERENTIATORS = [
   { icon: ShieldCheck, title: "Sin conexión bancaria", description: "No pedimos contraseñas de banco. Tú introduces tus datos manualmente." },
   { icon: Ban, title: "Sin anuncios", description: "Experiencia limpia, sin interrupciones." },
   { icon: Layers, title: "Todo en una app", description: "Gastos, ahorro e inversión en un solo lugar." },
-  { icon: Heart, title: "Precio justo", description: "Gratis para empezar. Premium desde 2,50€/mes." },
   {
     icon: TrendingUp,
     title: "Crece con la app",
@@ -244,11 +243,11 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
               <h2 className="text-xl sm:text-2xl font-bold text-center text-stone-800">¿Por qué Nitid?</h2>
               <SectionTitleAccent />
             </Reveal>
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-xl sm:max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto">
               {DIFFERENTIATORS.map((item) => (
                 <Reveal
                   key={item.title}
-                  className="w-[calc(50%-6px)] sm:w-[calc(33.333%-11px)] flex flex-col items-start p-4 rounded-2xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-shadow"
+                  className="flex flex-col items-start p-4 rounded-2xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <span className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-50 shrink-0">
                     <item.icon className="text-teal-600" size={18} strokeWidth={1.75} />
