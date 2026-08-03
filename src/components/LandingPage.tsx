@@ -1,5 +1,20 @@
 import { useEffect, useRef, useState, type PropsWithChildren } from "react";
-import { Zap, PieChart, Target, ShieldCheck, Ban, Layers, Lock, Check, TrendingUp } from "lucide-react";
+import {
+  Zap,
+  PieChart,
+  Target,
+  ShieldCheck,
+  Ban,
+  Layers,
+  Lock,
+  Check,
+  TrendingUp,
+  FileText,
+  PiggyBank,
+  BarChart3,
+  Download,
+  type LucideIcon,
+} from "lucide-react";
 import { PLAY_STORE_URL } from "../lib/constants";
 
 interface LandingPageProps {
@@ -91,11 +106,11 @@ function SectionTitleAccent() {
   return <div className="w-10 h-[3px] bg-teal-500 rounded-full mx-auto mt-2 mb-6" />;
 }
 
-function CheckRow({ text }: { text: string }) {
+function CheckRow({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
   return (
     <div className="flex items-center gap-3 py-2">
       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 shrink-0">
-        <Check className="text-emerald-600" size={14} strokeWidth={3} />
+        <Icon className="text-emerald-600" size={14} strokeWidth={2.25} />
       </span>
       <span className="text-sm text-stone-700">{text}</span>
     </div>
@@ -131,12 +146,12 @@ const SEO_PARAGRAPH =
   "Nitid es una app de control de gastos y finanzas personales para quienes quieren saber en qué gastan, cuánto ahorran y cómo evoluciona su dinero. Registra tus gastos e ingresos, organiza tu ahorro personal con fondos y metas, y gestiona tu presupuesto mes a mes. Y si buscas más profundidad, el plan Premium incluye inversión desglosada por activos, análisis anual con comparativa entre años e insights automáticos de tus hábitos de gasto.";
 
 const FREE_FEATURES = [
-  "Transacciones ilimitadas",
-  "2 fondos de ahorro",
-  "Gráficos mensuales",
-  "6 meses de historial",
-  "Exportación de datos",
-  "Sin publicidad",
+  { icon: FileText, text: "Transacciones ilimitadas" },
+  { icon: PiggyBank, text: "2 fondos de ahorro" },
+  { icon: PieChart, text: "Resumen y gráficos mensuales" },
+  { icon: BarChart3, text: "Resumen anual" },
+  { icon: Download, text: "Exportación de datos" },
+  { icon: Ban, text: "Sin publicidad" },
 ];
 
 export function LandingPage({ onLoginClick }: LandingPageProps) {
@@ -273,7 +288,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
                 </div>
                 <div className="mt-5 flex flex-col">
                   {FREE_FEATURES.map((feature) => (
-                    <CheckRow key={feature} text={feature} />
+                    <CheckRow key={feature.text} icon={feature.icon} text={feature.text} />
                   ))}
                 </div>
                 <div className="border-t border-stone-200 my-4" />
