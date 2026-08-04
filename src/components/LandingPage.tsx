@@ -15,7 +15,9 @@ import {
   Download,
   type LucideIcon,
 } from "lucide-react";
-import { PLAY_STORE_URL } from "../lib/constants";
+import { useSeoMeta } from "../hooks/useSeoMeta";
+import { GooglePlayBadge } from "./GooglePlayBadge";
+import { SiteFooter } from "./SiteFooter";
 
 interface LandingPageProps {
   onLoginClick: () => void;
@@ -24,39 +26,15 @@ interface LandingPageProps {
 const SEO_TITLE = "Nitid: Control de Gastos — Tus finanzas con claridad";
 const SEO_DESCRIPTION = "Registra gastos, ahorra con metas y analiza tus finanzas. Sin banco, sin anuncios, gratis. Descarga Nitid.";
 
-// La landing solo se monta para visitantes sin sesión desde el navegador (ver App.tsx); mientras esté
-// montada sustituye el <title>/<meta description> genéricos de index.html por unos orientados a
-// conversión y descubrimiento (Google, compartidos en redes), y los restaura al desmontar para no
-// dejar estos tags "filtrados" una vez el usuario entra a la app.
+// La landing solo se monta para visitantes sin sesión desde el navegador (ver App.tsx); useSeoMeta se
+// encarga de sustituir/restaurar el <title>/<meta description>/og:* mientras esté montada.
 function useLandingSeo() {
-  useEffect(() => {
-    const originalTitle = document.title;
-    const descriptionTag = document.querySelector('meta[name="description"]');
-    const originalDescription = descriptionTag?.getAttribute("content") ?? null;
-
-    document.title = SEO_TITLE;
-    descriptionTag?.setAttribute("content", SEO_DESCRIPTION);
-
-    const ogTags: Array<[string, string]> = [
-      ["og:title", SEO_TITLE],
-      ["og:description", SEO_DESCRIPTION],
-      ["og:image", "https://nitidapp.com/icon-512.png"],
-      ["og:url", "https://nitidapp.com"],
-    ];
-    const createdTags = ogTags.map(([property, content]) => {
-      const meta = document.createElement("meta");
-      meta.setAttribute("property", property);
-      meta.setAttribute("content", content);
-      document.head.appendChild(meta);
-      return meta;
-    });
-
-    return () => {
-      document.title = originalTitle;
-      if (originalDescription !== null) descriptionTag?.setAttribute("content", originalDescription);
-      createdTags.forEach((tag) => tag.remove());
-    };
-  }, []);
+  useSeoMeta({
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    image: "https://nitidapp.com/icon-512.png",
+    url: "https://nitidapp.com",
+  });
 }
 
 function Reveal({ children, className = "" }: PropsWithChildren<{ className?: string }>) {
@@ -114,18 +92,6 @@ function CheckRow({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
       </span>
       <span className="text-sm text-stone-700">{text}</span>
     </div>
-  );
-}
-
-function GooglePlayBadge({ className = "" }: { className?: string }) {
-  return (
-    <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer" className={`inline-block w-full max-w-[200px] ${className}`}>
-      <img
-        src="https://play.google.com/intl/en_us/badges/static/images/badges/es_badge_web_generic.png"
-        alt="Disponible en Google Play"
-        className="w-full h-auto"
-      />
-    </a>
   );
 }
 
@@ -327,25 +293,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
           </div>
         </section>
 
-        {/* FOOTER */}
-        <footer className="bg-stone-800 text-stone-400 px-5 py-8 text-sm">
-          <div className="max-w-[1024px] mx-auto flex flex-col items-center gap-3 text-center">
-            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-              <a href="/privacy" className="hover:text-white">
-                Política de privacidad
-              </a>
-              <span className="text-stone-600">·</span>
-              <a href="/delete-account" className="hover:text-white">
-                Eliminar cuenta
-              </a>
-              <span className="text-stone-600">·</span>
-              <a href="mailto:contacto@nitidapp.com" className="hover:text-white">
-                contacto@nitidapp.com
-              </a>
-            </div>
-            <p className="text-stone-500">© 2026 Nitid Apps</p>
-          </div>
-        </footer>
+        <SiteFooter />
       </div>
     </div>
   );
