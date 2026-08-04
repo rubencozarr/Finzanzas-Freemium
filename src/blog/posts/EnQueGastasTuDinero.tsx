@@ -23,14 +23,6 @@ const APP_STEPS = [
   "Puedes poner presupuestos por categoría y crear fondos de ahorro con metas que muestran tu progreso.",
 ];
 
-const SUMMARY_STEPS = [
-  "Separa gastos fijos (se pagan solos) de variables (los que controlas)",
-  "Registra cada gasto variable durante un mes, en el momento",
-  "Agrupa por categorías y mira qué sorpresas te llevas",
-  "Calcula tu tasa de ahorro para saber si vas bien",
-  "Decide con datos reales, no con intenciones",
-];
-
 export function EnQueGastasTuDinero() {
   return (
     <article>
@@ -233,26 +225,7 @@ export function EnQueGastasTuDinero() {
         </div>
       </div>
 
-      <div className="mt-10 text-center">
-        <h2 className="text-2xl font-bold text-stone-900">Resumen del método</h2>
-        <SectionTitleAccent />
-      </div>
-      <div className="rounded-2xl bg-stone-50 p-6">
-        <ol className="flex flex-col gap-3">
-          {SUMMARY_STEPS.map((step, i) => (
-            <li key={step} className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 shrink-0">
-                <Check size={14} className="text-emerald-600" strokeWidth={3} />
-              </span>
-              <span className="text-sm text-stone-700">
-                {i + 1}. {step}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <p className="mt-8 text-lg text-stone-400 italic text-center">
+      <p className="mt-10 text-lg text-stone-400 italic text-center">
         "El mejor momento para empezar fue hace un año. El segundo mejor momento es hoy."
       </p>
 
