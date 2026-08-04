@@ -1,4 +1,4 @@
-import { PenLine, Users, Layers, Zap } from "lucide-react";
+import { PenLine, Users, Layers, Zap, Check } from "lucide-react";
 import { AppComparisonTable } from "../components/AppComparisonTable";
 import { AppReviewCard } from "../components/AppReviewCard";
 import { ChooseList } from "../components/ChooseList";
@@ -21,6 +21,41 @@ const COMPARISON_ROWS = [
   { label: "Idioma español", values: ["yes", "yes", "Parcial", "yes", "yes"] },
 ];
 
+const NITID_FREE_ITEMS = [
+  "Transacciones ilimitadas",
+  "2 fondos de ahorro",
+  "Gráficos mensuales con composición de gastos",
+  "Resumen anual",
+  "Categorías personalizables (6 fijas + 6 variables)",
+  "Exportación de datos",
+  "Sin publicidad",
+];
+
+const NITID_PREMIUM_ITEMS = [
+  "Fondos de ahorro ilimitados con metas",
+  "Inversión desglosada por activos",
+  "Análisis anual completo con comparativa entre años",
+  "Insights automáticos",
+  "Categorías y subcategorías ilimitadas",
+  "Presupuestos por categoría",
+  "Historial completo",
+  "Exportación a Excel",
+];
+
+function CheckItemList({ items, tone }: { items: string[]; tone: "emerald" | "teal" }) {
+  const iconColor = tone === "emerald" ? "text-emerald-600" : "text-teal-600";
+  return (
+    <ul className="flex flex-col gap-1">
+      {items.map((item) => (
+        <li key={item} className="flex items-center gap-2">
+          <Check size={13} className={`${iconColor} shrink-0`} strokeWidth={3} />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const CHOOSE_ITEMS = [
   { icon: PenLine, label: "Si solo quieres apuntar gastos", text: "Monefy o 1Money se centran en eso." },
   { icon: Users, label: "Si necesitas gastos compartidos con otra persona", text: "Goodbudget con su sistema de sobres." },
@@ -42,7 +77,11 @@ export function MejoresAppsControlarGastosSinBanco() {
         date="4 de agosto de 2026"
       />
 
-      <div className="mt-8 p-6 rounded-2xl bg-white border border-stone-200 shadow-sm">
+      <p className="py-8 text-center text-xl sm:text-2xl text-stone-700 font-medium italic">
+        ¿Se puede tener el control de tus finanzas sin renunciar a tu privacidad?
+      </p>
+
+      <div className="p-6 rounded-2xl bg-white border border-stone-200 shadow-sm">
         <div className="flex flex-col gap-4 text-stone-600 leading-relaxed">
           <p>
             Quieres saber en qué se va tu dinero cada mes, pero no te apetece darle las contraseñas de tu banco a una app. Es normal. Cada vez más
@@ -92,13 +131,13 @@ export function MejoresAppsControlarGastosSinBanco() {
           highlights={
             <>
               <p>
-                La versión gratuita ya es funcional de verdad: transacciones ilimitadas, gráficos mensuales con donut de categorías, 2 fondos de
-                ahorro, resumen anual, y exportación de datos. Sin publicidad y sin límite de tiempo.
+                La versión gratuita ya es funcional de verdad: registra tus gastos sin límite y descubre en qué se te va el dinero con gráficos
+                claros. Crea fondos de ahorro para lo que te importa (vacaciones, fondo de emergencia, un capricho), consulta tu resumen anual
+                para saber si vas mejor o peor que el año pasado, y exporta tus datos cuando quieras. Sin publicidad y sin límite de tiempo.
               </p>
               <p>
                 El análisis mensual te muestra en qué categorías gastas más con un gráfico de composición, y los insights automáticos te avisan
-                cuando un gasto sube más de lo normal o cuando llevas varios meses ahorrando. Es información que en otras apps necesitas calcular
-                tú mismo.
+                cuando algo cambia en tus hábitos de gasto, para que tomes decisiones a tiempo y no te lleves sorpresas a fin de mes.
               </p>
               <p>
                 La gestión de inversión es algo que casi ninguna app de esta categoría ofrece. Puedes definir tus activos, asignar porcentajes de
@@ -113,8 +152,14 @@ export function MejoresAppsControlarGastosSinBanco() {
               versión de escritorio, es mobile-first.
             </p>
           }
-          priceFree="transacciones ilimitadas, 2 fondos, gráficos mensuales, 6 categorías fijas + 6 variables"
-          pricePremium="29,99€/año (2,50€/mes). Fondos ilimitados con metas, inversión desglosada, análisis anual completo, insights, categorías ilimitadas con subcategorías, presupuestos por categoría, historial completo, exportación a Excel"
+          priceFree={<CheckItemList items={NITID_FREE_ITEMS} tone="emerald" />}
+          pricePremium={
+            <>
+              <p className="font-semibold text-teal-900">29,99€/año — 2,50€/mes</p>
+              <p className="mt-1.5 mb-1.5 text-stone-400 italic">Todo lo del plan gratuito, más:</p>
+              <CheckItemList items={NITID_PREMIUM_ITEMS} tone="teal" />
+            </>
+          }
           idealFor="Para quien quiere controlar gastos, ahorrar con objetivos concretos y además llevar un seguimiento de su inversión, todo en una sola app y sin dar datos bancarios."
         />
       </div>
