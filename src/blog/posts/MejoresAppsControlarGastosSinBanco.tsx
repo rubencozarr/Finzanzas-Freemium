@@ -1,7 +1,11 @@
+import { PenLine, Users, Layers, Zap } from "lucide-react";
 import { AppComparisonTable } from "../components/AppComparisonTable";
 import { AppReviewCard } from "../components/AppReviewCard";
 import { ChooseList } from "../components/ChooseList";
+import { CardDivider } from "../components/CardDivider";
+import { ArticleBanner } from "../components/ArticleBanner";
 import { GooglePlayBadge } from "../../components/GooglePlayBadge";
+import { SectionTitleAccent } from "../../components/SectionTitleAccent";
 
 const COMPARISON_APPS = ["Nitid", "Monefy", "Goodbudget", "Money Manager", "1Money"];
 
@@ -13,101 +17,109 @@ const COMPARISON_ROWS = [
   { label: "Análisis anual", values: ["yes", "no", "no", "Básico", "no"] },
   { label: "Insights automáticos", values: ["yes", "no", "no", "no", "no"] },
   { label: "Sin anuncios (plan gratis)", values: ["yes", "no", "no", "no", "no"] },
-  { label: "Precio Premium", values: ["29,99€/año", "~60€/año", "~80€/año", "~30€/año", "~30€/año"] },
+  { label: "Precio Premium", values: ["29,99€/año", "~60€/año", "~80€/año", "~30€/año", "~30€/año"], emphasis: true },
   { label: "Idioma español", values: ["yes", "yes", "Parcial", "yes", "yes"] },
 ];
 
 const CHOOSE_ITEMS = [
-  { label: "Si solo quieres apuntar gastos", text: "Monefy o 1Money se centran en eso." },
-  { label: "Si necesitas gastos compartidos con otra persona", text: "Goodbudget con su sistema de sobres." },
+  { icon: PenLine, label: "Si solo quieres apuntar gastos", text: "Monefy o 1Money se centran en eso." },
+  { icon: Users, label: "Si necesitas gastos compartidos con otra persona", text: "Goodbudget con su sistema de sobres." },
   {
+    icon: Layers,
     label: "Si quieres control de gastos + ahorro con metas + inversión, todo junto",
     text: "Nitid es la única que combina las tres cosas sin pedir acceso a tu banco.",
     highlighted: true,
   },
-  { label: "Si quieres algo básico y no te importan los anuncios", text: "Money Manager funciona." },
+  { icon: Zap, label: "Si quieres algo básico y no te importan los anuncios", text: "Money Manager funciona." },
 ];
 
 export function MejoresAppsControlarGastosSinBanco() {
   return (
     <article>
-      <h1 className="text-3xl font-bold text-stone-900 leading-tight">
-        Las 5 mejores apps para controlar gastos sin conectar tu banco (2026)
-      </h1>
+      <ArticleBanner
+        title="Las 5 mejores apps para controlar gastos sin conectar tu banco (2026)"
+        subtitle="Comparativa de las mejores apps de control de gastos con entrada manual, sin dar acceso a tu banco."
+        date="4 de agosto de 2026"
+      />
 
-      <div className="mt-6 flex flex-col gap-4 text-stone-600 leading-relaxed">
-        <p>
-          Quieres saber en qué se va tu dinero cada mes, pero no te apetece darle las contraseñas de tu banco a una app. Es normal. Cada vez más
-          personas prefieren registrar sus gastos de forma manual: sin conexiones bancarias, sin compartir datos sensibles, y con la tranquilidad
-          de que nadie más tiene acceso a su información financiera.
+      <div className="mt-8 p-6 rounded-2xl bg-white border border-stone-200 shadow-sm">
+        <div className="flex flex-col gap-4 text-stone-600 leading-relaxed">
+          <p>
+            Quieres saber en qué se va tu dinero cada mes, pero no te apetece darle las contraseñas de tu banco a una app. Es normal. Cada vez más
+            personas prefieren registrar sus gastos de forma manual: sin conexiones bancarias, sin compartir datos sensibles, y con la
+            tranquilidad de que nadie más tiene acceso a su información financiera.
+          </p>
+          <p>
+            El registro manual tiene una ventaja que las apps automáticas no pueden ofrecer: te obliga a ser consciente de cada gasto. No es un
+            "instalar y olvidar", es un hábito que te hace pensar dos veces antes de gastar. Y eso, a la larga, es lo que realmente cambia tu
+            relación con el dinero.
+          </p>
+        </div>
+
+        <p className="my-6 pl-4 border-l-4 border-teal-400 text-lg text-teal-700 font-medium leading-snug">
+          Te obliga a ser consciente de cada gasto.
         </p>
-        <p>
-          El registro manual tiene una ventaja que las apps automáticas no pueden ofrecer: te obliga a ser consciente de cada gasto. No es un
-          "instalar y olvidar", es un hábito que te hace pensar dos veces antes de gastar. Y eso, a la larga, es lo que realmente cambia tu
-          relación con el dinero.
-        </p>
-        <p>
+
+        <p className="text-stone-600 leading-relaxed">
           Hemos analizado las apps de control de gastos más populares que funcionan sin conectar tu banco. Estas son las 5 que merece la pena
           probar en 2026.
         </p>
       </div>
 
-      <h2 className="mt-10 text-2xl font-bold text-stone-900">Comparativa rápida</h2>
-      <div className="mt-4">
-        <AppComparisonTable apps={COMPARISON_APPS} rows={COMPARISON_ROWS} />
+      <div className="mt-10 text-center">
+        <h2 className="text-2xl font-bold text-stone-900">Comparativa rápida</h2>
+        <SectionTitleAccent />
+      </div>
+      <AppComparisonTable apps={COMPARISON_APPS} rows={COMPARISON_ROWS} highlightLogo="/icon-512.png" />
+
+      <div className="mt-8">
+        <AppReviewCard
+          number={1}
+          name="Nitid — Control de gastos, ahorro e inversión en una sola app"
+          isOurApp
+          intro={
+            <>
+              <p className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-sm">
+                <strong>Transparencia:</strong> Nitid es nuestra app. La incluimos primera porque está diseñada exactamente para lo que busca este
+                artículo: controlar gastos sin dar acceso a tu banco. Aun así, la comparativa es honesta y cada app tiene su espacio.
+              </p>
+              <p>
+                Nitid combina tres cosas que la mayoría de apps ofrecen por separado: control de gastos e ingresos, fondos de ahorro con metas, y
+                seguimiento de inversión por activos. Todo con entrada manual y sin pedirte datos bancarios.
+              </p>
+            </>
+          }
+          highlights={
+            <>
+              <p>
+                La versión gratuita ya es funcional de verdad: transacciones ilimitadas, gráficos mensuales con donut de categorías, 2 fondos de
+                ahorro, resumen anual, y exportación de datos. Sin publicidad y sin límite de tiempo.
+              </p>
+              <p>
+                El análisis mensual te muestra en qué categorías gastas más con un gráfico de composición, y los insights automáticos te avisan
+                cuando un gasto sube más de lo normal o cuando llevas varios meses ahorrando. Es información que en otras apps necesitas calcular
+                tú mismo.
+              </p>
+              <p>
+                La gestión de inversión es algo que casi ninguna app de esta categoría ofrece. Puedes definir tus activos, asignar porcentajes de
+                reparto, y ver si tu distribución real coincide con la que quieres. No es un broker, no mueve dinero, pero te da la foto completa
+                de dónde está tu dinero.
+              </p>
+            </>
+          }
+          drawbacks={
+            <p>
+              No se conecta al banco (que es el punto de esta comparativa, pero si alguien busca automatización, Nitid no es la opción). No tiene
+              versión de escritorio, es mobile-first.
+            </p>
+          }
+          priceFree="transacciones ilimitadas, 2 fondos, gráficos mensuales, 6 categorías fijas + 6 variables"
+          pricePremium="29,99€/año (2,50€/mes). Fondos ilimitados con metas, inversión desglosada, análisis anual completo, insights, categorías ilimitadas con subcategorías, presupuestos por categoría, historial completo, exportación a Excel"
+          idealFor="Para quien quiere controlar gastos, ahorrar con objetivos concretos y además llevar un seguimiento de su inversión, todo en una sola app y sin dar datos bancarios."
+        />
       </div>
 
-      <AppReviewCard
-        number={1}
-        name="Nitid — Control de gastos, ahorro e inversión en una sola app"
-        isOurApp
-        intro={
-          <>
-            <p className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-sm">
-              <strong>Transparencia:</strong> Nitid es nuestra app. La incluimos primera porque está diseñada exactamente para lo que busca este
-              artículo: controlar gastos sin dar acceso a tu banco. Aun así, la comparativa es honesta y cada app tiene su espacio.
-            </p>
-            <p>
-              Nitid combina tres cosas que la mayoría de apps ofrecen por separado: control de gastos e ingresos, fondos de ahorro con metas, y
-              seguimiento de inversión por activos. Todo con entrada manual y sin pedirte datos bancarios.
-            </p>
-          </>
-        }
-        highlights={
-          <>
-            <p>
-              La versión gratuita ya es funcional de verdad: transacciones ilimitadas, gráficos mensuales con donut de categorías, 2 fondos de
-              ahorro, resumen anual, y exportación de datos. Sin publicidad y sin límite de tiempo.
-            </p>
-            <p>
-              El análisis mensual te muestra en qué categorías gastas más con un gráfico de composición, y los insights automáticos te avisan
-              cuando un gasto sube más de lo normal o cuando llevas varios meses ahorrando. Es información que en otras apps necesitas calcular tú
-              mismo.
-            </p>
-            <p>
-              La gestión de inversión es algo que casi ninguna app de esta categoría ofrece. Puedes definir tus activos, asignar porcentajes de
-              reparto, y ver si tu distribución real coincide con la que quieres. No es un broker, no mueve dinero, pero te da la foto completa de
-              dónde está tu dinero.
-            </p>
-          </>
-        }
-        drawbacks={
-          <p>
-            No se conecta al banco (que es el punto de esta comparativa, pero si alguien busca automatización, Nitid no es la opción). No tiene
-            versión de escritorio, es mobile-first.
-          </p>
-        }
-        price={
-          <ul className="list-disc pl-4 flex flex-col gap-1.5">
-            <li>Gratis: transacciones ilimitadas, 2 fondos, gráficos mensuales, 6 categorías fijas + 6 variables</li>
-            <li>
-              Premium: 29,99€/año (2,50€/mes). Fondos ilimitados con metas, inversión desglosada, análisis anual completo, insights, categorías
-              ilimitadas con subcategorías, presupuestos por categoría, historial completo, exportación a Excel
-            </li>
-          </ul>
-        }
-        idealFor="Para quien quiere controlar gastos, ahorrar con objetivos concretos y además llevar un seguimiento de su inversión, todo en una sola app y sin dar datos bancarios."
-      />
+      <CardDivider />
 
       <AppReviewCard
         number={2}
@@ -125,14 +137,12 @@ export function MejoresAppsControlarGastosSinBanco() {
             y ves el donut. Si necesitas profundidad o gestionar tu ahorro, se queda corta.
           </p>
         }
-        price={
-          <ul className="list-disc pl-4 flex flex-col gap-1.5">
-            <li>Gratis con anuncios</li>
-            <li>Premium: ~60€/año (pago único de por vida en algunas versiones, pero varía)</li>
-          </ul>
-        }
+        priceFree="con anuncios"
+        pricePremium="~60€/año (pago único de por vida en algunas versiones, pero varía)"
         idealFor="Para quien solo necesita apuntar gastos y ver un gráfico, sin más complicaciones."
       />
+
+      <CardDivider />
 
       <AppReviewCard
         number={3}
@@ -149,14 +159,12 @@ export function MejoresAppsControlarGastosSinBanco() {
             lo que puede quedarse corto rápidamente. El precio premium es alto para lo que ofrece. Y el soporte del idioma español es parcial.
           </p>
         }
-        price={
-          <ul className="list-disc pl-4 flex flex-col gap-1.5">
-            <li>Gratis: 1 cuenta, 10 sobres</li>
-            <li>Plus: ~80€/año. Cuentas y sobres ilimitados, sincronización entre 5 dispositivos</li>
-          </ul>
-        }
+        priceFree="1 cuenta, 10 sobres"
+        pricePremium="Plus: ~80€/año. Cuentas y sobres ilimitados, sincronización entre 5 dispositivos"
         idealFor="Para quien necesita gestionar gastos compartidos con otra persona y le funciona el enfoque de límites estrictos por categoría."
       />
+
+      <CardDivider />
 
       <AppReviewCard
         number={4}
@@ -179,14 +187,12 @@ export function MejoresAppsControlarGastosSinBanco() {
             </p>
           </>
         }
-        price={
-          <ul className="list-disc pl-4 flex flex-col gap-1.5">
-            <li>Gratis con anuncios</li>
-            <li>Premium: ~30€/año</li>
-          </ul>
-        }
+        priceFree="con anuncios"
+        pricePremium="~30€/año"
         idealFor="Para quien busca algo funcional y básico para registrar gastos, y no le molestan los anuncios."
       />
+
+      <CardDivider />
 
       <AppReviewCard
         number={5}
@@ -203,23 +209,23 @@ export function MejoresAppsControlarGastosSinBanco() {
             registro y visualización de gastos, sin las capas de ahorro e inversión que ofrecen otras opciones.
           </p>
         }
-        price={
-          <ul className="list-disc pl-4 flex flex-col gap-1.5">
-            <li>Gratis: funciones básicas completas</li>
-            <li>Premium: ~30€/año</li>
-          </ul>
-        }
+        priceFree="funciones básicas completas"
+        pricePremium="~30€/año"
         idealFor="Para quien valora una interfaz visual cuidada y solo necesita registrar gastos sin funciones avanzadas de ahorro o inversión."
       />
 
-      <h2 className="mt-10 text-2xl font-bold text-stone-900">Entonces, ¿cuál elegir?</h2>
-      <p className="mt-3 text-sm text-stone-600">Depende de lo que necesites:</p>
+      <div className="mt-10 text-center">
+        <h2 className="text-2xl font-bold text-stone-900">Entonces, ¿cuál elegir?</h2>
+        <SectionTitleAccent />
+      </div>
+      <p className="text-sm text-stone-600 text-center">Depende de lo que necesites:</p>
       <ChooseList items={CHOOSE_ITEMS} />
-      <p className="mt-4 text-sm text-stone-600 leading-relaxed">
-        Todas son opciones válidas. La mejor es la que se adapta a cómo quieres gestionar tu dinero. Lo importante es empezar.
+      <p className="mt-6 text-sm text-stone-600 leading-relaxed text-center">
+        Todas son opciones válidas. La mejor es la que se adapta a cómo quieres gestionar tu dinero.
       </p>
+      <p className="mt-2 text-lg text-stone-400 italic text-center">Lo importante es empezar.</p>
 
-      <div className="mt-8 flex justify-center">
+      <div className="my-8 flex justify-center">
         <GooglePlayBadge />
       </div>
     </article>

@@ -18,6 +18,7 @@ import {
 import { useSeoMeta } from "../hooks/useSeoMeta";
 import { GooglePlayBadge } from "./GooglePlayBadge";
 import { SiteFooter } from "./SiteFooter";
+import { SectionTitleAccent } from "./SectionTitleAccent";
 
 interface LandingPageProps {
   onLoginClick: () => void;
@@ -78,10 +79,6 @@ function DeviceFrame({ src, alt, eager = false, className = "" }: { src: string;
       <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} className="w-full block object-contain" />
     </div>
   );
-}
-
-function SectionTitleAccent() {
-  return <div className="w-10 h-[3px] bg-teal-500 rounded-full mx-auto mt-2 mb-6" />;
 }
 
 function CheckRow({ icon: Icon, text }: { icon: LucideIcon; text: string }) {

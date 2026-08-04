@@ -11,7 +11,7 @@ export function BlogPost({ article }: { article: BlogArticle }) {
   });
 
   return (
-    <BlogShell>
+    <BlogShell background="stone-50">
       <article.Component />
     </BlogShell>
   );
