@@ -117,6 +117,18 @@ function CheckRow({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
   );
 }
 
+function GooglePlayBadge({ className = "" }: { className?: string }) {
+  return (
+    <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer" className={`inline-block w-full max-w-[200px] ${className}`}>
+      <img
+        src="https://play.google.com/intl/en_us/badges/static/images/badges/es_badge_web_generic.png"
+        alt="Disponible en Google Play"
+        className="w-full h-auto"
+      />
+    </a>
+  );
+}
+
 const TRUST_BADGES = ["Gratis", "Sin anuncios", "Sin banco"];
 
 const EASY_STEPS = [
@@ -172,14 +184,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
                 <p className="mt-2 text-stone-500 text-sm sm:text-base max-w-sm">
                   Controla tus gastos, ahorra con metas y entiende tus finanzas.
                 </p>
-                <a
-                  href={PLAY_STORE_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center justify-center rounded-xl bg-teal-600 px-6 py-3 text-white font-semibold text-sm sm:text-base shadow-md hover:bg-teal-700 active:scale-[0.98] transition-all"
-                >
-                  Descargar gratis en Google Play
-                </a>
+                <GooglePlayBadge className="mt-4" />
                 <div className="mt-3 flex items-center justify-center sm:justify-start gap-3">
                   {TRUST_BADGES.map((label) => (
                     <span key={label} className="flex items-center gap-1.5 text-xs text-stone-600 whitespace-nowrap">
@@ -316,18 +321,8 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
           <div className="max-w-[1024px] mx-auto flex flex-col items-center">
             <Reveal className="flex flex-col items-center">
               <h2 className="text-xl font-bold text-stone-800 max-w-sm">Tus finanzas, con toda la claridad</h2>
-              <a
-                href={PLAY_STORE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-5 inline-flex items-center justify-center rounded-xl bg-teal-600 px-6 py-3 text-white font-semibold text-base shadow-md hover:bg-teal-700 active:scale-[0.98] transition-all"
-              >
-                Descargar gratis en Google Play
-              </a>
-              <div className="mt-4 flex items-center gap-2">
-                <img src="/icon-512.png" alt="Nitid" width={28} height={28} className="rounded-md" />
-                <span className="text-xs text-stone-400">Disponible en Google Play</span>
-              </div>
+              <GooglePlayBadge className="mt-5" />
+              <img src="/icon-512.png" alt="Nitid" width={28} height={28} className="mt-4 rounded-md" />
             </Reveal>
           </div>
         </section>
