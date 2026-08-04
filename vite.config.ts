@@ -48,13 +48,57 @@ export default defineConfig({
         // supera el límite de precaché de Workbox (2MiB por defecto). Se sirve igual como favicon
         // normal del navegador, solo se excluye de la caché offline de la PWA.
         globIgnores: ['favicon.svg'],
-        // Página de fallback offline (public/offline.html, con la marca de Nitid): se sirve cuando una
-        // navegación no se puede resolver ni por red ni por caché — típicamente al abrir la app sin
-        // conexión antes de que el service worker haya podido precachear nada, o al navegar a una URL
-        // que no está precacheada. No afecta a "/" ni a "/privacy.html": al estar precacheados con
-        // coincidencia EXACTA de URL, Workbox los sirve directamente antes de llegar a este fallback,
-        // que es siempre el último recurso.
-        navigateFallback: '/offline.html',
+        // registerType: 'autoUpdate' ya inyecta self.skipWaiting()/clientsClaim() automáticamente, pero
+        // se deja explícito: son justo lo que hace que, al detectar una versión nueva del SW, se active
+        // de inmediato y tome el control de las pestañas ya abiertas, en vez de quedarse "waiting" hasta
+        // que el usuario cierre todas las pestañas de la app (que en la práctica nunca pasa en un PWA/
+        // TWA, así que sin esto un despliegue nuevo podía tardar días en llegarle a un usuario normal).
+        skipWaiting: true,
+        clientsClaim: true,
+        // vite-plugin-pwa aplica "navigateFallback: 'index.html'" POR DEFECTO en cuanto no se indique lo
+        // contrario (ver defaultWorkbox en su código fuente) — y ese NavigationRoute se registra ANTES
+        // que las reglas de runtimeCaching de más abajo, así que sin este `undefined` explícito seguiría
+        // ganando siempre a la regla NetworkFirst (comprobado: con solo añadir runtimeCaching, sin este
+        // override, el navigateFallback por defecto interceptaba la petición primero y la regla de abajo
+        // nunca llegaba a ejecutarse). navigateFallback en sí mismo también era la causa original del
+        // bug reportado: sirve SIEMPRE el archivo de fallback desde caché sin intentar red, así que
+        // cualquier navegación que no fuera una URL precacheada EXACTA (p. ej. "/blog/cualquier-slug",
+        // que no existía cuando el Service Worker anterior se instaló) caía directa a offline.html aunque
+        // hubiera conexión perfecta.
+        navigateFallback: undefined,
+        // En su lugar, esta regla intercepta TODAS las navegaciones (request.mode === 'navigate' cubre
+        // "/", "/blog", "/blog/*", "/privacy", "/delete-account" y cualquier ruta futura sin necesidad de
+        // listarlas ni mantener una allowlist/denylist) e intenta red primero: si hay conexión, se sirve
+        // siempre el HTML más reciente del servidor; si la red no responde en 3s o falla del todo, cae a
+        // la última copia de ESA ruta guardada en la caché "pages", y solo si tampoco hay nada guardado
+        // (p. ej. la primera visita ya fue sin conexión) se sirve la página de sin-conexión precacheada.
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            // Handler manual (en vez de la estrategia "NetworkFirst" + plugin handlerDidError): con la
+            // estrategia declarativa, el fallback a offline.html a través de handlerDidError resultó
+            // poco fiable en pruebas (a veces no se disparaba y la petición se dejaba sin responder,
+            // cayendo al comportamiento por defecto del navegador). Con fetch/catch explícito el control
+            // de cada paso es directo y verificable.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            handler: async ({ request }: any) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const g = globalThis as any;
+              const cache = await g.caches.open('pages');
+              try {
+                const networkResponse = await fetch(request);
+                cache.put(request, networkResponse.clone());
+                return networkResponse;
+              } catch {
+                const cached = await cache.match(request);
+                if (cached) return cached;
+                // ignoreSearch: true porque Workbox precachea offline.html bajo una URL con
+                // "?__WB_REVISION__=<hash>" añadido, no bajo la ruta limpia.
+                return g.caches.match('/offline.html', { ignoreSearch: true });
+              }
+            },
+          },
+        ],
       },
     }),
   ],
