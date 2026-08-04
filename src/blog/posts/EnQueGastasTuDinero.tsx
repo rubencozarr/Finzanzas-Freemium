@@ -214,7 +214,7 @@ export function EnQueGastasTuDinero() {
           Todo lo que hemos descrito en estos 5 pasos puedes hacerlo con un papel y un bolígrafo. Pero seamos realistas: mantener el hábito con
           notas sueltas durante más de dos semanas es difícil.
         </p>
-        <p className="mt-4 font-semibold text-stone-800">Una app de control de gastos te facilita cada paso:</p>
+        <p className="mt-4 font-semibold text-stone-800">Nitid integra este método para facilitarte cada paso:</p>
         <ul className="mt-3 flex flex-col gap-2.5">
           {APP_STEPS.map((step, i) => (
             <li key={step} className="flex items-start gap-2.5">
@@ -227,11 +227,7 @@ export function EnQueGastasTuDinero() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-stone-600 leading-relaxed">
-          Nitid es una app diseñada exactamente para este proceso. Entrada manual (sin conectar tu banco), categorías personalizables, gráficos de
-          composición de gastos, tasa de ahorro automática, y fondos de ahorro con objetivos. Versión gratuita sin anuncios y sin límite de
-          tiempo.
-        </p>
+        <p className="mt-4 text-stone-600 leading-relaxed">Entrada manual, sin conectar tu banco, sin anuncios y gratis.</p>
         <div className="mt-6 flex justify-center">
           <GooglePlayBadge />
         </div>
