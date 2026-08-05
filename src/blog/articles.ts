@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { MejoresAppsControlarGastosSinBanco } from "./posts/MejoresAppsControlarGastosSinBanco";
 import { EnQueGastasTuDinero } from "./posts/EnQueGastasTuDinero";
 import { Regla503020 } from "./posts/Regla503020";
+import { ComoEmpezarAAhorrar } from "./posts/ComoEmpezarAAhorrar";
 
 export interface BlogArticle {
   slug: string;
@@ -15,6 +16,15 @@ export interface BlogArticle {
 // Ordenados del más reciente al más antiguo: el índice del blog lista este array tal cual, sin
 // reordenar por fecha aparte, así que un artículo nuevo va siempre primero en esta lista.
 export const ARTICLES: BlogArticle[] = [
+  {
+    slug: "como-empezar-a-ahorrar",
+    title: "Cómo empezar a ahorrar aunque sientas que no te llega",
+    summary: "Guía práctica para encontrar tu \"dinero invisible\" y empezar a ahorrar desde cero, sin ganar más.",
+    metaTitle: "Cómo empezar a ahorrar aunque no te llegue el sueldo",
+    metaDescription:
+      "Guía práctica para empezar a ahorrar desde cero, sin necesidad de ganar mucho. Sin consejos genéricos, con un método real paso a paso.",
+    Component: ComoEmpezarAAhorrar,
+  },
   {
     slug: "regla-50-30-20",
     title: "La regla del 50-30-20: cómo aplicarla de verdad",
