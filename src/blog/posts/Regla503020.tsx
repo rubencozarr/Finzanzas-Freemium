@@ -304,10 +304,6 @@ export function Regla503020() {
       <p className="mt-10 text-lg text-stone-400 italic text-center">
         "La regla 50-30-20 no cambia tu vida por conocerla. La cambia cuando la aplicas."
       </p>
-
-      <div className="my-8 flex justify-center">
-        <GooglePlayBadge />
-      </div>
     </article>
   );
 }

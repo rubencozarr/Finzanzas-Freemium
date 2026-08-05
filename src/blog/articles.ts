@@ -13,17 +13,19 @@ export interface BlogArticle {
   Component: ComponentType;
 }
 
-// Ordenados del más reciente al más antiguo: el índice del blog lista este array tal cual, sin
-// reordenar por fecha aparte, así que un artículo nuevo va siempre primero en esta lista.
+// Orden LÓGICO de lectura (no cronológico): punto de partida → marco de referencia → acción →
+// herramienta. Es la única fuente de orden — el índice del blog y la sección "Sigue leyendo" al
+// final de cada artículo (BlogPost.tsx, siguiente = el próximo de este array, cíclico) lo usan tal
+// cual, así que reordenar aquí reordena las dos cosas a la vez.
 export const ARTICLES: BlogArticle[] = [
   {
-    slug: "como-empezar-a-ahorrar",
-    title: "Cómo empezar a ahorrar aunque sientas que no te llega",
-    summary: "Guía práctica para encontrar tu \"dinero invisible\" y empezar a ahorrar desde cero, sin ganar más.",
-    metaTitle: "Cómo empezar a ahorrar aunque no te llegue el sueldo",
+    slug: "en-que-gastas-tu-dinero",
+    title: "Cómo saber en qué gastas tu dinero cada mes",
+    summary: "Un método práctico en 5 pasos para descubrir en qué se va tu dinero cada mes.",
+    metaTitle: "Cómo saber en qué gastas tu dinero cada mes — Método en 5 pasos",
     metaDescription:
-      "Guía práctica para empezar a ahorrar desde cero, sin necesidad de ganar mucho. Sin consejos genéricos, con un método real paso a paso.",
-    Component: ComoEmpezarAAhorrar,
+      "Un método práctico paso a paso para descubrir en qué se va tu dinero cada mes. Sin hojas de cálculo, sin conectar tu banco. Empieza hoy.",
+    Component: EnQueGastasTuDinero,
   },
   {
     slug: "regla-50-30-20",
@@ -35,13 +37,13 @@ export const ARTICLES: BlogArticle[] = [
     Component: Regla503020,
   },
   {
-    slug: "en-que-gastas-tu-dinero",
-    title: "Cómo saber en qué gastas tu dinero cada mes",
-    summary: "Un método práctico en 5 pasos para descubrir en qué se va tu dinero cada mes.",
-    metaTitle: "Cómo saber en qué gastas tu dinero cada mes — Método en 5 pasos",
+    slug: "como-empezar-a-ahorrar",
+    title: "Cómo empezar a ahorrar aunque sientas que no te llega",
+    summary: "Guía práctica para encontrar tu \"dinero invisible\" y empezar a ahorrar desde cero, sin ganar más.",
+    metaTitle: "Cómo empezar a ahorrar aunque no te llegue el sueldo",
     metaDescription:
-      "Un método práctico paso a paso para descubrir en qué se va tu dinero cada mes. Sin hojas de cálculo, sin conectar tu banco. Empieza hoy.",
-    Component: EnQueGastasTuDinero,
+      "Guía práctica para empezar a ahorrar desde cero, sin necesidad de ganar mucho. Sin consejos genéricos, con un método real paso a paso.",
+    Component: ComoEmpezarAAhorrar,
   },
   {
     slug: "mejores-apps-controlar-gastos-sin-banco",

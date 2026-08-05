@@ -364,10 +364,6 @@ export function ComoEmpezarAAhorrar() {
       </div>
 
       <p className="mt-10 text-lg text-stone-400 italic text-center">"No necesitas ganar más para empezar a ahorrar. Necesitas empezar."</p>
-
-      <div className="my-8 flex justify-center">
-        <GooglePlayBadge />
-      </div>
     </article>
   );
 }
