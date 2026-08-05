@@ -4,6 +4,7 @@ import { StepCard } from "../components/StepCard";
 import { Callout } from "../components/Callout";
 import { PullQuote } from "../components/PullQuote";
 import { Timeline } from "../components/Timeline";
+import { DeviceFrame } from "../components/DeviceFrame";
 import { SectionTitleAccent } from "../../components/SectionTitleAccent";
 import { GooglePlayBadge } from "../../components/GooglePlayBadge";
 
@@ -344,7 +345,10 @@ export function ComoEmpezarAAhorrar() {
           categoría, no te muestra barras de progreso hacia tus metas, y no te dice automáticamente si este mes estás ahorrando más o menos que
           el anterior.
         </p>
-        <p className="mt-4 font-semibold text-stone-800">Nitid te facilita cada paso:</p>
+        <div className="mt-5 flex justify-center">
+          <DeviceFrame src="/screenshot-raw-fondos.webp" alt="Fondos de ahorro con barras de progreso en Nitid" />
+        </div>
+        <p className="mt-5 font-semibold text-stone-800">Nitid te facilita cada paso:</p>
         <ul className="mt-3 flex flex-col gap-2.5">
           {NITID_FEATURES.map((feature) => (
             <li key={feature.title} className="flex items-start gap-2.5">

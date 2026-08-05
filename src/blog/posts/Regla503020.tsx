@@ -4,6 +4,7 @@ import { StepCard } from "../components/StepCard";
 import { Callout } from "../components/Callout";
 import { PullQuote } from "../components/PullQuote";
 import { RuleBlock } from "../components/RuleBlock";
+import { DeviceFrame } from "../components/DeviceFrame";
 import { SectionTitleAccent } from "../../components/SectionTitleAccent";
 import { GooglePlayBadge } from "../../components/GooglePlayBadge";
 
@@ -276,7 +277,10 @@ export function Regla503020() {
           Si has leído hasta aquí, ya sabes cómo aplicar la regla. Todo lo que hemos descrito puedes hacerlo con papel y bolígrafo. Pero mantener
           el sistema mes tras mes sin una herramienta que automatice los cálculos es difícil.
         </p>
-        <p className="mt-3 font-semibold text-stone-800">Nitid está diseñada con una estructura que encaja directamente con la regla 50-30-20:</p>
+        <div className="mt-5 flex justify-center">
+          <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Resumen de ingresos, gastos y libre en Nitid" />
+        </div>
+        <p className="mt-5 font-semibold text-stone-800">Nitid está diseñada con una estructura que encaja directamente con la regla 50-30-20:</p>
         <div className="mt-4 flex flex-col gap-3">
           <RuleBlock tone="slate" percent="50%" title="Necesidades = Categorías fijas en Nitid">
             Configuras tus gastos recurrentes una vez (alquiler, luz, seguros...) y la app los registra cada mes. Sabes siempre cuánto suman tus

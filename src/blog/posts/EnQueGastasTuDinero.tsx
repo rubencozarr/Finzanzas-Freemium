@@ -3,6 +3,7 @@ import { ArticleBanner } from "../components/ArticleBanner";
 import { StepCard } from "../components/StepCard";
 import { Callout } from "../components/Callout";
 import { PullQuote } from "../components/PullQuote";
+import { DeviceFrame } from "../components/DeviceFrame";
 import { SectionTitleAccent } from "../../components/SectionTitleAccent";
 import { GooglePlayBadge } from "../../components/GooglePlayBadge";
 
@@ -206,7 +207,10 @@ export function EnQueGastasTuDinero() {
           Todo lo que hemos descrito en estos 5 pasos puedes hacerlo con un papel y un bolígrafo. Pero seamos realistas: mantener el hábito con
           notas sueltas durante más de dos semanas es difícil.
         </p>
-        <p className="mt-4 font-semibold text-stone-800">Nitid integra este método para facilitarte cada paso:</p>
+        <div className="mt-5 flex justify-center">
+          <DeviceFrame src="/screenshot-raw-mensual.webp" alt="Composición de gastos por categoría en Nitid" />
+        </div>
+        <p className="mt-5 font-semibold text-stone-800">Nitid integra este método para facilitarte cada paso:</p>
         <ul className="mt-3 flex flex-col gap-2.5">
           {APP_STEPS.map((step, i) => (
             <li key={step} className="flex items-start gap-2.5">
