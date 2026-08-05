@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { MejoresAppsControlarGastosSinBanco } from "./posts/MejoresAppsControlarGastosSinBanco";
 import { EnQueGastasTuDinero } from "./posts/EnQueGastasTuDinero";
+import { Regla503020 } from "./posts/Regla503020";
 
 export interface BlogArticle {
   slug: string;
@@ -11,15 +12,17 @@ export interface BlogArticle {
   Component: ComponentType;
 }
 
+// Ordenados del más reciente al más antiguo: el índice del blog lista este array tal cual, sin
+// reordenar por fecha aparte, así que un artículo nuevo va siempre primero en esta lista.
 export const ARTICLES: BlogArticle[] = [
   {
-    slug: "mejores-apps-controlar-gastos-sin-banco",
-    title: "Las 5 mejores apps para controlar gastos sin conectar tu banco (2026)",
-    summary: "Comparativa de las mejores apps de control de gastos con entrada manual, sin dar acceso a tu banco.",
-    metaTitle: "Las 5 mejores apps para controlar gastos sin banco (2026)",
+    slug: "regla-50-30-20",
+    title: "La regla del 50-30-20: cómo aplicarla de verdad",
+    summary: "La regla 50-30-20 explicada con un método práctico para aplicarla de verdad, no solo en teoría.",
+    metaTitle: "Regla 50-30-20: cómo aplicarla de verdad a tus finanzas",
     metaDescription:
-      "Comparativa de las mejores apps de control de gastos con entrada manual, sin dar acceso a tu banco. Monefy, Goodbudget, Money Manager y más.",
-    Component: MejoresAppsControlarGastosSinBanco,
+      "La regla del 50-30-20 explicada con un método práctico para aplicarla mes a mes. Sin hojas de cálculo, sin complicaciones. Con ejemplos reales.",
+    Component: Regla503020,
   },
   {
     slug: "en-que-gastas-tu-dinero",
@@ -29,5 +32,14 @@ export const ARTICLES: BlogArticle[] = [
     metaDescription:
       "Un método práctico paso a paso para descubrir en qué se va tu dinero cada mes. Sin hojas de cálculo, sin conectar tu banco. Empieza hoy.",
     Component: EnQueGastasTuDinero,
+  },
+  {
+    slug: "mejores-apps-controlar-gastos-sin-banco",
+    title: "Las 5 mejores apps para controlar gastos sin conectar tu banco (2026)",
+    summary: "Comparativa de las mejores apps de control de gastos con entrada manual, sin dar acceso a tu banco.",
+    metaTitle: "Las 5 mejores apps para controlar gastos sin banco (2026)",
+    metaDescription:
+      "Comparativa de las mejores apps de control de gastos con entrada manual, sin dar acceso a tu banco. Monefy, Goodbudget, Money Manager y más.",
+    Component: MejoresAppsControlarGastosSinBanco,
   },
 ];
