@@ -169,10 +169,16 @@ export function FondosTab({
   const [newFundIcon, setNewFundIcon] = useState<string>(DEFAULT_FUND_ICON);
   const [newInitialBalance, setNewInitialBalance] = useState("");
   const [creatingFund, setCreatingFund] = useState(false);
+  const [addFundError, setAddFundError] = useState<string | null>(null);
   const [editingFundId, setEditingFundId] = useState<string | null>(null);
   const [editFundName, setEditFundName] = useState("");
   const [editFundIcon, setEditFundIcon] = useState<string>(DEFAULT_FUND_ICON);
   const [editInitialBalance, setEditInitialBalance] = useState("");
+  const [renameFundError, setRenameFundError] = useState<string | null>(null);
+
+  // El nombre no puede repetirse entre fondos. Mismo patrón que nameExists en CategoriasEditor.tsx.
+  const fundNameExists = (name: string, excludeId?: string) =>
+    funds.some((f) => f.id !== excludeId && f.name.trim().toLowerCase() === name.trim().toLowerCase());
   const [deleteConfirmFund, setDeleteConfirmFund] = useState<FundWithBalance | null>(null);
   const [editingGoalFundId, setEditingGoalFundId] = useState<string | null>(null);
   const [goalAmountInput, setGoalAmountInput] = useState("");
@@ -288,20 +294,28 @@ export function FondosTab({
           <div className="flex gap-2 mb-2">
             <input
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                setAddFundError(null);
+              }}
               onFocus={() => setCreatingFund(true)}
               placeholder="Nombre del fondo (ej. Viajes)"
               className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-base bg-white"
             />
             <button
               onClick={() => {
-                if (newName.trim()) {
-                  addFund(newName.trim(), newFundIcon, parseFloat(newInitialBalance) || 0);
-                  setNewName("");
-                  setNewFundIcon(DEFAULT_FUND_ICON);
-                  setNewInitialBalance("");
-                  setCreatingFund(false);
+                const name = newName.trim();
+                if (!name) return;
+                if (fundNameExists(name)) {
+                  setAddFundError("Ya existe un fondo con este nombre.");
+                  return;
                 }
+                addFund(name, newFundIcon, parseFloat(newInitialBalance) || 0);
+                setNewName("");
+                setNewFundIcon(DEFAULT_FUND_ICON);
+                setNewInitialBalance("");
+                setCreatingFund(false);
+                setAddFundError(null);
               }}
               className="bg-slate-800 text-white rounded-lg px-3 text-sm"
             >
@@ -314,6 +328,7 @@ export function FondosTab({
                   setNewFundIcon(DEFAULT_FUND_ICON);
                   setNewInitialBalance("");
                   setCreatingFund(false);
+                  setAddFundError(null);
                 }}
                 className="text-stone-400 px-1"
               >
@@ -321,6 +336,7 @@ export function FondosTab({
               </button>
             )}
           </div>
+          {addFundError && <p className="text-xs text-rose-600 mb-1.5">{addFundError}</p>}
           {creatingFund && (
             <>
               <FundIconPicker value={newFundIcon} onChange={setNewFundIcon} isPremium={isPremium} />
@@ -385,16 +401,26 @@ export function FondosTab({
                 <div className="flex gap-2 mb-2">
                   <input
                     value={editFundName}
-                    onChange={(e) => setEditFundName(e.target.value)}
+                    onChange={(e) => {
+                      setEditFundName(e.target.value);
+                      setRenameFundError(null);
+                    }}
                     className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base"
                     autoFocus
                   />
                   <button
                     onClick={() => {
-                      renameFund(f.id, editFundName);
+                      const name = editFundName.trim();
+                      if (!name) return;
+                      if (fundNameExists(name, f.id)) {
+                        setRenameFundError("Ya existe un fondo con este nombre.");
+                        return;
+                      }
+                      renameFund(f.id, name);
                       updateFundIcon(f.id, editFundIcon);
                       updateFundInitialBalance(f.id, parseFloat(editInitialBalance) || 0);
                       setEditingFundId(null);
+                      setRenameFundError(null);
                     }}
                     className="text-teal-700"
                   >
@@ -404,6 +430,7 @@ export function FondosTab({
                     <X size={16} />
                   </button>
                 </div>
+                {renameFundError && <p className="text-xs text-rose-600 mb-2">{renameFundError}</p>}
                 <FundIconPicker value={editFundIcon} onChange={setEditFundIcon} isPremium={isPremium} />
                 <p className="text-xs text-stone-500 mb-1.5 mt-2">¿Ya tienes dinero ahorrado en este fondo?</p>
                 <input
@@ -597,6 +624,7 @@ export function FondosTab({
                         setEditFundName(f.name);
                         setEditFundIcon(f.icon ?? DEFAULT_FUND_ICON);
                         setEditInitialBalance(f.initialBalance ? String(f.initialBalance) : "");
+                        setRenameFundError(null);
                       }}
                       className="text-stone-300 hover:text-slate-700"
                     >

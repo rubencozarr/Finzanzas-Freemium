@@ -17,6 +17,7 @@ export interface TransactionRow {
   fixed: boolean | null;
   fund_id: string | null;
   funded_by: string | null;
+  funded_by_name: string | null;
   split_id: string | null;
   recurring_id: string | null;
   recurring_income_id: string | null;

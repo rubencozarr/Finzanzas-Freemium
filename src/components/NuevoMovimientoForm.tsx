@@ -214,6 +214,10 @@ export function NuevoMovimientoForm({
         type === "gasto" && subcategory ? currentCat?.subcategories.find((s) => s.name === subcategory)?.id ?? null : null,
       fundId: needsFund ? fundId : null,
       fundedBy: type === "gasto" && fundedByFund ? fundedId : null,
+      // Snapshot del nombre en el momento de pagar: si el fondo se borra después, el movimiento
+      // conserva de todos modos con qué se pagó (ver MovimientosTab, que cae a este campo cuando la
+      // búsqueda en vivo contra funds ya no encuentra el fondo).
+      fundedByName: type === "gasto" && fundedByFund ? fundedFund?.name ?? null : null,
     };
   };
 
@@ -236,7 +240,15 @@ export function NuevoMovimientoForm({
 
   const confirmWithoutFund = () => onSave({ ...buildBase(), amount: amt });
   const confirmWithFund = () =>
-    onSave({ ...buildBase(), amount: amt, splitFundId: shortfallFundId, splitFundAmount: shortfall });
+    onSave({
+      ...buildBase(),
+      amount: amt,
+      // El fondo del shortfall (shortfallFundId) es independiente del checkbox "pagado con fondo"
+      // (fundedByFund/fundedId) que ya resolvió buildBase(): aquí se pisa con el nombre correcto.
+      fundedByName: shortfallFund?.name ?? null,
+      splitFundId: shortfallFundId,
+      splitFundAmount: shortfall,
+    });
 
   if (askShortfall) {
     return (

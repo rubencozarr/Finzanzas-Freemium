@@ -13,6 +13,10 @@ export interface Transaction {
   fixed?: boolean | null; // solo gastos: true = fijo, false = variable
   fundId?: string | null; // solo aportacion/retiro
   fundedBy?: string | null; // solo gastos: id de fondo o "ahorro_libre"
+  // Nombre del fondo (o "Ahorro libre consolidado") en el momento de pagar el gasto, congelado como
+  // snapshot. Si el fondo se borra después, fundedBy queda apuntando a un id que ya no existe en
+  // `funds`; este campo es lo único que permite seguir mostrando qué fondo pagó ese gasto histórico.
+  fundedByName?: string | null;
   splitId?: string | null; // gastos divididos entre ingreso y fondo
   recurringId?: string | null;
   recurringIncomeId?: string | null;

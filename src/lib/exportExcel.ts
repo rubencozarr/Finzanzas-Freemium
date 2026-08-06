@@ -11,10 +11,12 @@ const TYPE_LABELS: Record<TransactionType, string> = {
   inversion: "Inversión",
 };
 
+// Resolución en vivo primero (nombre actual si el fondo se renombró); si el fondo ya no existe, cae al
+// snapshot fundedByName; si tampoco hay snapshot (dato anterior a esa columna), a "fondo eliminado".
 function fundedByLabel(t: Transaction, funds: FundWithBalance[]): string {
   if (!t.fundedBy) return "";
   if (t.fundedBy === AHORRO_LIBRE_ID) return "ahorro libre";
-  return funds.find((f) => f.id === t.fundedBy)?.name ?? "";
+  return funds.find((f) => f.id === t.fundedBy)?.name || t.fundedByName || "fondo eliminado";
 }
 
 interface ExportExcelData {

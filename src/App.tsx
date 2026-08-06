@@ -510,13 +510,14 @@ function App() {
     setShowForm(true);
   };
 
-  // Si el fondo tiene saldo, primero se registra como un retiro (que cuenta como ingreso del mes,
-  // igual que cualquier otro retiro) para que el dinero vuelva al ahorro libre del usuario y quede
-  // en el historial, y solo entonces se borra el fondo — si no, el saldo simplemente desaparecería.
+  // Si el fondo tiene saldo, primero se registra como un retiro para que el dinero vuelva al ahorro
+  // libre del usuario y quede en el historial, y solo entonces se borra el fondo — si no, el saldo
+  // simplemente desaparecería.
   const onDeleteFund = async (fund: FundWithBalance) => {
-    // flowBalance, no balance: si el fondo tiene saldo inicial, esa parte nunca ha sido "ingreso" —
-    // registrarla como retiro la inyectaría de golpe en el ahorro libre/tasa de ahorro. Solo se
-    // devuelve al ahorro libre lo que de verdad se aportó/generó a través de la app.
+    // flowBalance, no balance: si el fondo tiene saldo inicial, esa parte nunca ha sido dinero que pasó
+    // por el flujo de la app (no es una aportación, es lo que el usuario ya tenía ahorrado antes) — no
+    // se devuelve como retiro, se pierde intencionadamente. Solo se devuelve al ahorro libre lo que de
+    // verdad se aportó/generó a través de la app (ver aviso en el diálogo de confirmación, FondosTab.tsx).
     if (fund.flowBalance > 0) {
       await addTransaction({
         type: "retiro",
@@ -591,12 +592,15 @@ function App() {
       if (!plan) {
         await addTransaction({ ...base, amount: it.amount, fundedBy: null });
       } else if (plan.normalAmount <= 0) {
-        await addTransaction({ ...base, amount: it.amount, fundedBy: plan.fundId });
+        const fundName = fundsWithBalance.find((f) => f.id === plan.fundId)?.name ?? null;
+        await addTransaction({ ...base, amount: it.amount, fundedBy: plan.fundId, fundedByName: fundName });
       } else if (plan.fundAmount > 0) {
+        const fundName = fundsWithBalance.find((f) => f.id === plan.fundId)?.name ?? null;
         await addTransaction({
           ...base,
           amount: it.amount,
           fundedBy: null,
+          fundedByName: fundName,
           splitFundId: plan.fundId,
           splitFundAmount: plan.fundAmount,
         });

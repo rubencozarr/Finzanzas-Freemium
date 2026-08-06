@@ -35,6 +35,7 @@ export function fromTransactionRow(row: TransactionRow): Transaction {
     fixed: row.fixed,
     fundId: row.fund_id,
     fundedBy: row.funded_by,
+    fundedByName: row.funded_by_name,
     splitId: row.split_id,
     recurringId: row.recurring_id,
     recurringIncomeId: row.recurring_income_id,
@@ -56,6 +57,7 @@ export function toTransactionInsert(userId: string, tx: Omit<Transaction, "id">)
     fixed: tx.fixed ?? null,
     fund_id: tx.fundId ?? null,
     funded_by: tx.fundedBy ?? null,
+    funded_by_name: tx.fundedByName ?? null,
     split_id: tx.splitId ?? null,
     recurring_id: tx.recurringId ?? null,
     recurring_income_id: tx.recurringIncomeId ?? null,
@@ -75,6 +77,7 @@ export function toTransactionUpdate(updates: Partial<Transaction>) {
   if (updates.fixed !== undefined) row.fixed = updates.fixed;
   if (updates.fundId !== undefined) row.fund_id = updates.fundId;
   if (updates.fundedBy !== undefined) row.funded_by = updates.fundedBy;
+  if (updates.fundedByName !== undefined) row.funded_by_name = updates.fundedByName;
   if (updates.splitId !== undefined) row.split_id = updates.splitId;
   if (updates.recurringId !== undefined) row.recurring_id = updates.recurringId;
   if (updates.recurringIncomeId !== undefined) row.recurring_income_id = updates.recurringIncomeId;

@@ -190,11 +190,20 @@ create table if not exists public.transactions (
   fixed boolean,
   fund_id uuid references public.funds (id) on delete set null,
   funded_by text,
+  -- Snapshot del nombre del fondo (o "Ahorro libre consolidado") en el momento de pagar el gasto.
+  -- funded_by no tiene FK (es un id de fondo o el sentinel "ahorro_libre"), así que si el fondo se
+  -- borra después, funded_by queda apuntando a un id inexistente sin que Postgres lo toque; este
+  -- campo es lo único que permite seguir mostrando qué fondo pagó ese gasto histórico.
+  funded_by_name text,
   split_id uuid,
   recurring_id uuid references public.recurring (id) on delete set null,
   recurring_income_id uuid references public.recurring_income (id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+-- Nota: si tu base de datos ya existía antes de que se añadiera funded_by_name, "create table if not
+-- exists" no la crea sola (la tabla ya existe). Ejecuta esto una vez en el SQL Editor de Supabase:
+--   alter table public.transactions add column if not exists funded_by_name text;
 
 -- =========================================================
 -- ÍNDICES

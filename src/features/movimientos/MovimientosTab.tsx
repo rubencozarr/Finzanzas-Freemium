@@ -163,10 +163,14 @@ export function MovimientosTab({
     const displaySubcategory = resolveSubcategoryName(t, categories);
     const orphan = isOrphanGasto(t, categories);
     const orphanSub = !orphan && isOrphanSubcategory(t, categories);
+    // Resolución en vivo primero (un fondo renombrado debe mostrar el nombre actual); el snapshot
+    // congelado en fundedByName solo entra como red de seguridad cuando el fondo ya no existe (se
+    // borró) y la búsqueda en vivo falla; si tampoco hay snapshot (dato anterior a esa columna), cae a
+    // "un fondo eliminado".
     const fundedByName = t.fundedBy
       ? t.fundedBy === AHORRO_LIBRE_ID
         ? "ahorro libre consolidado"
-        : funds.find((f) => f.id === t.fundedBy)?.name || "un fondo"
+        : funds.find((f) => f.id === t.fundedBy)?.name || t.raw?.fundedByName || "un fondo eliminado"
       : null;
     return (
     <div key={id} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 ${rowToneClass(t)}`}>

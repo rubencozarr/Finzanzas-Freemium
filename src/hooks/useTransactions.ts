@@ -21,15 +21,16 @@ export type NewTransaction = Omit<Transaction, "id"> & {
  * parte "ordinaria" salía en 0€ y Supabase rechazaba el insert sin que nada lo capturara, dejando el
  * formulario colgado. Usado tanto en local como en Supabase para que ambos backends se comporten igual. */
 function splitGastoRows(tx: NewTransaction): Omit<Transaction, "id">[] {
-  const { splitFundId, splitFundAmount, ...base } = tx;
+  const { splitFundId, splitFundAmount, fundedByName, ...base } = tx;
   const fundAmount = round2(splitFundAmount ?? 0);
   const ordinarioAmount = round2(Math.max(0, tx.amount - fundAmount));
-  if (ordinarioAmount <= 0) return [{ ...base, amount: tx.amount, fundedBy: splitFundId ?? null }];
-  if (fundAmount <= 0) return [{ ...base, amount: tx.amount, fundedBy: null }];
+  if (ordinarioAmount <= 0)
+    return [{ ...base, amount: tx.amount, fundedBy: splitFundId ?? null, fundedByName: splitFundId ? fundedByName ?? null : null }];
+  if (fundAmount <= 0) return [{ ...base, amount: tx.amount, fundedBy: null, fundedByName: null }];
   const splitId = crypto.randomUUID();
   return [
-    { ...base, amount: ordinarioAmount, fundedBy: null, splitId },
-    { ...base, amount: fundAmount, fundedBy: splitFundId, splitId },
+    { ...base, amount: ordinarioAmount, fundedBy: null, fundedByName: null, splitId },
+    { ...base, amount: fundAmount, fundedBy: splitFundId, fundedByName: fundedByName ?? null, splitId },
   ];
 }
 

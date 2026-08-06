@@ -105,18 +105,22 @@ export function assetsHasta(assets: Asset[], transactions: Transaction[], mKey: 
 
 export function ahorroLibreHasta(transactions: Transaction[], mKey: string): number {
   const relevant = transactions.filter((t) => monthKey(t.date) <= mKey);
-  const ingresosTotal = relevant
-    .filter((t) => t.type === "ingreso" || t.type === "retiro")
-    .reduce((s, t) => s + t.amount, 0);
+  // "retiro" ya no cuenta como ingreso (no es dinero nuevo, es un fondo que se vuelve líquido): se resta
+  // de aportacionesTotal en vez de sumarse a ingresosTotal. El resultado de esta función no cambia de
+  // valor por este reagrupamiento (es la misma suma reordenada), pero ingresosTotal por sí solo deja de
+  // estar inflado por los retiros — mismo patrón que computeMonth, ver ahí el razonamiento completo.
+  const ingresosTotal = relevant.filter((t) => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
   const gastosOrdinariosTotal = relevant
     .filter((t) => t.type === "gasto" && !t.fundedBy)
     .reduce((s, t) => s + t.amount, 0);
   const aportacionesTotal = relevant.filter((t) => t.type === "aportacion").reduce((s, t) => s + t.amount, 0);
+  const retirosTotal = relevant.filter((t) => t.type === "retiro").reduce((s, t) => s + t.amount, 0);
+  const aportacionesNetaTotal = aportacionesTotal - retirosTotal;
   const inversionTotal = relevant.filter((t) => t.type === "inversion").reduce((s, t) => s + t.amount, 0);
   const gastoLibre = relevant
     .filter((t) => t.type === "gasto" && t.fundedBy === AHORRO_LIBRE_ID)
     .reduce((s, t) => s + t.amount, 0);
-  return ingresosTotal - gastosOrdinariosTotal - aportacionesTotal - inversionTotal - gastoLibre;
+  return ingresosTotal - gastosOrdinariosTotal - aportacionesNetaTotal - inversionTotal - gastoLibre;
 }
 
 // El consolidado disponible baja en directo según se gasta dentro del propio mes: no basta con el
@@ -132,15 +136,17 @@ export function ahorroLibreDisponibleParaMes(transactions: Transaction[], mKey: 
 
 /** Pseudo-fondo "Ahorro libre acumulado", para mostrarlo junto a los fondos reales. */
 export function ahorroLibrePseudoFund(transactions: Transaction[]): FundWithBalance {
-  const ingresosTotal = transactions
-    .filter((t) => t.type === "ingreso" || t.type === "retiro")
-    .reduce((s, t) => s + t.amount, 0);
+  // Ver comentario en ahorroLibreHasta: "retiro" se resta de aportacionesTotal en vez de sumarse a
+  // ingresosTotal, mismo reagrupamiento, mismo resultado final.
+  const ingresosTotal = transactions.filter((t) => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
   const gastosOrdinariosTotal = transactions
     .filter((t) => t.type === "gasto" && !t.fundedBy)
     .reduce((s, t) => s + t.amount, 0);
   const aportacionesTotal = transactions.filter((t) => t.type === "aportacion").reduce((s, t) => s + t.amount, 0);
+  const retirosTotal = transactions.filter((t) => t.type === "retiro").reduce((s, t) => s + t.amount, 0);
+  const aportacionesNetaTotal = aportacionesTotal - retirosTotal;
   const inversionTotal = transactions.filter((t) => t.type === "inversion").reduce((s, t) => s + t.amount, 0);
-  const ahorroLibreBruto = ingresosTotal - gastosOrdinariosTotal - aportacionesTotal - inversionTotal;
+  const ahorroLibreBruto = ingresosTotal - gastosOrdinariosTotal - aportacionesNetaTotal - inversionTotal;
   const gastoLibreTotal = transactions
     .filter((t) => t.type === "gasto" && t.fundedBy === AHORRO_LIBRE_ID)
     .reduce((s, t) => s + t.amount, 0);
@@ -175,7 +181,17 @@ export interface MonthStats {
 
 export function computeMonth(transactions: Transaction[], mKey: string): MonthStats {
   const tx = transactions.filter((t) => monthKey(t.date) === mKey);
-  const ingresos = tx.filter((t) => t.type === "ingreso" || t.type === "retiro").reduce((s, t) => s + t.amount, 0);
+  // "retiro" (dinero que sale de un fondo y vuelve a estar líquido) NO es ingreso nuevo: es el espejo de
+  // "aportacion" (dinero que se aparta a un fondo), que ya se resta de ahorroReal como partida propia,
+  // no como un gasto. Por eso "retiro" se resta aquí dentro de aportacionesNeta en vez de sumarse a
+  // ingresos: así ingresos pasa a significar "ingresos reales" en todas partes (StatCards, tasa de
+  // ahorro), sin dejar de reflejar que retirar de un fondo y gastarlo no afecta el ahorro del mes.
+  // ahorroReal no cambia de valor respecto a como se calculaba antes (es la misma suma reagrupada):
+  // ingresos_antes - gastosOrdinarios - aportaciones - inversion
+  //   = (ingresos_ahora + retiros) - gastosOrdinarios - aportaciones - inversion
+  //   = ingresos_ahora - gastosOrdinarios - (aportaciones - retiros) - inversion
+  //   = ingresos_ahora - gastosOrdinarios - aportacionesNeta - inversion.
+  const ingresos = tx.filter((t) => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
   const gastoTx = tx.filter((t) => t.type === "gasto");
   const fixedOrdinario = gastoTx.filter((t) => t.fixed && !t.fundedBy).reduce((s, t) => s + t.amount, 0);
   const variableOrdinario = gastoTx.filter((t) => !t.fixed && !t.fundedBy).reduce((s, t) => s + t.amount, 0);
@@ -185,9 +201,11 @@ export function computeMonth(transactions: Transaction[], mKey: string): MonthSt
     .reduce((s, t) => s + t.amount, 0);
   const gastosOrdinarios = fixedOrdinario + variableOrdinario;
   const aportaciones = tx.filter((t) => t.type === "aportacion").reduce((s, t) => s + t.amount, 0);
+  const retiros = tx.filter((t) => t.type === "retiro").reduce((s, t) => s + t.amount, 0);
+  const aportacionesNeta = aportaciones - retiros;
   const inversion = tx.filter((t) => t.type === "inversion").reduce((s, t) => s + t.amount, 0);
   const ahorroTotal = ingresos - gastosOrdinarios;
-  const ahorroReal = ahorroTotal - aportaciones - inversion;
+  const ahorroReal = ahorroTotal - aportacionesNeta - inversion;
   return {
     ingresos,
     fixedOrdinario,
@@ -203,12 +221,17 @@ export function computeMonth(transactions: Transaction[], mKey: string): MonthSt
   };
 }
 
-/** % de los ingresos que se queda como ahorro real (ahorro libre en curso + aportaciones a fondos),
+/** % de los ingresos reales que se queda como ahorro (ahorro libre en curso + aportaciones a fondos),
  * excluyendo la inversión (que la app trata siempre aparte del ahorro, no como parte de él).
  * gastosOrdinarios ya excluye aportaciones/inversión por construcción (son un `type` de transacción
- * distinto a "gasto"), así que solo hace falta restar la inversión además de gastosOrdinarios. Fuente
- * única para no volver a divergir entre el insight de Mensual y el gráfico de Anual (ya divergían: uno
- * no restaba inversión, el otro restaba también las aportaciones). */
+ * distinto a "gasto"), así que solo hace falta restar la inversión además de gastosOrdinarios. Como
+ * stats.ingresos ya son ingresos reales sin retiro (ver computeMonth), un retiro dentro del mes queda
+ * totalmente neutro para esta tasa: no infla el numerador ni el denominador. Eso es intencional y
+ * distinto de ahorroReal ("Libre en curso"), que sí sube con un retiro porque refleja caja disponible
+ * ese mes — aquí en cambio se mide qué % de lo ganado se retiene como ahorro, y mover dinero ya
+ * ahorrado de un fondo a líquido no es "ahorro nuevo" de este mes. Fuente única para no volver a
+ * divergir entre el insight de Mensual y el gráfico de Anual (ya divergían antes: uno no restaba
+ * inversión, el otro restaba también las aportaciones). */
 export function tasaAhorroPct(stats: MonthStats): number {
   return stats.ingresos ? ((stats.ingresos - stats.gastosOrdinarios - stats.inversion) / stats.ingresos) * 100 : 0;
 }
@@ -826,6 +849,24 @@ export interface FundUsage {
   totalAportado: number;
   pct: number;
   cats: { name: string; total: number; pct: number }[];
+  // true si el fondo ya no existe (se borró): el id se reconstruye a partir de fundedBy y el nombre a
+  // partir del snapshot fundedByName, pero no hay forma de recuperar cuánto se aportó/tenía ese fondo
+  // en total, así que totalAportado/pct no son datos reales (siempre 0) — la UI debe ignorarlos y no
+  // mostrar barra de % cuando este flag está activo.
+  deleted?: boolean;
+}
+
+// % de cada categoría sobre el gasto de ESTE fondo este mes (no sobre el total histórico aportado, que
+// es lo que usa el pct del fondo en sí, un nivel más arriba): así "Transporte 60% / Ocio 40%" siempre
+// suma 100% entre las categorías del mismo fondo/sección.
+function fundUsageCats(fundTx: Transaction[], total: number): { name: string; total: number; pct: number }[] {
+  const catMap: Record<string, number> = {};
+  fundTx.forEach((t) => {
+    catMap[t.category] = (catMap[t.category] || 0) + t.amount;
+  });
+  return Object.entries(catMap)
+    .map(([name, amt]) => ({ name, total: amt, pct: total ? (amt / total) * 100 : 0 }))
+    .sort((a, b) => b.total - a.total);
 }
 
 export function buildFundUsage(
@@ -833,35 +874,74 @@ export function buildFundUsage(
   transactions: Transaction[],
   funds: FundWithBalance[],
 ): FundUsage[] {
-  return funds
+  const existing = funds
     .map((fund) => {
       const fundTx = monthTx.filter((t) => t.type === "gasto" && t.fundedBy === fund.id);
       const total = fundTx.reduce((s, t) => s + t.amount, 0);
       if (total <= 0) return null;
+      // Total real del fondo: saldo inicial + lo aportado después, no solo lo aportado. Un fondo creado
+      // solo con saldo inicial (sin aportaciones posteriores) debe poder mostrar un % de uso > 0% en vez
+      // de caer siempre a 0% por dividir entre un totalAportado que ignoraba el saldo inicial.
       const totalAportado =
         fund.virtualTotalAportado != null
           ? fund.virtualTotalAportado
-          : transactions.filter((t) => t.type === "aportacion" && t.fundId === fund.id).reduce((s, t) => s + t.amount, 0);
-      const catMap: Record<string, number> = {};
-      fundTx.forEach((t) => {
-        catMap[t.category] = (catMap[t.category] || 0) + t.amount;
-      });
-      // % de cada categoría sobre el gasto de ESTE fondo este mes (no sobre el total histórico
-      // aportado, que es lo que usa el pct del fondo en sí, un nivel más arriba): así "Transporte 60% /
-      // Ocio 40%" siempre suma 100% entre las categorías del mismo fondo.
-      const cats = Object.entries(catMap)
-        .map(([name, amt]) => ({ name, total: amt, pct: total ? (amt / total) * 100 : 0 }))
-        .sort((a, b) => b.total - a.total);
+          : (fund.initialBalance ?? 0) +
+            transactions.filter((t) => t.type === "aportacion" && t.fundId === fund.id).reduce((s, t) => s + t.amount, 0);
       return {
         id: fund.id,
         name: fund.name,
         total,
         totalAportado,
         pct: totalAportado ? (total / totalAportado) * 100 : 0,
-        cats,
+        cats: fundUsageCats(fundTx, total),
       };
     })
     .filter((f): f is FundUsage => f !== null);
+
+  // Ahorro libre consolidado (fundedBy === AHORRO_LIBRE_ID): no es un fondo real de `funds`, así que sin
+  // esto sus gastos quedaban invisibles en el desglose aunque sí contaran en el total del header
+  // (stats.gastosFinanciados). Se trata igual que un fondo más, reutilizando el mismo virtualTotalAportado
+  // que ya calcula ahorroLibrePseudoFund para FondosTab (mismo % que vería el usuario ahí).
+  const ahorroLibreTx = monthTx.filter((t) => t.type === "gasto" && t.fundedBy === AHORRO_LIBRE_ID);
+  const ahorroLibreTotal = ahorroLibreTx.reduce((s, t) => s + t.amount, 0);
+  const ahorroLibreUsage: FundUsage[] =
+    ahorroLibreTotal > 0
+      ? (() => {
+          const totalAportado = ahorroLibrePseudoFund(transactions).virtualTotalAportado ?? 0;
+          return [
+            {
+              id: AHORRO_LIBRE_ID,
+              name: "Ahorro libre consolidado",
+              total: ahorroLibreTotal,
+              totalAportado,
+              pct: totalAportado ? (ahorroLibreTotal / totalAportado) * 100 : 0,
+              cats: fundUsageCats(ahorroLibreTx, ahorroLibreTotal),
+            },
+          ];
+        })()
+      : [];
+
+  // Fondos ya eliminados: fundedBy apunta a un id que no es AHORRO_LIBRE_ID ni coincide con ningún fondo
+  // actual. fundedBy (a diferencia de fund_id) no tiene FK, así que sigue intacto tras borrar el fondo;
+  // se agrupa por ese id y se usa el snapshot fundedByName como nombre a mostrar (ver Transaction).
+  const knownFundIds = new Set(funds.map((f) => f.id));
+  const deletedTx = monthTx.filter(
+    (t) => t.type === "gasto" && !!t.fundedBy && t.fundedBy !== AHORRO_LIBRE_ID && !knownFundIds.has(t.fundedBy),
+  );
+  const deletedGroups = new Map<string, Transaction[]>();
+  deletedTx.forEach((t) => {
+    const key = t.fundedBy as string;
+    const group = deletedGroups.get(key);
+    if (group) group.push(t);
+    else deletedGroups.set(key, [t]);
+  });
+  const deletedUsage: FundUsage[] = Array.from(deletedGroups.entries()).map(([id, txs]) => {
+    const total = txs.reduce((s, t) => s + t.amount, 0);
+    const name = txs.find((t) => t.fundedByName)?.fundedByName || "Fondo eliminado";
+    return { id, name, total, totalAportado: 0, pct: 0, cats: fundUsageCats(txs, total), deleted: true };
+  });
+
+  return [...existing, ...ahorroLibreUsage, ...deletedUsage];
 }
 
 export function buildAssetBreakdown(monthTx: Transaction[], assets: Asset[]): CategoryBreakdown[] {
@@ -924,10 +1004,11 @@ export function mergeSplitDisplay(monthTx: Transaction[], funds: FundWithBalance
       // fundedBy puede ser el id de un fondo real o el sentinel AHORRO_LIBRE_ID ("ahorro_libre"), que
       // no está en la lista de fondos — sin este caso especial, un gasto dividido pagado en parte con
       // ahorro libre consolidado no mostraba ningún aviso (fund quedaba null y splitLabel se omitía).
+      // Misma prioridad que en MovimientosTab: en vivo -> snapshot fundedByName -> "un fondo eliminado".
       const fundName = fundedPart
         ? fundedPart.fundedBy === AHORRO_LIBRE_ID
           ? "ahorro libre consolidado"
-          : (funds.find((f) => f.id === fundedPart.fundedBy)?.name ?? null)
+          : (funds.find((f) => f.id === fundedPart.fundedBy)?.name ?? fundedPart.fundedByName ?? "un fondo eliminado")
         : null;
       items.push({
         ids: group.map((g) => g.id),
