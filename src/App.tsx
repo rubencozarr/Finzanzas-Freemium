@@ -280,10 +280,34 @@ function App() {
   // Detecta un Service Worker nuevo ya instalado y esperando (ver comentario de registerType: 'prompt'
   // en vite.config.ts): needRefresh pasa a true cuando hay una versión nueva disponible; el usuario
   // decide cuándo aplicarla desde el banner, en vez de que se aplique sola en segundo plano.
+  const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | undefined>();
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      setSwRegistration(registration);
+    },
+  });
+
+  // Sin esto, una pestaña que se queda abierta mucho tiempo (el caso típico de una PWA/TWA, que casi
+  // nadie cierra del todo) solo se entera de una versión nueva la próxima vez que recargue por su cuenta
+  // — el navegador comprueba el SW en segundo plano, pero con una cadencia de horas, no minutos. Se
+  // comprueba activamente cada 30 minutos Y cada vez que la pestaña vuelve a primer plano (típico en
+  // móvil: cambiar de app y volver), que es cuando de verdad importa que se entere pronto.
+  useEffect(() => {
+    if (!swRegistration) return;
+    const checkForUpdate = () => swRegistration.update();
+    const intervalId = setInterval(checkForUpdate, 30 * 60 * 1000);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") checkForUpdate();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [swRegistration]);
 
   // El estado del tutorial vive en Supabase (tabla user_settings), asociado al usuario y no al
   // navegador: así, si el mismo usuario entra desde otro dispositivo, no vuelve a verlo.
