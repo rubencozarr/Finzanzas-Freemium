@@ -3,7 +3,7 @@ import { Crown, X } from "lucide-react";
 import { Chip } from "./Chip";
 import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, FREE_MAX_FUNDS, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
-import { fmt, monthKey, round2 } from "../lib/format";
+import { fmt, formatDateEs, monthKey, round2 } from "../lib/format";
 import type { NewTransaction } from "../hooks/useTransactions";
 import type { AssetWithTotal, Category, FundWithBalance, Transaction, TransactionType } from "../types";
 
@@ -112,8 +112,11 @@ export function NuevoMovimientoForm({
   const [shortfallFundId, setShortfallFundId] = useState(AHORRO_LIBRE_ID);
   // Se ha visto a usuarios darle a "Guardar" sin haber tocado ninguna categoría (el botón no hacía
   // nada y no quedaba claro por qué). Solo se activa tras un intento real de guardar, para no mostrar
-  // el aviso antes de que el usuario haya llegado a esa parte del formulario.
+  // el aviso antes de que el usuario haya llegado a esa parte del formulario. Mismo patrón para importe
+  // y fecha vacíos/ inválidos, que tenían el mismo problema (el botón no hacía nada visible).
   const [showCategoryError, setShowCategoryError] = useState(false);
+  const [showAmountError, setShowAmountError] = useState(false);
+  const [showDateError, setShowDateError] = useState(false);
 
   // El ahorro libre disponible se recalcula según la fecha del movimiento y nunca incluye
   // el propio mes: solo puedes gastar como "ahorro" lo acumulado en meses anteriores a este.
@@ -222,7 +225,14 @@ export function NuevoMovimientoForm({
   };
 
   const submit = () => {
-    if (!amt || amt <= 0 || !date) return;
+    if (!amt || amt <= 0) {
+      setShowAmountError(true);
+      return;
+    }
+    if (!date) {
+      setShowDateError(true);
+      return;
+    }
     if (needsFund && !fundId) return;
     if (needsAsset && !assetId) return;
     if (retiroExcedeFondo) return;
@@ -529,17 +539,28 @@ export function NuevoMovimientoForm({
           type="number"
           inputMode="decimal"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            setAmount(e.target.value);
+            setShowAmountError(false);
+          }}
           onWheel={(e) => e.currentTarget.blur()}
           placeholder="Importe (€)"
-          className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base font-mono mb-3 mt-3"
+          className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base font-mono mt-3 mb-1"
         />
+        {showAmountError && (!amt || amt <= 0) && (
+          <p className="text-xs text-rose-500 mb-2">El importe es obligatorio y debe ser mayor que 0.</p>
+        )}
         <input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={(e) => {
+            setDate(e.target.value);
+            setShowDateError(false);
+          }}
           className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base mb-1"
         />
+        {date && <p className="text-xs text-stone-400 mb-1">{formatDateEs(date)}</p>}
+        {showDateError && !date && <p className="text-xs text-rose-500 mb-2">La fecha es obligatoria.</p>}
         {date &&
           (() => {
             const diff = (new Date(date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
