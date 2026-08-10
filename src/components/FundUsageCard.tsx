@@ -8,8 +8,8 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
   return (
     <div className="border-l-4 border-amber-400 border-y border-r border-stone-100 bg-white rounded-r-lg mb-2 overflow-hidden">
       <button onClick={() => setExpanded((e) => !e)} className="w-full text-left pl-3 pr-3 py-2.5">
-        <div className="flex justify-between items-center text-sm mb-1">
-          <span className={`font-medium ${f.deleted ? "text-stone-400" : ""}`}>
+        <div className="flex justify-between items-center gap-2 text-sm mb-1">
+          <span className={`min-w-0 truncate ${f.deleted ? "font-medium text-stone-400" : "font-medium"}`}>
             {f.name}
             {f.deleted && <span className="font-normal"> (eliminado)</span>}
           </span>
@@ -19,7 +19,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
               {/* pct es null cuando el saldo de inicio de mes era 0 (p. ej. fondo creado este mismo mes
                   sin saldo inicial): no hay una base con la que calcular un % con sentido, así que no se
                   muestra ningún porcentaje ni barra, solo el importe gastado. */}
-              {!f.deleted && f.pct != null && ` · ${f.pct.toFixed(0)}% del saldo inicial del mes`}
+              {!f.deleted && f.pct != null && ` · ${f.pct.toFixed(0)}% del saldo inicial`}
             </span>
             {expanded ? <ChevronUp size={14} className="text-stone-400" /> : <ChevronDown size={14} className="text-stone-400" />}
           </span>
