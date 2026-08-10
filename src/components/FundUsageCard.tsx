@@ -34,7 +34,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
         <div className="px-3 pb-2.5">
           {/* Saldo REAL actual del fondo (mismo número que la tarjeta de Fondos) — distinto del saldo de
               inicio de mes que usa el % de arriba como base; ambos son datos útiles y complementarios. */}
-          {!f.deleted && <p className="text-xs text-stone-400 mb-2">de {fmt(f.balance)} que tiene ahora este fondo</p>}
+          {!f.deleted && <p className="text-xs text-stone-400 mb-2">{fmt(f.balance)} tienes ahora en este fondo</p>}
           <div className="border-l-2 border-stone-100 ml-1 pl-3 space-y-1.5">
             {f.cats.map((c) => (
               <div key={c.name}>
