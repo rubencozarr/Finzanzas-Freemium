@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.nitidapp.gastos",
-        "sha256_cert_fingerprints": ["28:0C:A2:3D:23:21:08:D7:7D:3F:DF:BD:5E:72:11:36:C5:13:E0:F3:B8:B9:86:5B:2A:19:4B:62:13:5A:6B:84"]
+        "sha256_cert_fingerprints": ["14:06:45:1F:9A:E6:F9:F9:96:99:1D:AA:FF:8E:CF:4C:AA:AC:C6:E4:53:C5:5A:CA:85:8B:FA:62:35:BA:6E:9B"]
       }
     }]
