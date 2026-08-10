@@ -197,6 +197,7 @@ export function AjustesTab({
   }, [section, onSectionChange]);
   const [importConfirm, setImportConfirm] = useState<unknown | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -328,7 +329,7 @@ export function AjustesTab({
           <input type="file" accept="application/json" onChange={handleFile} className="hidden" />
         </label>
         <button
-          onClick={() => onSignOut()}
+          onClick={() => setShowSignOutConfirm(true)}
           className="w-full flex items-center justify-center gap-1.5 text-stone-400 py-2 text-xs mt-3"
         >
           <LogOut size={13} /> Cerrar sesión
@@ -346,6 +347,29 @@ export function AjustesTab({
           <Trash2 size={13} /> Eliminar mi cuenta
         </button>
       </div>
+
+      {showSignOutConfirm && (
+        <div className="fixed inset-0 bg-black/30 flex items-end justify-center z-30" onClick={() => setShowSignOutConfirm(false)}>
+          <div className="bg-white rounded-t-2xl w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
+            <p className="font-serif text-base mb-4">¿Seguro que quieres cerrar sesión?</p>
+            <button
+              onClick={() => {
+                setShowSignOutConfirm(false);
+                onSignOut();
+              }}
+              className="w-full bg-slate-800 text-white rounded-lg py-2.5 text-sm font-medium mb-2"
+            >
+              Cerrar sesión
+            </button>
+            <button
+              onClick={() => setShowSignOutConfirm(false)}
+              className="w-full border border-stone-200 text-stone-600 rounded-lg py-2.5 text-sm font-medium"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {showDeleteAccountConfirm && (
         <div

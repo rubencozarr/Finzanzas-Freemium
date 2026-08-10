@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRightLeft, Check, ChevronDown, ChevronUp, Crown, Info, MoreVertical, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
@@ -8,6 +8,7 @@ import { ALL_FUND_ICONS, DEFAULT_FUND_ICON, FREE_MAX_FUNDS, MONTHS_FULL, PREMIUM
 import { fundAvgNetContribution } from "../../lib/calculations";
 import { fundIconComponent } from "../../lib/fundIcons";
 import { usePersistentState } from "../../lib/persistentState";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset";
 import { firstOfNextMonthISO, fmt, formatMonthYear, monthKey } from "../../lib/format";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "../../types";
 
@@ -182,6 +183,24 @@ export function FondosTab({
   // FundLockBadge/ConsolidadoInfoBadge en este mismo archivo (se cierra al tocar el propio botón de
   // nuevo, o al elegir una acción del menú).
   const [openMenuFundId, setOpenMenuFundId] = useState<string | null>(null);
+
+  // S-03 (QA): al crear/editar un fondo, el teclado tapaba "¿Ya tienes dinero ahorrado...?" y el campo
+  // de saldo inicial contra la barra de navegación inferior (que además está en position: fixed, fuera
+  // del flujo normal de scroll — el auto-scroll nativo del navegador al enfocar un input no siempre la
+  // tiene en cuenta). En vez de un onFocus por cada campo, se engancha al mismo keyboardInset que ya usa
+  // la barra de navegación (App.tsx): en cuanto el teclado termina de abrirse (inset pasa de 0 a >0), se
+  // desplaza a la vista lo que esté enfocado en ese momento, sea cual sea el campo del formulario.
+  const keyboardInset = useKeyboardInset();
+  const prevKeyboardInset = useRef(0);
+  useEffect(() => {
+    if (keyboardInset > 0 && prevKeyboardInset.current === 0) {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+        active.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }
+    prevKeyboardInset.current = keyboardInset;
+  }, [keyboardInset]);
 
   // El nombre no puede repetirse entre fondos. Mismo patrón que nameExists en CategoriasEditor.tsx.
   const fundNameExists = (name: string, excludeId?: string) =>
