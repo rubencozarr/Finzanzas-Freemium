@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown, ChevronUp, Crown, Info, Pencil, Plus, Target, Trash2, X } from "lucide-react";
+import { ArrowRightLeft, Check, ChevronDown, ChevronUp, Crown, Info, MoreVertical, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { PremiumGate } from "../../components/PremiumGate";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
@@ -46,6 +46,7 @@ interface FondosTabProps {
   goToMonthIndex: (m: number) => void;
   getAhorroReal: (year: number, monthIdx: number) => number;
   onQuickMove: (fund: FundWithBalance, type: "aportacion" | "retiro") => void;
+  onQuickTransfer: (fund: FundWithBalance) => void;
   onQuickInvest: (asset: AssetWithTotal) => void;
   onGoToAjustes: () => void;
   onOpenPremiumScreen: () => void;
@@ -161,6 +162,7 @@ export function FondosTab({
   goToMonthIndex,
   getAhorroReal,
   onQuickMove,
+  onQuickTransfer,
   onQuickInvest,
   onGoToAjustes,
   onOpenPremiumScreen,
@@ -175,6 +177,11 @@ export function FondosTab({
   const [editFundIcon, setEditFundIcon] = useState<string>(DEFAULT_FUND_ICON);
   const [editInitialBalance, setEditInitialBalance] = useState("");
   const [renameFundError, setRenameFundError] = useState<string | null>(null);
+  // Menú "más opciones" (⋮) de cada tarjeta de fondo: solo uno abierto a la vez, igual que
+  // editingFundId/editingGoalFundId más abajo. Sin cierre al tocar fuera, mismo criterio que
+  // FundLockBadge/ConsolidadoInfoBadge en este mismo archivo (se cierra al tocar el propio botón de
+  // nuevo, o al elegir una acción del menú).
+  const [openMenuFundId, setOpenMenuFundId] = useState<string | null>(null);
 
   // El nombre no puede repetirse entre fondos. Mismo patrón que nameExists en CategoriasEditor.tsx.
   const fundNameExists = (name: string, excludeId?: string) =>
@@ -422,11 +429,14 @@ export function FondosTab({
                       setEditingFundId(null);
                       setRenameFundError(null);
                     }}
-                    className="text-teal-700"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-teal-700"
                   >
                     <Check size={16} />
                   </button>
-                  <button onClick={() => setEditingFundId(null)} className="text-stone-400">
+                  <button
+                    onClick={() => setEditingFundId(null)}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-400"
+                  >
                     <X size={16} />
                   </button>
                 </div>
@@ -465,14 +475,14 @@ export function FondosTab({
                       <button
                         onClick={() => updateFundOrder(f.id, -1)}
                         disabled={i === 0}
-                        className={`p-2 -m-0.5 ${i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
+                        className={`min-w-[44px] min-h-[44px] -m-1 flex items-center justify-center ${i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
                       >
                         <ChevronUp size={18} />
                       </button>
                       <button
                         onClick={() => updateFundOrder(f.id, 1)}
                         disabled={i === fundsAtDate.length - 1}
-                        className={`p-2 -m-0.5 ${i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
+                        className={`min-w-[44px] min-h-[44px] -m-1 flex items-center justify-center ${i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
                       >
                         <ChevronDown size={18} />
                       </button>
@@ -524,11 +534,14 @@ export function FondosTab({
                       }
                       setEditingGoalFundId(null);
                     }}
-                    className="text-emerald-700 shrink-0"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-emerald-700 shrink-0"
                   >
                     <Check size={16} />
                   </button>
-                  <button onClick={() => setEditingGoalFundId(null)} className="text-stone-400 shrink-0">
+                  <button
+                    onClick={() => setEditingGoalFundId(null)}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-400 shrink-0"
+                  >
                     <X size={16} />
                   </button>
                   {f.goalAmount != null && (
@@ -537,7 +550,7 @@ export function FondosTab({
                         updateFundGoal(f.id, null);
                         setEditingGoalFundId(null);
                       }}
-                      className="text-stone-300 hover:text-rose-600 shrink-0"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-300 hover:text-rose-600 shrink-0"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -549,7 +562,7 @@ export function FondosTab({
                     setEditingGoalFundId(f.id);
                     setGoalAmountInput("");
                   }}
-                  className="flex items-center gap-1 text-xs text-stone-400 hover:text-emerald-700 hover:border-emerald-300 border border-dashed border-stone-200 rounded-md px-2 py-1 mb-2"
+                  className="min-h-[44px] flex items-center gap-1 text-xs text-stone-400 hover:text-emerald-700 hover:border-emerald-300 border border-dashed border-stone-200 rounded-md px-2 py-1 mb-2"
                 >
                   <Target size={12} />
                   Poner meta de ahorro
@@ -611,34 +624,61 @@ export function FondosTab({
                     <button
                       onClick={() => onQuickMove(f, "aportacion")}
                       disabled={!canContribute}
-                      className={`flex-1 text-xs rounded-md px-2.5 py-1.5 ${canContribute ? "bg-teal-50 text-teal-800" : "bg-stone-100 text-stone-300"}`}
+                      className={`flex-1 min-h-[44px] text-xs rounded-md px-2.5 py-1.5 ${canContribute ? "bg-teal-50 text-teal-800" : "bg-stone-100 text-stone-300"}`}
                     >
                       Aportar
                     </button>
-                    <button onClick={() => onQuickMove(f, "retiro")} className="flex-1 text-xs bg-amber-50 text-amber-800 rounded-md px-2.5 py-1.5">
+                    <button
+                      onClick={() => onQuickMove(f, "retiro")}
+                      className="flex-1 min-h-[44px] text-xs bg-amber-50 text-amber-800 rounded-md px-2.5 py-1.5"
+                    >
                       Retirar
                     </button>
-                    <button
-                      onClick={() => {
-                        setEditingFundId(f.id);
-                        setEditFundName(f.name);
-                        setEditFundIcon(f.icon ?? DEFAULT_FUND_ICON);
-                        setEditInitialBalance(f.initialBalance ? String(f.initialBalance) : "");
-                        setRenameFundError(null);
-                      }}
-                      className="text-stone-300 hover:text-slate-700"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (f.balance === 0) deleteFund(f);
-                        else setDeleteConfirmFund(f);
-                      }}
-                      className="text-stone-300 hover:text-rose-600"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenMenuFundId((id) => (id === f.id ? null : f.id))}
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-400 hover:text-slate-700"
+                        aria-label="Más opciones"
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {openMenuFundId === f.id && (
+                        <div className="absolute right-0 top-full mt-1 z-10 w-44 bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden">
+                          <button
+                            onClick={() => {
+                              setOpenMenuFundId(null);
+                              onQuickTransfer(f);
+                            }}
+                            className="w-full min-h-[44px] flex items-center gap-2 px-3 text-sm text-stone-700 hover:bg-stone-50"
+                          >
+                            <ArrowRightLeft size={15} /> Transferir
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOpenMenuFundId(null);
+                              setEditingFundId(f.id);
+                              setEditFundName(f.name);
+                              setEditFundIcon(f.icon ?? DEFAULT_FUND_ICON);
+                              setEditInitialBalance(f.initialBalance ? String(f.initialBalance) : "");
+                              setRenameFundError(null);
+                            }}
+                            className="w-full min-h-[44px] flex items-center gap-2 px-3 text-sm text-stone-700 hover:bg-stone-50 border-t border-stone-100"
+                          >
+                            <Pencil size={15} /> Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOpenMenuFundId(null);
+                              if (f.balance === 0) deleteFund(f);
+                              else setDeleteConfirmFund(f);
+                            }}
+                            className="w-full min-h-[44px] flex items-center gap-2 px-3 text-sm text-rose-600 hover:bg-rose-50 border-t border-stone-100"
+                          >
+                            <Trash2 size={15} /> Eliminar
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {!canContribute && <p className="text-[11px] text-stone-400 mt-1.5">Selecciona este fondo como activo para aportar</p>}
                 </>

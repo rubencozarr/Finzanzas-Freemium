@@ -174,7 +174,7 @@ create unique index if not exists idx_subscriptions_lemonsqueezy_sub
 create table if not exists public.transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
-  type text not null check (type in ('ingreso', 'gasto', 'aportacion', 'retiro', 'inversion')),
+  type text not null check (type in ('ingreso', 'gasto', 'aportacion', 'retiro', 'inversion', 'transferencia')),
   amount numeric(12, 2) not null check (amount > 0),
   date date not null,
   category text not null,
@@ -188,6 +188,7 @@ create table if not exists public.transactions (
   subcategory_id uuid,
   note text not null default '',
   fixed boolean,
+  -- aportacion/retiro: el fondo. transferencia: el fondo ORIGEN (fund_id_destino de abajo es el destino).
   fund_id uuid references public.funds (id) on delete set null,
   funded_by text,
   -- Snapshot del nombre del fondo (o "Ahorro libre consolidado") en el momento de pagar el gasto.
@@ -195,15 +196,25 @@ create table if not exists public.transactions (
   -- borra después, funded_by queda apuntando a un id inexistente sin que Postgres lo toque; este
   -- campo es lo único que permite seguir mostrando qué fondo pagó ese gasto histórico.
   funded_by_name text,
+  -- Solo transferencia: fondo destino (fund_id es el origen). Igual que fund_id, on delete set null
+  -- deja la columna en null si el fondo se borra; fund_id_destino_name es el snapshot de su nombre
+  -- para seguir mostrando la transferencia histórica aunque el fondo destino ya no exista.
+  fund_id_destino uuid references public.funds (id) on delete set null,
+  fund_id_destino_name text,
   split_id uuid,
   recurring_id uuid references public.recurring (id) on delete set null,
   recurring_income_id uuid references public.recurring_income (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
--- Nota: si tu base de datos ya existía antes de que se añadiera funded_by_name, "create table if not
--- exists" no la crea sola (la tabla ya existe). Ejecuta esto una vez en el SQL Editor de Supabase:
+-- Nota: si tu base de datos ya existía antes de que se añadieran estas columnas/tipo, "create table if
+-- not exists" no la actualiza sola (la tabla ya existe). Ejecuta esto una vez en el SQL Editor de Supabase:
 --   alter table public.transactions add column if not exists funded_by_name text;
+--   alter table public.transactions add column if not exists fund_id_destino uuid references public.funds (id) on delete set null;
+--   alter table public.transactions add column if not exists fund_id_destino_name text;
+--   alter table public.transactions drop constraint if exists transactions_type_check;
+--   alter table public.transactions add constraint transactions_type_check
+--     check (type in ('ingreso', 'gasto', 'aportacion', 'retiro', 'inversion', 'transferencia'));
 
 -- =========================================================
 -- ÍNDICES
@@ -212,6 +223,7 @@ create index if not exists idx_transactions_user_date on public.transactions (us
 create index if not exists idx_transactions_user_type on public.transactions (user_id, type);
 create index if not exists idx_transactions_split_id on public.transactions (split_id) where split_id is not null;
 create index if not exists idx_transactions_fund_id on public.transactions (fund_id) where fund_id is not null;
+create index if not exists idx_transactions_fund_id_destino on public.transactions (fund_id_destino) where fund_id_destino is not null;
 create index if not exists idx_transactions_category_id on public.transactions (category_id) where category_id is not null;
 create index if not exists idx_funds_user on public.funds (user_id, sort_order);
 create index if not exists idx_categories_user on public.categories (user_id, sort_order);

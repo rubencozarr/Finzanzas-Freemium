@@ -1,4 +1,4 @@
-import { computeMonth, resolveCategoryName, resolveSubcategoryName, tasaAhorroPct } from "./calculations";
+import { computeMonth, resolveCategoryName, resolveFundDestinoName, resolveSubcategoryName, tasaAhorroPct } from "./calculations";
 import { AHORRO_LIBRE_ID, MONTHS_FULL } from "./constants";
 import { monthKey, todayISO } from "./format";
 import type { Category, FundWithBalance, Transaction, TransactionType } from "../types";
@@ -9,6 +9,7 @@ const TYPE_LABELS: Record<TransactionType, string> = {
   aportacion: "Aportación",
   retiro: "Retiro",
   inversion: "Inversión",
+  transferencia: "Transferencia",
 };
 
 // Resolución en vivo primero (nombre actual si el fondo se renombró); si el fondo ya no existe, cae al
@@ -44,6 +45,7 @@ export async function exportToExcel({ transactions, funds, categories }: ExportE
     { header: "Importe", key: "importe", width: 12 },
     { header: "Nota", key: "nota", width: 24 },
     { header: "Pagado con", key: "pagadoCon", width: 18 },
+    { header: "Fondo destino", key: "fondoDestino", width: 18 },
   ];
   [...transactions]
     .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1))
@@ -51,11 +53,14 @@ export async function exportToExcel({ transactions, funds, categories }: ExportE
       movimientosSheet.addRow({
         fecha: t.date,
         tipo: TYPE_LABELS[t.type],
+        // t.category es el fondo ORIGEN para una transferencia (mismo campo que ya usan
+        // aportacion/retiro para el nombre del fondo).
         categoria: t.type === "gasto" ? resolveCategoryName(t, categories) : t.category,
         subcategoria: t.type === "gasto" ? (resolveSubcategoryName(t, categories) ?? "") : "",
         importe: t.amount,
         nota: t.note ?? "",
         pagadoCon: fundedByLabel(t, funds),
+        fondoDestino: t.type === "transferencia" ? resolveFundDestinoName(t, funds) : "",
       });
     });
 

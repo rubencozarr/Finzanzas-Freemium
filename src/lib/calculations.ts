@@ -40,12 +40,31 @@ export function fundsWithBalance(funds: Fund[], transactions: Transaction[]): Fu
     const usado = transactions
       .filter((t) => t.type === "gasto" && t.fundedBy === f.id)
       .reduce((s, t) => s + t.amount, 0);
+    const transferidoRecibido = transactions
+      .filter((t) => t.type === "transferencia" && t.fundIdDestino === f.id)
+      .reduce((s, t) => s + t.amount, 0);
+    const transferidoEnviado = transactions
+      .filter((t) => t.type === "transferencia" && t.fundId === f.id)
+      .reduce((s, t) => s + t.amount, 0);
     // flowBalance es el saldo derivado SOLO del historial de movimientos (lo que "balance" era antes
     // de que existiera el saldo inicial). balance le suma initialBalance, el dinero que el usuario ya
     // tenía ahorrado antes de usar la app: cuenta para el saldo total y el patrimonio, pero nunca debe
     // tratarse como ingreso/aportación — por eso los pocos sitios que necesitan ignorarlo (el aviso de
     // 500€ free, el retiro que se genera al borrar un fondo) leen flowBalance en vez de balance.
-    const flowBalance = aportado - retirado - usado;
+    //
+    // NOTA sobre transferencias y saldo inicial: una transferencia se valida contra el balance TOTAL
+    // del fondo origen (initialBalance + flowBalance), no solo contra flowBalance — el usuario puede
+    // mover hasta el saldo que ve en su tarjeta. Esto significa que flowBalance puede quedar negativo
+    // si la parte "de más" venía del saldo inicial (balance total sigue siendo correcto y no negativo).
+    // Fuga conocida y aceptada: lo recibido por transferencia se suma aquí siempre como flowBalance del
+    // fondo DESTINO, sin distinguir si en el fondo origen esos euros eran "saldo inicial" o "flujo real".
+    // Si ese fondo destino se borra más adelante, onDeleteFund devolvería como retiro el importe
+    // completo recibido (ver comentario allí) — incluida la parte que originalmente era saldo inicial
+    // de otro fondo, que en su fondo de origen nunca se habría devuelto así. Caso marginal (requiere
+    // transferir + borrar el fondo receptor después) con impacto acotado a un único mes de "Libre en
+    // curso"; no se resuelve por ahora — resolverlo del todo requeriría trackear qué proporción de cada
+    // transferencia viene de saldo inicial vs. flujo, lo que complica bastante el modelo para este caso.
+    const flowBalance = aportado - retirado - usado + transferidoRecibido - transferidoEnviado;
     return { ...f, balance: (f.initialBalance ?? 0) + flowBalance, flowBalance };
   });
 }
@@ -75,8 +94,15 @@ export function fundsBalanceHasta(funds: Fund[], transactions: Transaction[], mK
       .reduce((s, t) => s + t.amount, 0);
     const retirado = rel.filter((t) => t.type === "retiro" && t.fundId === f.id).reduce((s, t) => s + t.amount, 0);
     const usado = rel.filter((t) => t.type === "gasto" && t.fundedBy === f.id).reduce((s, t) => s + t.amount, 0);
-    // Ver comentario en fundsWithBalance: mismo criterio balance/flowBalance.
-    const flowBalance = aportado - retirado - usado;
+    const transferidoRecibido = rel
+      .filter((t) => t.type === "transferencia" && t.fundIdDestino === f.id)
+      .reduce((s, t) => s + t.amount, 0);
+    const transferidoEnviado = rel
+      .filter((t) => t.type === "transferencia" && t.fundId === f.id)
+      .reduce((s, t) => s + t.amount, 0);
+    // Ver comentario en fundsWithBalance: mismo criterio balance/flowBalance, y misma fuga conocida de
+    // saldo inicial vía transferencia + borrado del fondo receptor.
+    const flowBalance = aportado - retirado - usado + transferidoRecibido - transferidoEnviado;
     return { ...f, balance: (f.initialBalance ?? 0) + flowBalance, flowBalance };
   });
 }
@@ -617,6 +643,24 @@ export function resolveFundName(t: FundMatchable, funds: Fund[]): string {
   return t.category;
 }
 
+/** Subconjunto mínimo para resolver el nombre "en vivo" del fondo destino de una transferencia. */
+export interface FundDestinoMatchable {
+  fundIdDestino?: string | null;
+  fundIdDestinoName?: string | null;
+}
+
+/** Nombre "en vivo" del fondo destino de una transferencia: mismo criterio que resolveFundName (en vivo
+ * primero, snapshot como red de seguridad), pero el snapshot es fundIdDestinoName — no hay un campo
+ * "category" equivalente para el destino, ese ya lo ocupa el nombre del fondo ORIGEN (igual que en
+ * aportacion/retiro). */
+export function resolveFundDestinoName(t: FundDestinoMatchable, funds: Fund[]): string {
+  if (t.fundIdDestino) {
+    const fund = funds.find((f) => f.id === t.fundIdDestino);
+    if (fund) return fund.name;
+  }
+  return t.fundIdDestinoName || "un fondo eliminado";
+}
+
 export interface FundedRecurringPlan {
   recurringId: string;
   fundId: string;
@@ -848,7 +892,7 @@ export interface FundUsage {
   total: number;
   totalAportado: number;
   pct: number;
-  cats: { name: string; total: number; pct: number }[];
+  cats: FundUsageCategory[];
   // true si el fondo ya no existe (se borró): el id se reconstruye a partir de fundedBy y el nombre a
   // partir del snapshot fundedByName, pero no hay forma de recuperar cuánto se aportó/tenía ese fondo
   // en total, así que totalAportado/pct no son datos reales (siempre 0) — la UI debe ignorarlos y no
@@ -856,16 +900,36 @@ export interface FundUsage {
   deleted?: boolean;
 }
 
+export interface FundUsageCategory {
+  name: string;
+  total: number;
+  pct: number;
+  // Igual que CategoryBreakdown.subcats: agrupado por el texto de subcategory (snapshot), no resuelto
+  // en vivo por id — mismo nivel de simplicidad que ya usa el agrupado por categoría de esta función,
+  // que tampoco resuelve categoryId en vivo. FundUsageCard lo oculta en free (subcategorías = premium).
+  subcats: { name: string; total: number }[];
+}
+
 // % de cada categoría sobre el gasto de ESTE fondo este mes (no sobre el total histórico aportado, que
 // es lo que usa el pct del fondo en sí, un nivel más arriba): así "Transporte 60% / Ocio 40%" siempre
 // suma 100% entre las categorías del mismo fondo/sección.
-function fundUsageCats(fundTx: Transaction[], total: number): { name: string; total: number; pct: number }[] {
-  const catMap: Record<string, number> = {};
+function fundUsageCats(fundTx: Transaction[], total: number): FundUsageCategory[] {
+  const catMap = new Map<string, { total: number; subMap: Map<string, number> }>();
   fundTx.forEach((t) => {
-    catMap[t.category] = (catMap[t.category] || 0) + t.amount;
+    if (!catMap.has(t.category)) catMap.set(t.category, { total: 0, subMap: new Map() });
+    const entry = catMap.get(t.category)!;
+    entry.total += t.amount;
+    if (t.subcategory) entry.subMap.set(t.subcategory, (entry.subMap.get(t.subcategory) ?? 0) + t.amount);
   });
-  return Object.entries(catMap)
-    .map(([name, amt]) => ({ name, total: amt, pct: total ? (amt / total) * 100 : 0 }))
+  return Array.from(catMap.entries())
+    .map(([name, { total: catTotal, subMap }]) => ({
+      name,
+      total: catTotal,
+      pct: total ? (catTotal / total) * 100 : 0,
+      subcats: Array.from(subMap.entries())
+        .map(([subName, subTotal]) => ({ name: subName, total: subTotal }))
+        .sort((a, b) => b.total - a.total),
+    }))
     .sort((a, b) => b.total - a.total);
 }
 
@@ -879,14 +943,16 @@ export function buildFundUsage(
       const fundTx = monthTx.filter((t) => t.type === "gasto" && t.fundedBy === fund.id);
       const total = fundTx.reduce((s, t) => s + t.amount, 0);
       if (total <= 0) return null;
-      // Total real del fondo: saldo inicial + lo aportado después, no solo lo aportado. Un fondo creado
-      // solo con saldo inicial (sin aportaciones posteriores) debe poder mostrar un % de uso > 0% en vez
-      // de caer siempre a 0% por dividir entre un totalAportado que ignoraba el saldo inicial.
+      // Total real del fondo: saldo inicial + lo aportado después + lo recibido por transferencia desde
+      // otro fondo, no solo lo aportado directamente. Un fondo creado solo con saldo inicial (o que solo
+      // ha recibido transferencias, nunca aportaciones directas) debe poder mostrar un % de uso > 0% en
+      // vez de caer siempre a 0% por dividir entre un totalAportado que los ignoraba.
       const totalAportado =
         fund.virtualTotalAportado != null
           ? fund.virtualTotalAportado
           : (fund.initialBalance ?? 0) +
-            transactions.filter((t) => t.type === "aportacion" && t.fundId === fund.id).reduce((s, t) => s + t.amount, 0);
+            transactions.filter((t) => t.type === "aportacion" && t.fundId === fund.id).reduce((s, t) => s + t.amount, 0) +
+            transactions.filter((t) => t.type === "transferencia" && t.fundIdDestino === fund.id).reduce((s, t) => s + t.amount, 0);
       return {
         id: fund.id,
         name: fund.name,
@@ -987,6 +1053,7 @@ export interface DisplayTransactionItem {
   amount: number;
   fundId?: string | null;
   fundedBy?: string | null;
+  fundIdDestino?: string | null;
   splitLabel?: string | null;
   raw?: Transaction;
 }
@@ -1038,6 +1105,7 @@ export function mergeSplitDisplay(monthTx: Transaction[], funds: FundWithBalance
         amount: t.amount,
         fundId: t.fundId,
         fundedBy: t.fundedBy,
+        fundIdDestino: t.fundIdDestino,
         raw: t,
       });
     }

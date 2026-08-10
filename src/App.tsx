@@ -45,6 +45,7 @@ import { MilestoneNotice } from "./components/MilestoneNotice";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { NuevoMovimientoForm, type FormPreset } from "./components/NuevoMovimientoForm";
+import { TransferFundsForm } from "./components/TransferFundsForm";
 import { ApplyPresetsModal } from "./components/ApplyPresetsModal";
 import { ResolveOrphansModal } from "./components/ResolveOrphansModal";
 import { LoginScreen } from "./components/LoginScreen";
@@ -264,6 +265,10 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [formPreset, setFormPreset] = useState<FormPreset | null>(null);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  // Fondo origen de una transferencia en curso (TransferFundsForm), o null si el formulario está
+  // cerrado. Deliberadamente separado de showForm/formPreset: transferir no pasa por
+  // NuevoMovimientoForm, tiene su propio formulario simple, solo accesible desde FondosTab.
+  const [transferFund, setTransferFund] = useState<FundWithBalance | null>(null);
   const [showApplyPresets, setShowApplyPresets] = useState(false);
   const [showResolveOrphans, setShowResolveOrphans] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -543,6 +548,26 @@ function App() {
     setEditingTx(null);
     setShowForm(true);
   };
+  const onQuickTransfer = (fund: FundWithBalance) => setTransferFund(fund);
+  const onTransferFunds = async (destinoFundId: string, amount: number) => {
+    if (!transferFund) return;
+    const destinoFund = fundsWithBalance.find((f) => f.id === destinoFundId);
+    await addTransaction({
+      type: "transferencia",
+      amount,
+      // Mismo criterio que defaultDate de NuevoMovimientoForm (aportar/retiro): respeta el mes que se
+      // está viendo en Fondos, no siempre "hoy" — si estás viendo marzo, la transferencia se registra
+      // en marzo.
+      date: selectedMonthKey === monthKey(todayISO()) ? todayISO() : `${selectedMonthKey}-01`,
+      category: transferFund.name, // snapshot del fondo ORIGEN, mismo criterio que aportacion/retiro
+      subcategory: null,
+      note: "",
+      fundId: transferFund.id,
+      fundIdDestino: destinoFundId,
+      fundIdDestinoName: destinoFund?.name ?? null,
+    });
+    setTransferFund(null);
+  };
 
   // Si el fondo tiene saldo, primero se registra como un retiro para que el dinero vuelva al ahorro
   // libre del usuario y quede en el historial, y solo entonces se borra el fondo — si no, el saldo
@@ -552,6 +577,13 @@ function App() {
     // por el flujo de la app (no es una aportación, es lo que el usuario ya tenía ahorrado antes) — no
     // se devuelve como retiro, se pierde intencionadamente. Solo se devuelve al ahorro libre lo que de
     // verdad se aportó/generó a través de la app (ver aviso en el diálogo de confirmación, FondosTab.tsx).
+    //
+    // Fuga conocida y aceptada (ver también el comentario en fundsWithBalance, calculations.ts): si este
+    // fondo recibió dinero por TRANSFERENCIA desde otro fondo que a su vez tenía saldo inicial, esa parte
+    // ya cuenta aquí como flowBalance normal — se devolvería como retiro igual que cualquier otro euro
+    // "de verdad aportado", aunque en su fondo de origen nunca se habría devuelto así. Caso marginal
+    // (transferir + borrar el fondo receptor después) con impacto acotado a un único mes de "Libre en
+    // curso"; no se resuelve por ahora.
     if (fund.flowBalance > 0) {
       await addTransaction({
         type: "retiro",
@@ -920,6 +952,7 @@ function App() {
             goToMonthIndex={goToMonthIndex}
             getAhorroReal={getAhorroReal}
             onQuickMove={onQuickMove}
+            onQuickTransfer={onQuickTransfer}
             onQuickInvest={onQuickInvest}
             onGoToAjustes={() => goToAjustes("inversion")}
             onOpenPremiumScreen={onOpenPremiumScreen}
@@ -1051,6 +1084,22 @@ function App() {
               setEditingTx(null);
             } catch (e) {
               showToast(e instanceof Error ? e.message : "No se pudo guardar el movimiento.");
+            }
+          }}
+        />
+      )}
+      {transferFund && (
+        <TransferFundsForm
+          isPremium={isPremium}
+          fund={transferFund}
+          funds={fundsWithBalance}
+          onClose={() => setTransferFund(null)}
+          onTransfer={async (destinoFundId, amount) => {
+            try {
+              await onTransferFunds(destinoFundId, amount);
+              showToast("Transferencia guardada");
+            } catch (e) {
+              showToast(e instanceof Error ? e.message : "No se pudo guardar la transferencia.");
             }
           }}
         />

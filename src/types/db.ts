@@ -18,6 +18,8 @@ export interface TransactionRow {
   fund_id: string | null;
   funded_by: string | null;
   funded_by_name: string | null;
+  fund_id_destino: string | null;
+  fund_id_destino_name: string | null;
   split_id: string | null;
   recurring_id: string | null;
   recurring_income_id: string | null;

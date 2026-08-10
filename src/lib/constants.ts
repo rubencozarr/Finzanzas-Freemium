@@ -44,6 +44,10 @@ export const TYPE_META: Record<TransactionType, { color: string; sign: 1 | -1 }>
   aportacion: { color: "text-teal-700", sign: -1 },
   retiro: { color: "text-amber-700", sign: 1 },
   inversion: { color: "text-indigo-700", sign: -1 },
+  // Color propio (violeta), distinto de aportación/retiro (ámbar): no es ni un ingreso ni un gasto,
+  // mueve dinero entre dos fondos propios. "sign" no se usa para transferencia — MovimientosTab
+  // suprime el prefijo +/- para este tipo (ver renderTxRow), no tiene sentido en un movimiento neutro.
+  transferencia: { color: "text-violet-700", sign: 1 },
 };
 
 export const INCOME_CATS = ["Ingreso fijo", "Ingreso extra"] as const;

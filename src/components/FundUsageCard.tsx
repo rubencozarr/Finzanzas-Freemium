@@ -44,6 +44,29 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
                 <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-200" style={{ width: `${Math.min(100, c.pct)}%` }} />
                 </div>
+                {/* Subcategorías: mismo estilo anidado que CategoryCard.tsx en el desglose normal de
+                    Mensual. c.subcats ya llega vacío en free (se filtra en MensualTab, subcategorías son
+                    premium), así que no hace falta comprobar isPremium aquí también. */}
+                {c.subcats.length > 0 && (
+                  <div className="border-l-2 border-stone-100 ml-1 pl-3 mt-1.5 space-y-1">
+                    {c.subcats.map((sc) => {
+                      const scPct = c.total ? (sc.total / c.total) * 100 : 0;
+                      return (
+                        <div key={sc.name}>
+                          <div className="flex justify-between text-[11px] text-stone-400">
+                            <span>{sc.name}</span>
+                            <span className="font-mono">
+                              {fmt(sc.total)} · {scPct.toFixed(0)}%
+                            </span>
+                          </div>
+                          <div className="w-full h-0.5 bg-stone-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-amber-100" style={{ width: `${Math.min(100, scPct)}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>

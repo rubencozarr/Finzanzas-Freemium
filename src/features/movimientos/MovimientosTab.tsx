@@ -8,6 +8,7 @@ import {
   isOrphanSubcategory,
   mergeSplitDisplay,
   resolveCategoryName,
+  resolveFundDestinoName,
   resolveFundName,
   resolveSubcategoryName,
   type DisplayTransactionItem,
@@ -23,6 +24,7 @@ const FILTER_OPTIONS: [TransactionType, string][] = [
   ["inversion", "Inversión"],
   ["aportacion", "Aportaciones"],
   ["retiro", "Retiros"],
+  ["transferencia", "Transferencias"],
 ];
 
 const ORPHAN_FILTER = "sin_categoria";
@@ -40,6 +42,10 @@ function rowToneClass(t: Pick<DisplayTransactionItem, "type" | "fixed">): string
       return "bg-amber-50 border-l-4 border-amber-400";
     case "inversion":
       return "bg-indigo-50 border-l-4 border-indigo-300";
+    // Color propio, distinto del ámbar de aportación/retiro: no es ni ingreso ni gasto, mueve dinero
+    // entre dos fondos propios.
+    case "transferencia":
+      return "bg-violet-50 border-l-4 border-violet-400";
     default:
       return "bg-white border border-stone-100";
   }
@@ -156,10 +162,25 @@ export function MovimientosTab({
   };
 
   const renderTxRow = (t: DisplayTransactionItem, id: string, canEdit: boolean) => {
+    // No editable desde aquí: las transferencias solo se crean/editan desde TransferFundsForm (dentro
+    // de un fondo en FondosTab), no desde el formulario general — mismo criterio que "no aparece en
+    // NuevoMovimientoForm".
+    const effectiveCanEdit = canEdit && t.type !== "transferencia";
     // Aportaciones/retiros muestran el nombre del fondo, no de una categoría: se resuelve en vivo
     // desde fundId (igual que la categoría desde categoryId), no del texto guardado al crearlo, que
-    // queda obsoleto si el fondo se renombra después.
-    const displayCategory = t.type === "aportacion" || t.type === "retiro" ? resolveFundName(t, funds) : resolveCategoryName(t, categories);
+    // queda obsoleto si el fondo se renombra después. Transferencia muestra origen -> destino: origen
+    // por resolveFundName (fundId/category, igual que aportacion/retiro), destino con el mismo criterio
+    // en vivo -> snapshot fundIdDestinoName -> "un fondo eliminado".
+    const destinoName =
+      t.type === "transferencia"
+        ? resolveFundDestinoName({ fundIdDestino: t.fundIdDestino, fundIdDestinoName: t.raw?.fundIdDestinoName }, funds)
+        : null;
+    const displayCategory =
+      t.type === "transferencia"
+        ? `Transferencia: ${resolveFundName(t, funds)} → ${destinoName}`
+        : t.type === "aportacion" || t.type === "retiro"
+          ? resolveFundName(t, funds)
+          : resolveCategoryName(t, categories);
     const displaySubcategory = resolveSubcategoryName(t, categories);
     const orphan = isOrphanGasto(t, categories);
     const orphanSub = !orphan && isOrphanSubcategory(t, categories);
@@ -189,10 +210,10 @@ export function MovimientosTab({
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <span className={`font-mono text-sm ${TYPE_META[t.type].color}`}>
-          {TYPE_META[t.type].sign > 0 ? "+" : "-"}
+          {t.type === "transferencia" ? "" : TYPE_META[t.type].sign > 0 ? "+" : "-"}
           {fmt(t.amount)}
         </span>
-        {!selectMode && canEdit && (
+        {!selectMode && effectiveCanEdit && (
           <button onClick={() => onEdit(t.raw!)} className="text-stone-300 hover:text-slate-700">
             <Pencil size={14} />
           </button>
@@ -394,6 +415,7 @@ export function MovimientosTab({
                 amount: t.amount,
                 fundId: t.fundId,
                 fundedBy: t.fundedBy,
+                fundIdDestino: t.fundIdDestino,
                 raw: t,
               },
               t.id,

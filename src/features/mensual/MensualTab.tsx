@@ -65,7 +65,11 @@ export function MensualTab({
     () => stripPremiumOnly(buildBreakdown(monthTx, categories, "variableOrdinario")),
     [monthTx, categories, isPremium],
   );
-  const fundUsage = useMemo(() => buildFundUsage(monthTx, transactions, funds), [monthTx, transactions, funds]);
+  const fundUsage = useMemo(() => {
+    const usage = buildFundUsage(monthTx, transactions, funds);
+    // Mismo criterio que stripPremiumOnly de arriba: subcategorías son premium-only.
+    return isPremium ? usage : usage.map((f) => ({ ...f, cats: f.cats.map((c) => ({ ...c, subcats: [] })) }));
+  }, [monthTx, transactions, funds, isPremium]);
   const assetCats = useMemo(() => buildAssetBreakdown(monthTx, assets), [monthTx, assets]);
   const insights = useMemo(
     () => buildMonthlyInsights(transactions, categories, year, monthIdx, isPremium),

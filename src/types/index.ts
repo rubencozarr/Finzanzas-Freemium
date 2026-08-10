@@ -1,4 +1,4 @@
-export type TransactionType = "ingreso" | "gasto" | "aportacion" | "retiro" | "inversion";
+export type TransactionType = "ingreso" | "gasto" | "aportacion" | "retiro" | "inversion" | "transferencia";
 
 export interface Transaction {
   id: string;
@@ -11,12 +11,16 @@ export interface Transaction {
   subcategoryId?: string | null; // referencia estable a Subcategory.id dentro de la categoría
   note: string;
   fixed?: boolean | null; // solo gastos: true = fijo, false = variable
-  fundId?: string | null; // solo aportacion/retiro
+  fundId?: string | null; // aportacion/retiro: el fondo. transferencia: el fondo ORIGEN.
   fundedBy?: string | null; // solo gastos: id de fondo o "ahorro_libre"
   // Nombre del fondo (o "Ahorro libre consolidado") en el momento de pagar el gasto, congelado como
   // snapshot. Si el fondo se borra después, fundedBy queda apuntando a un id que ya no existe en
   // `funds`; este campo es lo único que permite seguir mostrando qué fondo pagó ese gasto histórico.
   fundedByName?: string | null;
+  fundIdDestino?: string | null; // solo transferencia: el fondo DESTINO (fundId es el origen)
+  // Snapshot del nombre del fondo destino, mismo motivo que fundedByName: fundIdDestino queda apuntando
+  // a un id inexistente si ese fondo se borra después.
+  fundIdDestinoName?: string | null;
   splitId?: string | null; // gastos divididos entre ingreso y fondo
   recurringId?: string | null;
   recurringIncomeId?: string | null;
