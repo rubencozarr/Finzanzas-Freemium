@@ -16,14 +16,15 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
           <span className="flex items-center gap-1.5 shrink-0">
             <span className="font-mono text-xs">
               {fmt(f.total)}
-              {!f.deleted && ` · ${f.pct.toFixed(0)}% del fondo`}
+              {/* pct es null cuando el saldo de inicio de mes era 0 (p. ej. fondo creado este mismo mes
+                  sin saldo inicial): no hay una base con la que calcular un % con sentido, así que no se
+                  muestra ningún porcentaje ni barra, solo el importe gastado. */}
+              {!f.deleted && f.pct != null && ` · ${f.pct.toFixed(0)}% del saldo inicial del mes`}
             </span>
             {expanded ? <ChevronUp size={14} className="text-stone-400" /> : <ChevronDown size={14} className="text-stone-400" />}
           </span>
         </div>
-        {/* Sin % de fondo disponible para un fondo eliminado (no se puede recuperar cuánto tenía en
-            total), así que no tiene sentido mostrar una barra de progreso aquí. */}
-        {!f.deleted && (
+        {!f.deleted && f.pct != null && (
           <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
             <div className="h-full bg-amber-400" style={{ width: `${Math.min(100, f.pct)}%` }} />
           </div>
@@ -31,7 +32,9 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
       </button>
       {expanded && (
         <div className="px-3 pb-2.5">
-          {!f.deleted && <p className="text-xs text-stone-400 mb-2">de {fmt(f.totalAportado)} ahorrados en total en este fondo</p>}
+          {/* Saldo REAL actual del fondo (mismo número que la tarjeta de Fondos) — distinto del saldo de
+              inicio de mes que usa el % de arriba como base; ambos son datos útiles y complementarios. */}
+          {!f.deleted && <p className="text-xs text-stone-400 mb-2">de {fmt(f.balance)} que tiene ahora este fondo</p>}
           <div className="border-l-2 border-stone-100 ml-1 pl-3 space-y-1.5">
             {f.cats.map((c) => (
               <div key={c.name}>
@@ -49,22 +52,12 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
                     premium), así que no hace falta comprobar isPremium aquí también. */}
                 {c.subcats.length > 0 && (
                   <div className="border-l-2 border-stone-100 ml-1 pl-3 mt-1.5 space-y-1">
-                    {c.subcats.map((sc) => {
-                      const scPct = c.total ? (sc.total / c.total) * 100 : 0;
-                      return (
-                        <div key={sc.name}>
-                          <div className="flex justify-between text-[11px] text-stone-400">
-                            <span>{sc.name}</span>
-                            <span className="font-mono">
-                              {fmt(sc.total)} · {scPct.toFixed(0)}%
-                            </span>
-                          </div>
-                          <div className="w-full h-0.5 bg-stone-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-amber-100" style={{ width: `${Math.min(100, scPct)}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {c.subcats.map((sc) => (
+                      <div key={sc.name} className="flex justify-between text-[11px] text-stone-400">
+                        <span>{sc.name}</span>
+                        <span className="font-mono">{fmt(sc.total)}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

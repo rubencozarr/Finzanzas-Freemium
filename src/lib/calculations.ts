@@ -890,13 +890,21 @@ export interface FundUsage {
   id: string;
   name: string;
   total: number;
-  totalAportado: number;
-  pct: number;
+  // Saldo real del fondo AHORA MISMO (mismo número que ve el usuario en la tarjeta de Fondos). Para el
+  // pseudo-fondo "Ahorro libre acumulado" es su saldo consolidado; para un fondo eliminado no hay saldo
+  // real que mostrar (0, ver "deleted" abajo).
+  balance: number;
+  // % de "total" (gastado este mes) sobre el saldo que tenía el fondo al CIERRE DEL MES ANTERIOR, no
+  // sobre el acumulado histórico ni sobre el saldo actual — mismo criterio que ya usa el % de
+  // presupuesto por categoría (base del mismo periodo, no un acumulado). null cuando ese saldo de
+  // partida era 0 (p. ej. un fondo creado este mismo mes sin saldo inicial): no hay una base con la que
+  // calcular un % con sentido, así que no se muestra ningún porcentaje, solo el importe.
+  pct: number | null;
   cats: FundUsageCategory[];
   // true si el fondo ya no existe (se borró): el id se reconstruye a partir de fundedBy y el nombre a
-  // partir del snapshot fundedByName, pero no hay forma de recuperar cuánto se aportó/tenía ese fondo
-  // en total, así que totalAportado/pct no son datos reales (siempre 0) — la UI debe ignorarlos y no
-  // mostrar barra de % cuando este flag está activo.
+  // partir del snapshot fundedByName, pero no hay forma de recuperar su saldo en ningún momento pasado,
+  // así que balance/pct no son datos reales — la UI debe ignorarlos y no mostrar barra de % ni saldo
+  // cuando este flag está activo.
   deleted?: boolean;
 }
 
@@ -937,55 +945,38 @@ export function buildFundUsage(
   monthTx: Transaction[],
   transactions: Transaction[],
   funds: FundWithBalance[],
+  mKey: string,
 ): FundUsage[] {
+  const prevMKey = prevMonthKey(mKey);
+  // Saldo de cada fondo real al CIERRE DEL MES ANTERIOR (antes de cualquier movimiento del mes que se
+  // está viendo) — la base del % de uso, calculada una sola vez fuera del bucle en vez de una llamada a
+  // fundsBalanceHasta por fondo (evitaría recorrer todos los fondos y transacciones N veces).
+  const saldoInicioPorFondo = new Map(fundsBalanceHasta(funds, transactions, prevMKey).map((f) => [f.id, f.balance]));
+  // fundsBalanceHasta no vale para el pseudo-fondo "Ahorro libre acumulado" (no es un fondo real: sus
+  // aportacion/retiro nunca llevan fundId = AHORRO_LIBRE_ID, así que daría un número sin sentido) — su
+  // saldo de partida es el mismo concepto que ya usa "Consolidado" en Fondos, ahorroLibreHasta().
+  const saldoInicioAhorroLibre = ahorroLibreHasta(transactions, prevMKey);
+
+  // `funds` ya incluye el pseudo-fondo "Ahorro libre acumulado" prepended (ver fundsForUsageDisplay en
+  // App.tsx) — este único bucle cubre fondos reales Y ese pseudo-fondo a la vez; no hace falta (ni hay
+  // que duplicar) un bloque aparte para "ahorro libre": si se le da uno aparte, sale dos veces.
   const existing = funds
     .map((fund) => {
       const fundTx = monthTx.filter((t) => t.type === "gasto" && t.fundedBy === fund.id);
       const total = fundTx.reduce((s, t) => s + t.amount, 0);
       if (total <= 0) return null;
-      // Total real del fondo: saldo inicial + lo aportado después + lo recibido por transferencia desde
-      // otro fondo, no solo lo aportado directamente. Un fondo creado solo con saldo inicial (o que solo
-      // ha recibido transferencias, nunca aportaciones directas) debe poder mostrar un % de uso > 0% en
-      // vez de caer siempre a 0% por dividir entre un totalAportado que los ignoraba.
-      const totalAportado =
-        fund.virtualTotalAportado != null
-          ? fund.virtualTotalAportado
-          : (fund.initialBalance ?? 0) +
-            transactions.filter((t) => t.type === "aportacion" && t.fundId === fund.id).reduce((s, t) => s + t.amount, 0) +
-            transactions.filter((t) => t.type === "transferencia" && t.fundIdDestino === fund.id).reduce((s, t) => s + t.amount, 0);
+      const esAhorroLibre = fund.virtualTotalAportado != null;
+      const saldoInicioMes = esAhorroLibre ? saldoInicioAhorroLibre : (saldoInicioPorFondo.get(fund.id) ?? 0);
       return {
         id: fund.id,
         name: fund.name,
         total,
-        totalAportado,
-        pct: totalAportado ? (total / totalAportado) * 100 : 0,
+        balance: fund.balance,
+        pct: saldoInicioMes > 0 ? (total / saldoInicioMes) * 100 : null,
         cats: fundUsageCats(fundTx, total),
       };
     })
     .filter((f): f is FundUsage => f !== null);
-
-  // Ahorro libre consolidado (fundedBy === AHORRO_LIBRE_ID): no es un fondo real de `funds`, así que sin
-  // esto sus gastos quedaban invisibles en el desglose aunque sí contaran en el total del header
-  // (stats.gastosFinanciados). Se trata igual que un fondo más, reutilizando el mismo virtualTotalAportado
-  // que ya calcula ahorroLibrePseudoFund para FondosTab (mismo % que vería el usuario ahí).
-  const ahorroLibreTx = monthTx.filter((t) => t.type === "gasto" && t.fundedBy === AHORRO_LIBRE_ID);
-  const ahorroLibreTotal = ahorroLibreTx.reduce((s, t) => s + t.amount, 0);
-  const ahorroLibreUsage: FundUsage[] =
-    ahorroLibreTotal > 0
-      ? (() => {
-          const totalAportado = ahorroLibrePseudoFund(transactions).virtualTotalAportado ?? 0;
-          return [
-            {
-              id: AHORRO_LIBRE_ID,
-              name: "Ahorro libre consolidado",
-              total: ahorroLibreTotal,
-              totalAportado,
-              pct: totalAportado ? (ahorroLibreTotal / totalAportado) * 100 : 0,
-              cats: fundUsageCats(ahorroLibreTx, ahorroLibreTotal),
-            },
-          ];
-        })()
-      : [];
 
   // Fondos ya eliminados: fundedBy apunta a un id que no es AHORRO_LIBRE_ID ni coincide con ningún fondo
   // actual. fundedBy (a diferencia de fund_id) no tiene FK, así que sigue intacto tras borrar el fondo;
@@ -1004,10 +995,10 @@ export function buildFundUsage(
   const deletedUsage: FundUsage[] = Array.from(deletedGroups.entries()).map(([id, txs]) => {
     const total = txs.reduce((s, t) => s + t.amount, 0);
     const name = txs.find((t) => t.fundedByName)?.fundedByName || "Fondo eliminado";
-    return { id, name, total, totalAportado: 0, pct: 0, cats: fundUsageCats(txs, total), deleted: true };
+    return { id, name, total, balance: 0, pct: null, cats: fundUsageCats(txs, total), deleted: true };
   });
 
-  return [...existing, ...ahorroLibreUsage, ...deletedUsage];
+  return [...existing, ...deletedUsage];
 }
 
 export function buildAssetBreakdown(monthTx: Transaction[], assets: Asset[]): CategoryBreakdown[] {
