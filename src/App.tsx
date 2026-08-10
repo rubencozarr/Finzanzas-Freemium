@@ -42,6 +42,8 @@ import { exportToExcel } from "./lib/exportExcel";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
 import { MilestoneNotice } from "./components/MilestoneNotice";
+import { UpdateBanner } from "./components/UpdateBanner";
+import { useRegisterSW } from "virtual:pwa-register/react";
 import { NuevoMovimientoForm, type FormPreset } from "./components/NuevoMovimientoForm";
 import { ApplyPresetsModal } from "./components/ApplyPresetsModal";
 import { ResolveOrphansModal } from "./components/ResolveOrphansModal";
@@ -274,6 +276,14 @@ function App() {
     setTimeout(() => setToastMsg(null), 2500);
   };
   const [milestoneMsg, setMilestoneMsg] = useState<string | null>(null);
+
+  // Detecta un Service Worker nuevo ya instalado y esperando (ver comentario de registerType: 'prompt'
+  // en vite.config.ts): needRefresh pasa a true cuando hay una versión nueva disponible; el usuario
+  // decide cuándo aplicarla desde el banner, en vez de que se aplique sola en segundo plano.
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW();
 
   // El estado del tutorial vive en Supabase (tabla user_settings), asociado al usuario y no al
   // navegador: así, si el mismo usuario entra desde otro dispositivo, no vuelve a verlo.
@@ -1101,6 +1111,7 @@ function App() {
       </nav>
       <Toast message={toastMsg} />
       <MilestoneNotice message={milestoneMsg} onClose={() => setMilestoneMsg(null)} />
+      {needRefresh && <UpdateBanner onUpdate={() => updateServiceWorker()} onDismiss={() => setNeedRefresh(false)} />}
     </div>
   );
 }

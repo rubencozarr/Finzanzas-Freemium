@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/react" />
 
 interface ImportMetaEnv {
   /** "local" (por defecto, sin backend real) o "supabase". */

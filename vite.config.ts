@@ -7,7 +7,17 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' en vez de 'autoUpdate': con autoUpdate, el nuevo Service Worker se activaba y tomaba
+      // el control en segundo plano sin que la pestaña ya abierta se enterase — el JS de la app seguía
+      // siendo el antiguo hasta que el usuario, por su cuenta, recargaba manualmente. En una app que se
+      // despliega a menudo, eso significaba que un usuario con la pestaña abierta podía tardar días en
+      // recibir un cambio. Con 'prompt', el SW nuevo se queda en estado "waiting" (no hace skipWaiting
+      // solo) hasta que App.tsx (vía useRegisterSW de virtual:pwa-register/react) muestra el banner de
+      // "Hay una nueva versión disponible" y el usuario pulsa "Actualizar ahora", que fuerza el
+      // skipWaiting + recarga. injectRegister: false porque el registro del SW ya lo hace ese hook
+      // (con el registro automático de la opción por defecto, se registraría dos veces).
+      registerType: 'prompt',
+      injectRegister: false,
       // El service worker NUNCA debe activarse en dev: puede servir JS/HTML cacheado y
       // hacer que los cambios de código parezcan no aplicarse aunque recargues la página.
       // El PWA/offline solo se prueba con `npm run build && npm run preview`.
@@ -48,12 +58,11 @@ export default defineConfig({
         // supera el límite de precaché de Workbox (2MiB por defecto). Se sirve igual como favicon
         // normal del navegador, solo se excluye de la caché offline de la PWA.
         globIgnores: ['favicon.svg'],
-        // registerType: 'autoUpdate' ya inyecta self.skipWaiting()/clientsClaim() automáticamente, pero
-        // se deja explícito: son justo lo que hace que, al detectar una versión nueva del SW, se active
-        // de inmediato y tome el control de las pestañas ya abiertas, en vez de quedarse "waiting" hasta
-        // que el usuario cierre todas las pestañas de la app (que en la práctica nunca pasa en un PWA/
-        // TWA, así que sin esto un despliegue nuevo podía tardar días en llegarle a un usuario normal).
-        skipWaiting: true,
+        // Sin skipWaiting aquí a propósito (a diferencia de cuando esto era autoUpdate): el SW nuevo debe
+        // quedarse "waiting" hasta que el usuario pulse "Actualizar ahora" en el banner — ese click es
+        // quien manda el mensaje SKIP_WAITING (lo hace updateServiceWorker() de virtual:pwa-register).
+        // clientsClaim sí se mantiene: en cuanto el SW nuevo activa (tras ese click), toma el control
+        // inmediatamente sin necesitar una segunda recarga.
         clientsClaim: true,
         // vite-plugin-pwa aplica "navigateFallback: 'index.html'" POR DEFECTO en cuanto no se indique lo
         // contrario (ver defaultWorkbox en su código fuente) — y ese NavigationRoute se registra ANTES
