@@ -237,8 +237,8 @@ export function ChartsSection({
           )}
 
           <ChartCard
-            title={`Ahorro libre generado en ${year}`}
-            explanation="Cuánto te ha ido sobrando cada mes a lo largo del año. Cada punto suma lo generado en los meses anteriores."
+            title={`Ahorro libre acumulado en ${year}`}
+            explanation="Suma progresiva de tu ahorro libre este año. Te ayuda a ver si tu ahorro va mejorando con el tiempo o se está estancando."
             height={180}
           >
             {(animate) => (
@@ -345,7 +345,7 @@ export function ChartsSection({
           ) : (
             <ChartCard
               title="Evolución de gasto fijo vs variable"
-              explanation="Si el variable crece de forma sostenida mientras el fijo no se mueve, suele ser la señal más temprana de descontrol."
+              explanation="Cómo evolucionan tus gastos fijos y variables. El variable depende de ti: si crece, ahí tienes margen para actuar."
               height={200}
             >
               {(animate) => (
@@ -375,7 +375,7 @@ export function ChartsSection({
               {assetDonutData.length > 0 && (
                 <ChartCard
                   title={`Inversión por activo — ${year}`}
-                  explanation="Cómo se reparte lo que has invertido este año entre tus distintos activos."
+                  explanation={`Cómo se reparte tu inversión de ${year} entre activos. Te ayuda a ver si algo está acaparando más de lo que pensabas.`}
                 >
                   {(animate) => <AssetDonut data={assetDonutData} total={totalInversion} animate={animate} />}
                 </ChartCard>
@@ -383,7 +383,7 @@ export function ChartsSection({
               {compareAssetDonutData.length > 0 && (
                 <ChartCard
                   title={`Inversión por activo — ${compareYear}`}
-                  explanation={`Cómo se repartió lo invertido en ${compareYear} entre tus distintos activos.`}
+                  explanation={`Cómo se repartía tu inversión de ${compareYear} entre activos.`}
                 >
                   {(animate) => <AssetDonut data={compareAssetDonutData} total={compareTotalInversion} animate={animate} />}
                 </ChartCard>
@@ -391,7 +391,7 @@ export function ChartsSection({
             </>
           ) : (
             assetDonutData.length > 0 && (
-              <ChartCard title="Inversión por activo" explanation="Cómo se reparte lo que has invertido este año entre tus distintos activos.">
+              <ChartCard title="Inversión por activo" explanation="Cómo se reparte tu inversión entre activos. Te ayuda a ver si algo está acaparando más de lo que pensabas.">
                 {(animate) => <AssetDonut data={assetDonutData} total={totalInversion} animate={animate} />}
               </ChartCard>
             )
