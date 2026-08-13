@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, startTransition, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, HelpCircle, PiggyBank, Settings2, Wallet } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { useTransactions } from "./hooks/useTransactions";
@@ -38,32 +38,53 @@ import {
 } from "./lib/calculations";
 import { fmt, monthKey, todayISO } from "./lib/format";
 import { buildBackup, downloadBackup, importBackup } from "./lib/backup";
-import { exportToExcel } from "./lib/exportExcel";
 import { NavButton } from "./components/NavButton";
 import { Toast } from "./components/Toast";
 import { MilestoneNotice } from "./components/MilestoneNotice";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { NuevoMovimientoForm, type FormPreset } from "./components/NuevoMovimientoForm";
-import { TransferFundsForm } from "./components/TransferFundsForm";
-import { ApplyPresetsModal } from "./components/ApplyPresetsModal";
-import { ResolveOrphansModal } from "./components/ResolveOrphansModal";
 import { LoginScreen } from "./components/LoginScreen";
 import { LandingPage } from "./components/LandingPage";
 import { ResetPasswordScreen } from "./components/ResetPasswordScreen";
 import { isRunningAsTWA } from "./lib/platform";
-import { GuidedTour } from "./components/GuidedTour";
 import { buildTourSteps } from "./lib/tourSteps";
-import { HelpModal } from "./components/HelpModal";
-import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
 import { PrivacyReacceptanceModal } from "./components/PrivacyReacceptanceModal";
-import { PremiumScreen } from "./components/PremiumScreen";
-import { MovimientosTab } from "./features/movimientos/MovimientosTab";
-import { FondosTab } from "./features/fondos/FondosTab";
-import { MensualTab } from "./features/mensual/MensualTab";
-import { AnualTab } from "./features/anual/AnualTab";
-import { AjustesTab } from "./features/ajustes/AjustesTab";
+// Estático a propósito, no lazy: LoginScreen.tsx ya lo importa de forma estática (el enlace a la
+// política de privacidad está también en el propio formulario de registro), así que ya viaja en el
+// bundle principal de todos modos — envolverlo en lazy() aquí no lo separaría a otro chunk (Rollup
+// avisa de esto: "dynamic import will not move module into another chunk").
+import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
 import type { AssetWithTotal, FundWithBalance, Transaction } from "./types";
+import type { FormPreset } from "./components/NuevoMovimientoForm";
+
+// Todo lo que solo hace falta con sesión ya iniciada (los 5 tabs y los modales/tour de la app en sí)
+// se carga bajo demanda: un visitante sin sesión (landing/login) no debería tener que descargar ni un
+// byte de esto — antes, al ser imports estáticos, formaban parte del mismo bundle que la landing y lo
+// inflaban a >1MB para cualquier visita, fuera a loguearse o no (causa principal de LCP/FCP lentos en
+// Lighthouse). Cada import() cae en su propio chunk; el <Suspense> del return autenticado (más abajo)
+// enseña LoadingScreen mientras se descargan la primera vez, justo después de iniciar sesión.
+// PrivacyReacceptanceModal se queda como import estático a propósito: es diminuto (66 líneas) y su
+// propio "if" vive fuera de ese Suspense (antes de montar el resto de la app autenticada), así que
+// separarlo no aporta nada y solo añadiría un segundo boundary de Suspense para un caso raro.
+const NuevoMovimientoForm = lazy(() =>
+  import("./components/NuevoMovimientoForm").then((m) => ({ default: m.NuevoMovimientoForm })),
+);
+const TransferFundsForm = lazy(() => import("./components/TransferFundsForm").then((m) => ({ default: m.TransferFundsForm })));
+const ApplyPresetsModal = lazy(() => import("./components/ApplyPresetsModal").then((m) => ({ default: m.ApplyPresetsModal })));
+const ResolveOrphansModal = lazy(() =>
+  import("./components/ResolveOrphansModal").then((m) => ({ default: m.ResolveOrphansModal })),
+);
+const GuidedTour = lazy(() => import("./components/GuidedTour").then((m) => ({ default: m.GuidedTour })));
+const HelpModal = lazy(() => import("./components/HelpModal").then((m) => ({ default: m.HelpModal })));
+const PremiumScreen = lazy(() => import("./components/PremiumScreen").then((m) => ({ default: m.PremiumScreen })));
+const MovimientosTab = lazy(() =>
+  import("./features/movimientos/MovimientosTab").then((m) => ({ default: m.MovimientosTab })),
+);
+const FondosTab = lazy(() => import("./features/fondos/FondosTab").then((m) => ({ default: m.FondosTab })));
+const MensualTab = lazy(() => import("./features/mensual/MensualTab").then((m) => ({ default: m.MensualTab })));
+const AnualTab = lazy(() => import("./features/anual/AnualTab").then((m) => ({ default: m.AnualTab })));
+const AjustesTab = lazy(() => import("./features/ajustes/AjustesTab").then((m) => ({ default: m.AjustesTab })));
 
 type Tab = "movimientos" | "fondos" | "mensual" | "anual" | "ajustes";
 
@@ -782,7 +803,14 @@ function App() {
     );
   };
 
-  const onExportExcel = () => exportToExcel({ transactions, funds: fundsWithBalance, categories });
+  // Import dinámico: ExcelJS pesa ~930 KB (más que el resto del bundle de la app junta) y solo lo
+  // necesita este botón, premium y enterrado en Ajustes — con un import estático arriba del archivo se
+  // descargaba para cualquier visita, incluida la landing sin sesión. Así solo se pide de la red la
+  // primera vez que alguien pulsa "Exportar Excel" de verdad.
+  const onExportExcel = async () => {
+    const { exportToExcel } = await import("./lib/exportExcel");
+    await exportToExcel({ transactions, funds: fundsWithBalance, categories });
+  };
 
   const onImport = async (data: unknown) => {
     const ok = await importBackup(userId, data);
@@ -803,9 +831,7 @@ function App() {
   };
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-sm">Cargando...</div>
-    );
+    return <LoadingScreen />;
   }
 
   // Antes que el "if (!user)": al abrir el enlace de recuperación, Supabase ya deja al usuario con una
@@ -844,23 +870,25 @@ function App() {
   // Se muestra encima de todo, antes de cargar cualquier pestaña: bloquea el uso de la app hasta que
   // se reacepte una política de privacidad actualizada (privacy_version desactualizado o nulo).
   if (privacyLoading) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-sm">Cargando...</div>
-    );
+    return <LoadingScreen />;
   }
   if (needsReacceptance) {
     return <PrivacyReacceptanceModal onAccept={() => recordPrivacyAcceptance(userId!)} />;
   }
 
   return (
-    // h-dvh (no min-h-screen): min-h-screen es solo un SUELO, no un techo — con contenido más alto que
-    // la pantalla, este contenedor flex crecía más allá del viewport y "arrastraba" a <main> con él, así
-    // que overflow-y-auto de <main> nunca llegaba a activarse de verdad: quien hacía scroll era la
-    // ventana/documento entero, no <main>. Todo el scroll interno (restaurar posición al cambiar de
-    // pestaña, preservarlo al cambiar de mes/año, y el header sticky) depende de que <main> sea el
-    // contenedor que de verdad hace scroll — con h-dvh, la altura queda fija a la pantalla y flex-1 +
-    // overflow-y-auto en <main> sí generan una región de scroll interna real.
-    <div className="h-dvh bg-stone-50 text-slate-800 flex flex-col font-sans">
+    // Suspense: los 5 tabs y los modales/tour de más abajo son todos React.lazy (ver el porqué arriba,
+    // junto a esos const). El fallback solo se ve una vez, la primera vez que alguien inicia sesión en
+    // esta pestaña — a partir de ahí los chunks ya están en caché del navegador.
+    <Suspense fallback={<LoadingScreen />}>
+      {/* h-dvh (no min-h-screen): min-h-screen es solo un SUELO, no un techo — con contenido más alto
+          que la pantalla, este contenedor flex crecía más allá del viewport y "arrastraba" a <main> con
+          él, así que overflow-y-auto de <main> nunca llegaba a activarse de verdad: quien hacía scroll
+          era la ventana/documento entero, no <main>. Todo el scroll interno (restaurar posición al
+          cambiar de pestaña, preservarlo al cambiar de mes/año, y el header sticky) depende de que
+          <main> sea el contenedor que de verdad hace scroll — con h-dvh, la altura queda fija a la
+          pantalla y flex-1 + overflow-y-auto en <main> sí generan una región de scroll interna real. */}
+      <div className="h-dvh bg-stone-50 text-slate-800 flex flex-col font-sans">
       <header
         className="bg-slate-800 text-stone-50 px-5 pb-4 flex items-start justify-between"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
@@ -1185,7 +1213,8 @@ function App() {
       <Toast message={toastMsg} />
       <MilestoneNotice message={milestoneMsg} onClose={() => setMilestoneMsg(null)} />
       {needRefresh && <UpdateBanner onUpdate={() => updateServiceWorker()} onDismiss={() => setNeedRefresh(false)} />}
-    </div>
+      </div>
+    </Suspense>
   );
 }
 

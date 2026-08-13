@@ -22,7 +22,7 @@ export default defineConfig({
       // hacer que los cambios de código parezcan no aplicarse aunque recargues la página.
       // El PWA/offline solo se prueba con `npm run build && npm run preview`.
       devOptions: { enabled: false },
-      includeAssets: ['favicon.svg', 'favicon.ico', 'favicon-96x96.png', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'favicon-96x96.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Nitid: Control de Gastos',
         short_name: 'Nitid',
@@ -54,10 +54,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        // favicon.svg pesa ~4.2MB (lleva embebida una variante en PNG para el modo claro/oscuro) y
-        // supera el límite de precaché de Workbox (2MiB por defecto). Se sirve igual como favicon
-        // normal del navegador, solo se excluye de la caché offline de la PWA.
-        globIgnores: ['favicon.svg'],
         // Sin skipWaiting aquí a propósito (a diferencia de cuando esto era autoUpdate): el SW nuevo debe
         // quedarse "waiting" hasta que el usuario pulse "Actualizar ahora" en el banner — ese click es
         // quien manda el mensaje SKIP_WAITING (lo hace updateServiceWorker() de virtual:pwa-register).
