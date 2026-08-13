@@ -6,6 +6,31 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 // web, no el patrón antiguo VercelRequest/@vercel/node). request.text() da los bytes exactos del
 // body sin ninguna configuración adicional, necesario para verificar la firma HMAC.
 
+// Rate limiting básico en memoria: suficiente para el volumen actual de este webhook (solo eventos de
+// suscripción de clientes de pago reales, no un endpoint público de alto tráfico) y no requiere
+// provisionar Redis/Upstash. Funciona porque este archivo corre en el runtime Node por defecto de
+// Vercel (no edge): una instancia caliente conserva este Map entre invocaciones. Limitaciones conocidas
+// y aceptadas: el contador se reinicia en un cold start y no se comparte entre instancias concurrentes
+// si Vercel escala horizontalmente, así que no es un límite global exacto — pero sí frena una ráfaga
+// desde un mismo origen, que es la amenaza real aquí. La barrera de seguridad de fondo sigue siendo la
+// verificación de firma HMAC de más abajo: sin el secret nadie puede generar un evento válido pase lo
+// que pase con este límite, así que esto es solo para evitar ruido/coste de invocaciones, no lo que
+// impide altas de premium fraudulentas.
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
+const requestLog = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (requestLog.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  timestamps.push(now);
+  requestLog.set(ip, timestamps);
+  // Evita que requestLog crezca sin límite si llegan muchas IPs distintas de forma sostenida (poco
+  // probable para este webhook en concreto, pero barato de evitar).
+  if (requestLog.size > 1000) requestLog.clear();
+  return timestamps.length > RATE_LIMIT;
+}
+
 type AppStatus = "active" | "cancelled" | "past_due";
 type AppPlan = "free" | "premium";
 
@@ -53,6 +78,13 @@ async function updateByLemonSubscriptionId(
 }
 
 export async function POST(request: Request) {
+  // Antes de leer el body: rechazo barato para una IP que esté mandando ráfagas, sin gastar el trabajo
+  // de parsear/verificar la firma de una petición que ya vamos a descartar.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (isRateLimited(ip)) {
+    return new Response("Too many requests", { status: 429 });
+  }
+
   const rawBody = await request.text();
 
   const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
