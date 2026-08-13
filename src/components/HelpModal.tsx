@@ -117,6 +117,13 @@ export function HelpModal({ onClose, onRestartTour }: HelpModalProps) {
             <RotateCcw size={15} /> Repetir tutorial
           </button>
         </div>
+
+        <p className="text-sm text-stone-500 text-center mt-5">
+          ¿Necesitas ayuda? Escríbenos a{" "}
+          <a href="mailto:soporte@nitidapp.com" className="text-teal-700 underline">
+            soporte@nitidapp.com
+          </a>
+        </p>
       </div>
     </div>
   );
