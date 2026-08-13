@@ -208,7 +208,7 @@ export function EnQueGastasTuDinero() {
           notas sueltas durante más de dos semanas es difícil.
         </p>
         <div className="mt-5 flex justify-center">
-          <DeviceFrame src="/screenshot-raw-mensual.webp" alt="Composición de gastos por categoría en Nitid" />
+          <DeviceFrame src="/screenshot-raw-mensual.webp" alt="Composición de gastos por categoría en Nitid" width={600} height={1246} />
         </div>
         <p className="mt-5 font-semibold text-stone-800">Nitid integra este método para facilitarte cada paso:</p>
         <ul className="mt-3 flex flex-col gap-2.5">

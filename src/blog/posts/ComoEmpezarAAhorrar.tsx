@@ -346,7 +346,7 @@ export function ComoEmpezarAAhorrar() {
           el anterior.
         </p>
         <div className="mt-5 flex justify-center">
-          <DeviceFrame src="/screenshot-raw-fondos.webp" alt="Fondos de ahorro con barras de progreso en Nitid" />
+          <DeviceFrame src="/screenshot-raw-fondos.webp" alt="Fondos de ahorro con barras de progreso en Nitid" width={600} height={1233} />
         </div>
         <p className="mt-5 font-semibold text-stone-800">Nitid te facilita cada paso:</p>
         <ul className="mt-3 flex flex-col gap-2.5">

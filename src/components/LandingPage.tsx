@@ -68,7 +68,21 @@ function Reveal({ children, className = "" }: PropsWithChildren<{ className?: st
   );
 }
 
-function DeviceFrame({ src, alt, eager = false, className = "" }: { src: string; alt: string; eager?: boolean; className?: string }) {
+function DeviceFrame({
+  src,
+  alt,
+  width,
+  height,
+  eager = false,
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  eager?: boolean;
+  className?: string;
+}) {
   return (
     <div className={`w-[220px] sm:w-full sm:max-w-[260px] rounded-[24px] border border-stone-200 shadow-xl bg-white overflow-hidden ${className}`}>
       <div className="flex items-center justify-center gap-1.5 py-2 bg-white">
@@ -76,7 +90,18 @@ function DeviceFrame({ src, alt, eager = false, className = "" }: { src: string;
         <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
         <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
       </div>
-      <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} className="w-full block object-contain" />
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={eager ? "eager" : "lazy"}
+        // fetchPriority (React prop -> atributo fetchpriority): solo tiene sentido en la imagen eager
+        // (el hero, LCP de la landing) — "high" le pide al navegador que la baje antes que recursos de
+        // prioridad normal, en vez de competir en igualdad con el resto de imágenes lazy de la página.
+        fetchPriority={eager ? "high" : "auto"}
+        className="w-full block object-contain"
+      />
     </div>
   );
 }
@@ -100,10 +125,12 @@ const EASY_STEPS = [
   { icon: Target, text: "Ahorra con metas" },
 ];
 
+// width/height: dimensiones reales del webp (no las de pantalla) — el navegador las usa para reservar
+// el hueco correcto antes de que cargue la imagen y no dar un salto de layout (CLS).
 const SCREENSHOTS = [
-  { src: "/screenshot-raw-mensual.webp", caption: "Entiende tus gastos" },
-  { src: "/screenshot-raw-fondos.webp", caption: "Ahorra con metas" },
-  { src: "/screenshot-raw-anual.webp", caption: "Analiza tu año" },
+  { src: "/screenshot-raw-mensual.webp", caption: "Entiende tus gastos", width: 600, height: 1246 },
+  { src: "/screenshot-raw-fondos.webp", caption: "Ahorra con metas", width: 600, height: 1233 },
+  { src: "/screenshot-raw-anual.webp", caption: "Analiza tu año", width: 600, height: 1237 },
 ];
 
 const DIFFERENTIATORS = [
@@ -139,7 +166,10 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
         <section className="px-5 pt-4 pb-8 sm:py-12">
           <div className="max-w-[1024px] mx-auto flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
             <div className="flex flex-col items-center sm:items-start sm:w-[55%]">
-              <img src="/icon-512.png" alt="Nitid" width={36} height={36} className="rounded-lg mb-3" />
+              {/* icon-192.png, no icon-512.png: se muestra a 36px, y el de 512 (170 KB) es >6x más
+                  pesado de lo que hace falta a ese tamaño — el de 512 sigue usándose donde sí hace
+                  falta resolución real (icono del manifest PWA, imagen de og:image para redes). */}
+              <img src="/icon-192.png" alt="Nitid" width={36} height={36} className="rounded-lg mb-3" />
               <div className="w-full bg-stone-50 border border-stone-200 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col items-center sm:items-start text-center sm:text-left">
                 <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-stone-900 max-w-md">
                   ¿Sabes en qué se va tu dinero cada mes?
@@ -161,7 +191,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
               </div>
             </div>
             <div className="sm:w-[45%] flex flex-col items-center gap-3">
-              <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Pantalla de movimientos de Nitid" eager />
+              <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Pantalla de movimientos de Nitid" width={600} height={1242} eager />
               <button
                 onClick={onLoginClick}
                 className="rounded-lg border border-stone-300 px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 transition-colors"
@@ -201,7 +231,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
               <div className="flex gap-4 overflow-x-auto pb-2 sm:justify-center sm:overflow-visible snap-x snap-mandatory sm:snap-none -mx-5 px-10 sm:mx-0 sm:px-0">
                 {SCREENSHOTS.map((shot) => (
                   <div key={shot.src} className="flex-none snap-center flex flex-col items-center">
-                    <DeviceFrame src={shot.src} alt={shot.caption} />
+                    <DeviceFrame src={shot.src} alt={shot.caption} width={shot.width} height={shot.height} />
                     <span className="mt-3 inline-block bg-amber-50 border border-amber-200 text-amber-800 text-sm font-medium px-4 py-1 rounded-full">
                       {shot.caption}
                     </span>
@@ -285,7 +315,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
             <Reveal className="flex flex-col items-center">
               <h2 className="text-xl font-bold text-stone-800 max-w-sm">Tus finanzas, con toda la claridad</h2>
               <GooglePlayBadge className="mt-5" />
-              <img src="/icon-512.png" alt="Nitid" width={28} height={28} className="mt-4 rounded-md" />
+              <img src="/icon-192.png" alt="Nitid" width={28} height={28} className="mt-4 rounded-md" />
             </Reveal>
           </div>
         </section>

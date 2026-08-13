@@ -6,6 +6,8 @@ export function GooglePlayBadge({ className = "" }: { className?: string }) {
       <img
         src="https://play.google.com/intl/en_us/badges/static/images/badges/es_badge_web_generic.png"
         alt="Disponible en Google Play"
+        width={646}
+        height={250}
         className="w-full h-auto"
       />
     </a>

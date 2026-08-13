@@ -278,7 +278,7 @@ export function Regla503020() {
           el sistema mes tras mes sin una herramienta que automatice los cálculos es difícil.
         </p>
         <div className="mt-5 flex justify-center">
-          <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Resumen de ingresos, gastos y libre en Nitid" />
+          <DeviceFrame src="/screenshot-raw-movimientos.webp" alt="Resumen de ingresos, gastos y libre en Nitid" width={600} height={1242} />
         </div>
         <p className="mt-5 font-semibold text-stone-800">Nitid está diseñada con una estructura que encaja directamente con la regla 50-30-20:</p>
         <div className="mt-4 flex flex-col gap-3">

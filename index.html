@@ -2,6 +2,14 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <!-- Preload de la imagen hero de la landing (LCP de esa pantalla): sin esto, al ser una SPA 100%
+         client-rendered (sin SSR), el navegador no puede descubrir esa imagen hasta que React haya
+         descargado, parseado y pintado el árbol de componentes — con esto empieza a bajarla en
+         paralelo al JS, en cuanto lee el <head>. Nota: esto vale para TODAS las rutas (app, blog...),
+         no solo la landing — no hay forma de que sea condicional sin mover a SSR, un cambio mucho más
+         grande. El coste es acotado (42 KB) y aceptado a propósito para las visitas que no son la
+         landing. Si cambias la imagen del hero en LandingPage.tsx, actualiza también este href. -->
+    <link rel="preload" as="image" href="/screenshot-raw-movimientos.webp" fetchpriority="high" type="image/webp" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

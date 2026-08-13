@@ -109,7 +109,7 @@ export function MejoresAppsControlarGastosSinBanco() {
         <h2 className="text-2xl font-bold text-stone-900">Comparativa rápida</h2>
         <SectionTitleAccent />
       </div>
-      <AppComparisonTable apps={COMPARISON_APPS} rows={COMPARISON_ROWS} highlightLogo="/icon-512.png" />
+      <AppComparisonTable apps={COMPARISON_APPS} rows={COMPARISON_ROWS} highlightLogo="/icon-192.png" />
 
       <div className="mt-8">
         <AppReviewCard

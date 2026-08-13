@@ -33,7 +33,7 @@ export function AppComparisonTable({ apps, rows, highlightIndex = 0, highlightLo
                 >
                   <div className="flex flex-col items-center gap-1.5">
                     {i === highlightIndex && highlightLogo ? (
-                      <img src={highlightLogo} alt={app} className="w-7 h-7 rounded-lg" />
+                      <img src={highlightLogo} alt={app} width={192} height={192} className="w-7 h-7 rounded-lg" />
                     ) : (
                       <span
                         className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${i === highlightIndex ? "bg-teal-500 text-white" : "bg-teal-100 text-teal-700"}`}
