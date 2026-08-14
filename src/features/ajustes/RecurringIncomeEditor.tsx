@@ -39,7 +39,7 @@ export function RecurringIncomeEditor({
         Defínelos una vez (por ejemplo tu nómina). Cada mes podrás aplicarlos junto al resto de preestablecidos desde Movimientos.
       </p>
       <div className="space-y-2 mb-4">
-        {recurringIncome.length === 0 && <p className="text-stone-400 text-sm text-center py-4">Todavía no tienes ingresos recurrentes.</p>}
+        {recurringIncome.length === 0 && <p className="text-stone-500 text-sm text-center py-4">Todavía no tienes ingresos recurrentes.</p>}
         {recurringIncome.map((r) => (
           <div key={r.id} className="flex items-center justify-between gap-2 bg-white border border-stone-100 rounded-lg px-3 py-2">
             <div className="min-w-0">
@@ -47,7 +47,7 @@ export function RecurringIncomeEditor({
                 {r.name}
                 {r.day ? ` · día ${r.day}` : ""}
               </p>
-              <p className="text-xs text-stone-400 truncate">
+              <p className="text-xs text-stone-500 truncate">
                 {r.incomeCat}
                 {r.note ? ` · ${r.note}` : ""}
               </p>
@@ -60,7 +60,11 @@ export function RecurringIncomeEditor({
                 onWheel={(e) => e.currentTarget.blur()}
                 className="w-20 border border-stone-200 rounded-md px-1.5 py-1 text-base font-mono text-right"
               />
-              <button onClick={() => removeRecurringIncome(r.id)} className="text-stone-300 hover:text-rose-600">
+              <button
+                onClick={() => removeRecurringIncome(r.id)}
+                className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-stone-300 hover:text-rose-600"
+                aria-label="Eliminar ingreso recurrente"
+              >
                 <Trash2 size={15} />
               </button>
             </div>

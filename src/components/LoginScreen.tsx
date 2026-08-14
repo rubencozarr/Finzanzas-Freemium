@@ -126,12 +126,13 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail,
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Contraseña"
-                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-10 text-base bg-white"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-12 text-base bg-white"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
+                className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-stone-500 hover:text-slate-700"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -146,12 +147,13 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail,
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirmar contraseña"
-                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-10 text-base bg-white"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 pr-12 text-base bg-white"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
+                className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-stone-500 hover:text-slate-700"
+                aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -236,7 +238,7 @@ export function LoginScreen({ signInWithPassword, signUp, resetPasswordForEmail,
           </button>
         )}
 
-        <button onClick={() => setShowPrivacy(true)} className="w-full text-center text-xs text-stone-400 mt-4 underline">
+        <button onClick={() => setShowPrivacy(true)} className="w-full text-center text-xs text-stone-500 mt-4 underline">
           Política de privacidad
         </button>
       </div>

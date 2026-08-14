@@ -62,11 +62,11 @@ export function CategoryCard({ name, total, blockPct, blockPctLabel, subcats, si
           </span>
           <span className="flex items-center gap-1.5 shrink-0">
             <span className="font-mono text-xs">{amountLabel}</span>
-            {hasDetail && (expanded ? <ChevronUp size={14} className="text-stone-400" /> : <ChevronDown size={14} className="text-stone-400" />)}
+            {hasDetail && (expanded ? <ChevronUp size={14} className="text-stone-500" /> : <ChevronDown size={14} className="text-stone-500" />)}
           </span>
         </div>
         {showBlockPctText && (
-          <p className="text-right text-[11px] text-stone-400 mb-1">
+          <p className="text-right text-[11px] text-stone-500 mb-1">
             {blockPct!.toFixed(0)}% {blockPctLabel}
           </p>
         )}
@@ -105,7 +105,7 @@ export function CategoryCard({ name, total, blockPct, blockPctLabel, subcats, si
                   const sinClasificarPct = total ? (sinClasificar / total) * 100 : 0;
                   return (
                     <div>
-                      <div className="flex justify-between text-xs text-stone-400">
+                      <div className="flex justify-between text-xs text-stone-500">
                         <span>Sin subcategoría</span>
                         <span className="font-mono">
                           {fmt(sinClasificar)} · {sinClasificarPct.toFixed(0)}%

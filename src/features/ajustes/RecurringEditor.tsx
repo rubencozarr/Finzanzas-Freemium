@@ -55,7 +55,7 @@ export function RecurringEditor({
         Defínelos una vez. Cada mes podrás aplicarlos de golpe desde Movimientos, ajustando el importe si algo ha cambiado.
       </p>
       <div className="space-y-2 mb-4">
-        {recurring.length === 0 && <p className="text-stone-400 text-sm text-center py-4">Todavía no tienes gastos fijos habituales.</p>}
+        {recurring.length === 0 && <p className="text-stone-500 text-sm text-center py-4">Todavía no tienes gastos fijos habituales.</p>}
         {recurring.map((r) => {
           const cat = categories.find((c) => c.id === r.categoryId);
           const fund = r.fundedByFundId ? funds.find((f) => f.id === r.fundedByFundId) : null;
@@ -68,7 +68,7 @@ export function RecurringEditor({
                     {r.subcategory ? ` · ${r.subcategory}` : ""}
                     {r.day ? ` · día ${r.day}` : ""}
                   </p>
-                  {r.note && <p className="text-xs text-stone-400 truncate">{r.note}</p>}
+                  {r.note && <p className="text-xs text-stone-500 truncate">{r.note}</p>}
                   {fund && (
                     <p className="flex items-center gap-1 text-xs text-teal-700 mt-0.5">
                       <PiggyBank size={12} /> Se paga desde {fund.name}
@@ -83,7 +83,11 @@ export function RecurringEditor({
                     onWheel={(e) => e.currentTarget.blur()}
                     className="w-20 border border-stone-200 rounded-md px-1.5 py-1 text-base font-mono text-right"
                   />
-                  <button onClick={() => removeRecurring(r.id)} className="text-stone-300 hover:text-rose-600">
+                  <button
+                    onClick={() => removeRecurring(r.id)}
+                    className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-stone-300 hover:text-rose-600"
+                    aria-label="Eliminar gasto fijo"
+                  >
                     <Trash2 size={15} />
                   </button>
                 </div>

@@ -43,12 +43,12 @@ export function YearComparisonCards({ year, compareYear, current, compare }: Yea
                 <span className="font-mono">{fmt(curVal)}</span>
               </div>
               <div className="flex items-baseline justify-between text-sm">
-                <span className="text-stone-400">{compareYear}</span>
+                <span className="text-stone-500">{compareYear}</span>
                 <span className="font-mono text-stone-500">{fmt(cmpVal)}</span>
               </div>
               {pct != null &&
                 (isFlat ? (
-                  <p className="text-xs font-medium mt-1 text-right text-stone-400">Sin cambios</p>
+                  <p className="text-xs font-medium mt-1 text-right text-stone-500">Sin cambios</p>
                 ) : (
                   <p className={`text-xs font-medium mt-1 flex items-center gap-1 justify-end ${good ? "text-emerald-700" : "text-rose-700"}`}>
                     {isUp ? <ArrowUp size={12} /> : <ArrowDown size={12} />}

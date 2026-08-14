@@ -43,12 +43,12 @@ export function SparklineTrend({ data, isPremium }: { data: TrendPoint[]; isPrem
           </ResponsiveContainer>
         </div>
       </div>
-      <p className="text-xs text-stone-400 mt-1.5">
+      <p className="text-xs text-stone-500 mt-1.5">
         Línea continua gris = 0€ (por debajo estás perdiendo dinero). Línea punteada verde = tu media de estos {monthsLabel} ({fmt(mean)}).
         Si tu línea sube mes a mes, vas mejorando.
       </p>
       {!isPremium && (
-        <p className="flex items-center gap-1 text-[11px] text-stone-400 mt-1">
+        <p className="flex items-center gap-1 text-[11px] text-stone-500 mt-1">
           <Crown size={11} className="text-amber-500 shrink-0" />
           Ve los 6 meses completos con Premium
         </p>

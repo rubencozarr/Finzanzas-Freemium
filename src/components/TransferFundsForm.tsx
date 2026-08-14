@@ -54,18 +54,18 @@ export function TransferFundsForm({ isPremium, fund, funds, onClose, onTransfer 
       <div className="bg-white rounded-t-2xl w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-3">
           <p className="font-serif text-base">Transferir a otro fondo</p>
-          <button onClick={onClose} className="text-stone-400">
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] -m-3 flex items-center justify-center text-stone-500" aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
 
         <p className="text-xs text-stone-500 mb-1">Desde</p>
         <p className="text-sm font-medium mb-3">
-          {fund.name} · <span className="font-mono text-stone-400">{fmt(fund.balance)} disponibles</span>
+          {fund.name} · <span className="font-mono text-stone-500">{fmt(fund.balance)} disponibles</span>
         </p>
 
         {destinoOptions.length === 0 ? (
-          <p className="text-xs text-stone-400 mb-3">Necesitas al menos otro fondo para transferir.</p>
+          <p className="text-xs text-stone-500 mb-3">Necesitas al menos otro fondo para transferir.</p>
         ) : (
           <>
             <p className="text-xs text-stone-500 mb-1">Hacia</p>
@@ -94,10 +94,10 @@ export function TransferFundsForm({ isPremium, fund, funds, onClose, onTransfer 
               className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base font-mono mb-2"
             />
             {showAmountError && (!amt || amt <= 0) && (
-              <p className="text-xs text-rose-500 mb-2">El importe es obligatorio y debe ser mayor que 0.</p>
+              <p className="text-xs text-rose-600 mb-2">El importe es obligatorio y debe ser mayor que 0.</p>
             )}
             {excedeSaldo && (
-              <p className="text-xs text-rose-500 mb-2">
+              <p className="text-xs text-rose-600 mb-2">
                 Este importe supera el saldo de {fund.name} ({fmt(fund.balance)}).
               </p>
             )}

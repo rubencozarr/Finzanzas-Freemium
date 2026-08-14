@@ -9,7 +9,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
     <div className="border-l-4 border-amber-400 border-y border-r border-stone-100 bg-white rounded-r-lg mb-2 overflow-hidden">
       <button onClick={() => setExpanded((e) => !e)} className="w-full text-left pl-3 pr-3 py-2.5">
         <div className="flex justify-between items-center gap-2 text-sm mb-1">
-          <span className={`min-w-0 truncate ${f.deleted ? "font-medium text-stone-400" : "font-medium"}`}>
+          <span className={`min-w-0 truncate ${f.deleted ? "font-medium text-stone-500" : "font-medium"}`}>
             {f.name}
             {f.deleted && <span className="font-normal"> (eliminado)</span>}
           </span>
@@ -21,7 +21,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
                   muestra ningún porcentaje ni barra, solo el importe gastado. */}
               {!f.deleted && f.pct != null && ` · ${f.pct.toFixed(0)}% del saldo inicial`}
             </span>
-            {expanded ? <ChevronUp size={14} className="text-stone-400" /> : <ChevronDown size={14} className="text-stone-400" />}
+            {expanded ? <ChevronUp size={14} className="text-stone-500" /> : <ChevronDown size={14} className="text-stone-500" />}
           </span>
         </div>
         {!f.deleted && f.pct != null && (
@@ -34,7 +34,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
         <div className="px-3 pb-2.5">
           {/* Saldo REAL actual del fondo (mismo número que la tarjeta de Fondos) — distinto del saldo de
               inicio de mes que usa el % de arriba como base; ambos son datos útiles y complementarios. */}
-          {!f.deleted && <p className="text-xs text-stone-400 mb-2">{fmt(f.balance)} tienes ahora en este fondo</p>}
+          {!f.deleted && <p className="text-xs text-stone-500 mb-2">{fmt(f.balance)} tienes ahora en este fondo</p>}
           <div className="border-l-2 border-stone-100 ml-1 pl-3 space-y-1.5">
             {f.cats.map((c) => (
               <div key={c.name}>
@@ -53,7 +53,7 @@ export function FundUsageCard({ f }: { f: FundUsage }) {
                 {c.subcats.length > 0 && (
                   <div className="border-l-2 border-stone-100 ml-1 pl-3 mt-1.5 space-y-1">
                     {c.subcats.map((sc) => (
-                      <div key={sc.name} className="flex justify-between text-[11px] text-stone-400">
+                      <div key={sc.name} className="flex justify-between text-[11px] text-stone-500">
                         <span>{sc.name}</span>
                         <span className="font-mono">{fmt(sc.total)}</span>
                       </div>

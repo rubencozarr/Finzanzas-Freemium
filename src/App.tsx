@@ -897,7 +897,11 @@ function App() {
           <h1 className="font-serif text-xl tracking-tight">Nitid</h1>
           <p className="text-stone-300 text-sm mt-0.5">Registro, fondos y resúmenes</p>
         </div>
-        <button onClick={() => setShowHelp(true)} className="text-stone-300 hover:text-white mt-0.5">
+        <button
+          onClick={() => setShowHelp(true)}
+          className="min-w-[44px] min-h-[44px] -m-2.5 mt-0.5 flex items-center justify-center text-stone-300 hover:text-white"
+          aria-label="Ayuda"
+        >
           <HelpCircle size={20} />
         </button>
       </header>

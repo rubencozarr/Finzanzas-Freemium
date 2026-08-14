@@ -32,7 +32,11 @@ function CategoryLockBadge() {
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex shrink-0">
-      <button onClick={() => setOpen((o) => !o)} className="text-amber-500 hover:text-amber-600">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-amber-500 hover:text-amber-600"
+        aria-label="Más información"
+      >
         <Crown size={13} />
       </button>
       {open && (
@@ -164,7 +168,7 @@ export function CategoriasEditor({
       <div className="mb-5">
         <p className="text-sm font-semibold mb-2">{title}</p>
         {type === "fixed" && (
-          <p className="text-xs text-stone-400 mb-2">
+          <p className="text-xs text-stone-500 mb-2">
             Los gastos fijos no llevan presupuesto: ya conoces su importe porque los defines en "Gastos fijos habituales".
           </p>
         )}
@@ -203,7 +207,7 @@ export function CategoriasEditor({
           })()}
         {showActiveToggle && (
           <div className="mb-3">
-            <p className="text-xs text-stone-400">
+            <p className="text-xs text-stone-500">
               Elige tus {FREE_MAX_CATEGORIES[type]} categorías activas de cada tipo. Una vez registres el primer gasto del mes,
               la selección se mantendrá hasta el mes siguiente.
             </p>
@@ -231,7 +235,11 @@ export function CategoriasEditor({
                         className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base min-w-0"
                         autoFocus
                       />
-                      <button onClick={() => confirmRename(cat.id)} className="text-teal-700 shrink-0">
+                      <button
+                        onClick={() => confirmRename(cat.id)}
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-teal-700 shrink-0"
+                        aria-label="Confirmar"
+                      >
                         <Check size={16} />
                       </button>
                       <button
@@ -239,7 +247,8 @@ export function CategoriasEditor({
                           setEditingCatId(null);
                           setRenameError(null);
                         }}
-                        className="text-stone-400 shrink-0"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500 shrink-0"
+                        aria-label="Cancelar"
                       >
                         <X size={16} />
                       </button>
@@ -249,24 +258,38 @@ export function CategoriasEditor({
                 ) : (
                   <span className="text-sm flex items-center gap-1.5">
                     {cat.name}
-                    <button onClick={() => startRename(cat)} className="text-stone-300 hover:text-slate-700">
+                    <button
+                      onClick={() => startRename(cat)}
+                      className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-stone-300 hover:text-slate-700"
+                      aria-label={`Renombrar ${cat.name}`}
+                    >
                       <Pencil size={12} />
                     </button>
                     {catLocked && <CategoryLockBadge />}
                   </span>
                 )}
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => moveCategory(cat.id, -1)} disabled={i === 0} className={i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}>
+                  <button
+                    onClick={() => moveCategory(cat.id, -1)}
+                    disabled={i === 0}
+                    className={`min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center ${i === 0 ? "text-stone-200" : "text-stone-500 hover:text-slate-700"}`}
+                    aria-label={`Subir ${cat.name}`}
+                  >
                     <ChevronUp size={15} />
                   </button>
                   <button
                     onClick={() => moveCategory(cat.id, 1)}
                     disabled={i === list.length - 1}
-                    className={i === list.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}
+                    className={`min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center ${i === list.length - 1 ? "text-stone-200" : "text-stone-500 hover:text-slate-700"}`}
+                    aria-label={`Bajar ${cat.name}`}
                   >
                     <ChevronDown size={15} />
                   </button>
-                  <button onClick={() => askRemoveCategory(cat)} className="text-stone-300 hover:text-rose-600">
+                  <button
+                    onClick={() => askRemoveCategory(cat)}
+                    className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-stone-300 hover:text-rose-600"
+                    aria-label={`Eliminar ${cat.name}`}
+                  >
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -280,7 +303,7 @@ export function CategoriasEditor({
                       ? "bg-teal-50 text-teal-700 border-teal-200"
                       : activeCount >= FREE_MAX_CATEGORIES[type]
                         ? "text-stone-300 border-stone-100"
-                        : "text-stone-400 border-stone-200"
+                        : "text-stone-500 border-stone-200"
                   } ${catLocked ? "opacity-50" : ""}`}
                 >
                   {cat.isActive ? "Categoría activa ✓" : "Marcar como activa"}
@@ -317,7 +340,11 @@ export function CategoriasEditor({
                     <span key={sc.id} className="flex items-center gap-1 bg-stone-100 text-xs rounded-full px-2 py-1">
                       {sc.name}
                       {isPremium && (
-                        <button onClick={() => askRemoveSubcategory(cat, sc.id, sc.name)} className="text-stone-400 hover:text-rose-600">
+                        <button
+                          onClick={() => askRemoveSubcategory(cat, sc.id, sc.name)}
+                          className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-stone-500 hover:text-rose-600"
+                          aria-label={`Eliminar subcategoría ${sc.name}`}
+                        >
                           <X size={11} />
                         </button>
                       )}
@@ -336,7 +363,11 @@ export function CategoriasEditor({
                     placeholder="Nueva subcategoría"
                     className="flex-1 border border-stone-200 rounded-md px-2 py-1 text-base"
                   />
-                  <button onClick={() => addSub(cat.id)} className="bg-stone-800 text-white rounded-md px-2">
+                  <button
+                    onClick={() => addSub(cat.id)}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-stone-800 text-white rounded-md px-2"
+                    aria-label="Añadir subcategoría"
+                  >
                     <Plus size={13} />
                   </button>
                 </div>
@@ -360,7 +391,11 @@ export function CategoriasEditor({
                 placeholder={`Nueva categoría ${type === "fixed" ? "fija" : "variable"}`}
                 className="flex-1 border border-stone-200 rounded-md px-2 py-1.5 text-base"
               />
-              <button onClick={() => addCat(type)} className="bg-slate-800 text-white rounded-md px-2.5 text-xs">
+              <button
+                onClick={() => addCat(type)}
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-slate-800 text-white rounded-md px-2.5 text-xs"
+                aria-label={`Añadir categoría ${type === "fixed" ? "fija" : "variable"}`}
+              >
                 <Plus size={14} />
               </button>
             </div>

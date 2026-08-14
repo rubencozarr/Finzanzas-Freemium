@@ -48,7 +48,7 @@ function PlanCard({ isPremium, onOpenPremiumScreen }: { isPremium: boolean; onOp
       <p className="text-sm font-semibold text-amber-900 flex items-center gap-1.5 mb-2">
         <Crown size={15} className="text-amber-500" /> Plan actual: Gratuito
       </p>
-      <button onClick={onOpenPremiumScreen} className="w-full bg-amber-500 text-white rounded-lg py-2 text-sm font-medium">
+      <button onClick={onOpenPremiumScreen} className="w-full bg-amber-500 text-slate-900 rounded-lg py-2 text-sm font-medium">
         Ver planes Premium
       </button>
     </div>
@@ -123,7 +123,7 @@ function ExcelExportButton({ isPremium, onClick }: { isPremium: boolean; onClick
           onClick();
         }}
         className={`w-full flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium ${
-          isPremium ? "bg-emerald-700 text-white" : "bg-stone-100 text-stone-400"
+          isPremium ? "bg-emerald-700 text-white" : "bg-stone-100 text-stone-500"
         }`}
       >
         <FileSpreadsheet size={14} /> Exportar Excel
@@ -316,7 +316,7 @@ export function AjustesTab({
       )}
 
       <div className="border-t border-stone-200 mt-6 pt-4">
-        <p className="text-xs text-stone-400 mb-3">Copia de seguridad de tus datos</p>
+        <p className="text-xs text-stone-500 mb-3">Copia de seguridad de tus datos</p>
         {importError && <p className="text-xs text-rose-600 mb-2">{importError}</p>}
         <div className="flex gap-2 mb-2">
           <button onClick={onExport} className="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 text-white rounded-lg py-2 text-xs font-medium">
@@ -330,11 +330,11 @@ export function AjustesTab({
         </label>
         <button
           onClick={() => setShowSignOutConfirm(true)}
-          className="w-full flex items-center justify-center gap-1.5 text-stone-400 py-2 text-xs mt-3"
+          className="w-full flex items-center justify-center gap-1.5 text-stone-500 py-2 text-xs mt-3"
         >
           <LogOut size={13} /> Cerrar sesión
         </button>
-        <button onClick={onShowPrivacy} className="w-full text-center text-stone-400 text-xs mt-2 underline">
+        <button onClick={onShowPrivacy} className="w-full text-center text-stone-500 text-xs mt-2 underline">
           Política de privacidad
         </button>
         <button

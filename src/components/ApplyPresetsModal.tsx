@@ -137,7 +137,7 @@ export function ApplyPresetsModal({
       >
         <div className="flex justify-between items-center mb-3">
           <p className="font-serif text-base">{warnings ? "Antes de continuar" : "Ingresos y gastos preestablecidos"}</p>
-          <button onClick={onClose} className="text-stone-400">
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] -m-3 flex items-center justify-center text-stone-500" aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
@@ -179,7 +179,7 @@ export function ApplyPresetsModal({
           <div className="text-center py-6">
             <Check size={32} className="mx-auto text-teal-600 mb-2" />
             <p className="text-sm text-stone-600">Todo aplicado este mes</p>
-            <p className="text-xs text-stone-400 mt-1">
+            <p className="text-xs text-stone-500 mt-1">
               Si necesitas reaplicar algo, borra primero el movimiento correspondiente y vuelve aquí.
             </p>
           </div>
@@ -250,7 +250,7 @@ export function ApplyPresetsModal({
                   <div className="flex items-center gap-2 min-w-0">
                     <input type="checkbox" checked={investItems[a.id]?.checked} onChange={() => toggle(setInvestItems, a.id)} />
                     <span className="text-sm truncate">
-                      {a.name} <span className="text-stone-400">· {a.pct || 0}%</span>
+                      {a.name} <span className="text-stone-500">· {a.pct || 0}%</span>
                     </span>
                   </div>
                   <input

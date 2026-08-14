@@ -42,14 +42,14 @@ export function InvestmentEditor({
         />
         <span className="text-sm text-stone-500">% de los ingresos de cada mes</span>
       </div>
-      <p className="text-xs text-stone-400 mb-5">
+      <p className="text-xs text-stone-500 mb-5">
         Es solo una plantilla orientativa: al aplicar el plan cada mes podrás ajustar los importes reales, y si algún mes no inviertes nada, no
         pasa nada.
       </p>
 
       <p className="text-sm font-semibold mb-2">Reparto entre activos</p>
       <div className="space-y-2 mb-3">
-        {assets.length === 0 && <p className="text-stone-400 text-sm text-center py-4">Todavía no tienes activos de inversión.</p>}
+        {assets.length === 0 && <p className="text-stone-500 text-sm text-center py-4">Todavía no tienes activos de inversión.</p>}
         {assets.map((a) => (
           <div key={a.id} className="flex items-center gap-2 bg-white border border-stone-100 rounded-lg px-3 py-2">
             <input
@@ -66,16 +66,21 @@ export function InvestmentEditor({
                 disabled={disabled}
                 className="w-14 border border-stone-200 rounded-md px-1.5 py-1 text-base font-mono text-right"
               />
-              <span className="text-xs text-stone-400">%</span>
+              <span className="text-xs text-stone-500">%</span>
             </div>
-            <button onClick={() => removeAsset(a.id)} disabled={disabled} className="text-stone-300 hover:text-rose-600 shrink-0">
+            <button
+              onClick={() => removeAsset(a.id)}
+              disabled={disabled}
+              className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-stone-300 hover:text-rose-600 shrink-0"
+              aria-label={`Eliminar ${a.name}`}
+            >
               <Trash2 size={14} />
             </button>
           </div>
         ))}
       </div>
       {assets.length > 0 && (
-        <p className={`text-xs mb-4 ${totalPct === 100 ? "text-stone-400" : "text-amber-700"}`}>
+        <p className={`text-xs mb-4 ${totalPct === 100 ? "text-stone-500" : "text-amber-700"}`}>
           Suma actual del reparto: {totalPct.toFixed(0)}% {totalPct !== 100 ? "(lo ideal es que sume 100%)" : ""}
         </p>
       )}
@@ -95,7 +100,8 @@ export function InvestmentEditor({
             }
           }}
           disabled={disabled}
-          className="bg-indigo-700 text-white rounded-md px-2.5 text-xs"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-indigo-700 text-white rounded-md px-2.5 text-xs"
+          aria-label="Añadir activo"
         >
           <Plus size={14} />
         </button>

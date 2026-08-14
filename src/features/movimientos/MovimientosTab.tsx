@@ -199,12 +199,12 @@ export function MovimientosTab({
       <div className="min-w-0 flex-1">
         <p className="text-sm truncate">
           {displayCategory}
-          {orphan && <span className="text-amber-600"> · sin categoría válida</span>}
+          {orphan && <span className="text-amber-700"> · sin categoría válida</span>}
           {displaySubcategory ? ` · ${displaySubcategory}` : ""}
-          {orphanSub && <span className="text-amber-600"> (sin subcategoría válida)</span>}
+          {orphanSub && <span className="text-amber-700"> (sin subcategoría válida)</span>}
           {t.note ? ` · ${t.note}` : ""}
         </p>
-        <p className="text-xs text-stone-400 mt-1">{formatDateEs(t.date)}</p>
+        <p className="text-xs text-stone-500 mt-1">{formatDateEs(t.date)}</p>
         {fundedByName && <p className="text-xs text-amber-700 mt-0.5">Pagado con {fundedByName}</p>}
         {t.splitLabel && <p className="text-xs text-amber-700 mt-0.5">{t.splitLabel}</p>}
       </div>
@@ -214,12 +214,20 @@ export function MovimientosTab({
           {fmt(t.amount)}
         </span>
         {!selectMode && effectiveCanEdit && (
-          <button onClick={() => onEdit(t.raw!)} className="text-stone-300 hover:text-slate-700">
+          <button
+            onClick={() => onEdit(t.raw!)}
+            className="min-w-[44px] min-h-[44px] -mx-2 flex items-center justify-center text-stone-300 hover:text-slate-700"
+            aria-label="Editar movimiento"
+          >
             <Pencil size={14} />
           </button>
         )}
         {!selectMode && (
-          <button onClick={() => setDeleteConfirmId(id)} className="text-stone-300 hover:text-rose-600">
+          <button
+            onClick={() => setDeleteConfirmId(id)}
+            className="min-w-[44px] min-h-[44px] -mx-2 flex items-center justify-center text-stone-300 hover:text-rose-600"
+            aria-label="Eliminar movimiento"
+          >
             <Trash2 size={15} />
           </button>
         )}
@@ -247,12 +255,12 @@ export function MovimientosTab({
           que el selector es sticky con su propio pb-2 pintado (bg-stone-50), ese margen negativo metía
           esta fila por debajo de esa franja y los botones quedaban tapados un poco. */}
       <div className="flex justify-between items-center mb-2">
-        <button onClick={onGoToAjustes} className="flex items-center gap-1 text-xs text-stone-400">
+        <button onClick={onGoToAjustes} className="flex items-center gap-1 text-xs text-stone-500">
           <Repeat size={13} /> Preestablecidos
         </button>
         <div className="flex gap-3">
           {!selectMode && (
-            <button onClick={() => setShowSearch((s) => !s)} className="flex items-center gap-1 text-xs text-stone-400">
+            <button onClick={() => setShowSearch((s) => !s)} className="flex items-center gap-1 text-xs text-stone-500">
               <Search size={13} /> Buscar
             </button>
           )}
@@ -261,7 +269,7 @@ export function MovimientosTab({
               setSelectMode((s) => !s);
               setSelected({});
             }}
-            className={`flex items-center gap-1 text-xs ${selectMode ? "text-rose-600 font-medium" : "text-stone-400"}`}
+            className={`flex items-center gap-1 text-xs ${selectMode ? "text-rose-600 font-medium" : "text-stone-500"}`}
           >
             {selectMode ? "Cancelar selección" : "Seleccionar"}
           </button>
@@ -381,7 +389,7 @@ export function MovimientosTab({
                 Seleccionar todo ({visibleIds.length})
               </label>
             )}
-            {displayItems.length === 0 && <p className="text-stone-400 text-sm text-center py-8">Sin movimientos este mes todavía.</p>}
+            {displayItems.length === 0 && <p className="text-stone-500 text-sm text-center py-8">Sin movimientos este mes todavía.</p>}
             {displayItems.map((t) => renderTxRow(t, t.ids[0], !!t.raw))}
           </div>
         </>
@@ -389,7 +397,7 @@ export function MovimientosTab({
 
       {searching && (
         <div className="space-y-1">
-          <p className="text-xs text-stone-400 mb-2">
+          <p className="text-xs text-stone-500 mb-2">
             {searchResults.length} resultado{searchResults.length !== 1 ? "s" : ""}
             {searchResults.length === 50 ? " (máx. 50)" : ""}
           </p>
@@ -399,7 +407,7 @@ export function MovimientosTab({
               Seleccionar todo ({visibleIds.length})
             </label>
           )}
-          {searchResults.length === 0 && <p className="text-stone-400 text-sm text-center py-8">No hay movimientos que coincidan.</p>}
+          {searchResults.length === 0 && <p className="text-stone-500 text-sm text-center py-8">No hay movimientos que coincidan.</p>}
           {searchResults.map((t) =>
             renderTxRow(
               {

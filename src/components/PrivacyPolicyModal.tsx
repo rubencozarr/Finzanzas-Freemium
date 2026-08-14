@@ -323,15 +323,19 @@ export function PrivacyPolicyModal({ onClose }: PrivacyPolicyModalProps) {
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
       >
         <h1 className="font-serif text-xl tracking-tight">Política de privacidad</h1>
-        <button onClick={onClose} className="text-stone-300 hover:text-white">
+        <button
+          onClick={onClose}
+          className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-stone-300 hover:text-white"
+          aria-label="Cerrar"
+        >
           <X size={20} />
         </button>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-8 max-w-md w-full mx-auto">
         <div className="bg-white rounded-lg border border-stone-100 p-3 mb-4">
-          <p className="text-xs text-stone-400">Fecha de entrada en vigor: {EFFECTIVE_DATE}</p>
-          <p className="text-xs text-stone-400 mb-2">Última actualización: {LAST_UPDATED}</p>
+          <p className="text-xs text-stone-500">Fecha de entrada en vigor: {EFFECTIVE_DATE}</p>
+          <p className="text-xs text-stone-500 mb-2">Última actualización: {LAST_UPDATED}</p>
           <p className="text-sm text-stone-600">
             En Nitid nos tomamos muy en serio la privacidad de tus datos. Esta política de privacidad explica qué información
             recogemos, cómo la utilizamos, con quién la compartimos, y cuáles son tus derechos. Te recomendamos que la leas
@@ -347,9 +351,9 @@ export function PrivacyPolicyModal({ onClose }: PrivacyPolicyModalProps) {
                 <button onClick={() => toggle(i)} className="w-full text-left px-3 py-3 flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-slate-800">{section.title}</span>
                   {expanded ? (
-                    <ChevronUp size={16} className="text-stone-400 shrink-0" />
+                    <ChevronUp size={16} className="text-stone-500 shrink-0" />
                   ) : (
-                    <ChevronDown size={16} className="text-stone-400 shrink-0" />
+                    <ChevronDown size={16} className="text-stone-500 shrink-0" />
                   )}
                 </button>
                 {expanded && <div className="text-sm text-stone-600 px-3 pb-3 -mt-1">{section.body}</div>}

@@ -49,7 +49,8 @@ function InvestmentLockBadge() {
           e.stopPropagation();
           setOpen((o) => !o);
         }}
-        className="text-amber-500 hover:text-amber-600 bg-white rounded-full"
+        className="min-w-[36px] min-h-[36px] flex items-center justify-center text-amber-500 hover:text-amber-600 bg-white rounded-full"
+        aria-label="Información sobre Premium"
       >
         <Crown size={14} />
       </button>
@@ -266,7 +267,7 @@ export function NuevoMovimientoForm({
         <div className="bg-white rounded-t-2xl w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
           <div className="flex justify-between items-center mb-3">
             <p className="font-serif text-base">Tu ahorro real no llega</p>
-            <button onClick={onClose} className="text-stone-400">
+            <button onClick={onClose} className="min-w-[44px] min-h-[44px] -m-3 flex items-center justify-center text-stone-500" aria-label="Cerrar">
               <X size={18} />
             </button>
           </div>
@@ -278,7 +279,7 @@ export function NuevoMovimientoForm({
             ¿Quieres cubrir la diferencia de <span className="font-mono font-medium">{fmt(shortfall)}</span> con un fondo o
             con tu ahorro libre acumulado?
           </p>
-          <p className="text-xs text-stone-400 mb-4">
+          <p className="text-xs text-stone-500 mb-4">
             Solo puedes usar el ahorro libre consolidado (de meses anteriores). El sobrante de este mes es ahorro en curso.
           </p>
 
@@ -325,7 +326,7 @@ export function NuevoMovimientoForm({
       >
         <div className="flex justify-between items-center mb-3">
           <p className="font-serif text-base">{editingTx ? "Editar movimiento" : "Nuevo movimiento"}</p>
-          <button onClick={onClose} className="text-stone-400">
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] -m-3 flex items-center justify-center text-stone-500" aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
@@ -362,7 +363,7 @@ export function NuevoMovimientoForm({
           </div>
         </div>
         {editingTx && (
-          <p className="text-xs text-stone-400 -mt-2.5 mb-4">
+          <p className="text-xs text-stone-500 -mt-2.5 mb-4">
             El tipo de movimiento no se puede cambiar al editar. Si necesitas cambiarlo, borra este y crea uno nuevo.
           </p>
         )}
@@ -371,9 +372,9 @@ export function NuevoMovimientoForm({
           <div className="mb-4">
             <p className="text-xs text-stone-500 mb-1.5">Fondo</p>
             <div className="flex flex-wrap gap-1.5">
-              {funds.length === 0 && <span className="text-xs text-stone-400">Crea un fondo primero en la pestaña Fondos</span>}
+              {funds.length === 0 && <span className="text-xs text-stone-500">Crea un fondo primero en la pestaña Fondos</span>}
               {funds.length > 0 && fundOptionsForType.length === 0 && (
-                <span className="text-xs text-stone-400">No tienes ningún fondo activo. Actívalo en la pestaña Fondos.</span>
+                <span className="text-xs text-stone-500">No tienes ningún fondo activo. Actívalo en la pestaña Fondos.</span>
               )}
               {fundOptionsForType.map((f) => (
                 <Chip key={f.id} label={`${f.name} · ${fmt(f.balance)}`} active={fundId === f.id} onClick={() => setFundId(f.id)} />
@@ -391,7 +392,7 @@ export function NuevoMovimientoForm({
           <div className="mb-4">
             <p className="text-xs text-stone-500 mb-1.5">Activo</p>
             <div className="flex flex-wrap gap-1.5">
-              {assets.length === 0 && <span className="text-xs text-stone-400">Crea un activo primero en Ajustes</span>}
+              {assets.length === 0 && <span className="text-xs text-stone-500">Crea un activo primero en Ajustes</span>}
               {assets.map((a) => (
                 <Chip
                   key={a.id}
@@ -421,7 +422,7 @@ export function NuevoMovimientoForm({
             <div className="mb-3">
               <p className="text-xs text-stone-500 mb-1.5">Fijos</p>
               {fixedCats.length === 0 ? (
-                <p className="text-xs text-stone-400">No tienes ninguna categoría fija activada. Actívala en Ajustes.</p>
+                <p className="text-xs text-stone-500">No tienes ninguna categoría fija activada. Actívala en Ajustes.</p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {fixedCats.map((c) => (
@@ -442,7 +443,7 @@ export function NuevoMovimientoForm({
             <div className="mb-3">
               <p className="text-xs text-stone-500 mb-1.5">Variables</p>
               {variableCats.length === 0 ? (
-                <p className="text-xs text-stone-400">No tienes ninguna categoría variable activada. Actívala en Ajustes.</p>
+                <p className="text-xs text-stone-500">No tienes ninguna categoría variable activada. Actívala en Ajustes.</p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {variableCats.map((c) => (
@@ -504,7 +505,7 @@ export function NuevoMovimientoForm({
             )}
             {fundedByFund && (
               <>
-                <p className="text-xs text-stone-400 mb-2">
+                <p className="text-xs text-stone-500 mb-2">
                   No afecta a tu ahorro total del mes: se descuenta del ahorro libre consolidado (lo acumulado en meses
                   anteriores). El sobrante de este mes es ahorro en curso y todavía no puedes gastarlo como ahorro.
                 </p>
@@ -548,7 +549,7 @@ export function NuevoMovimientoForm({
           className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-base font-mono mt-3 mb-1"
         />
         {showAmountError && (!amt || amt <= 0) && (
-          <p className="text-xs text-rose-500 mb-2">El importe es obligatorio y debe ser mayor que 0.</p>
+          <p className="text-xs text-rose-600 mb-2">El importe es obligatorio y debe ser mayor que 0.</p>
         )}
         <input
           type="date"
@@ -559,8 +560,8 @@ export function NuevoMovimientoForm({
           }}
           className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base mb-1"
         />
-        {date && <p className="text-xs text-stone-400 mb-1">{formatDateEs(date)}</p>}
-        {showDateError && !date && <p className="text-xs text-rose-500 mb-2">La fecha es obligatoria.</p>}
+        {date && <p className="text-xs text-stone-500 mb-1">{formatDateEs(date)}</p>}
+        {showDateError && !date && <p className="text-xs text-rose-600 mb-2">La fecha es obligatoria.</p>}
         {date &&
           (() => {
             const diff = (new Date(date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
@@ -579,7 +580,7 @@ export function NuevoMovimientoForm({
           className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base mb-4"
         />
         {showCategoryError && type === "gasto" && !categoryId && (
-          <p className="text-xs text-rose-500 mb-2">Elige una categoría arriba antes de guardar.</p>
+          <p className="text-xs text-rose-600 mb-2">Elige una categoría arriba antes de guardar.</p>
         )}
         <button
           onClick={submit}

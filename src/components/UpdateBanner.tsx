@@ -16,7 +16,7 @@ export function UpdateBanner({ onUpdate, onDismiss }: UpdateBannerProps) {
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm">Hay una nueva versión disponible</span>
-        <button onClick={onDismiss} className="shrink-0 text-stone-400 hover:text-white -mt-1 -mr-1 p-1" aria-label="Descartar aviso">
+        <button onClick={onDismiss} className="shrink-0 text-stone-500 hover:text-white -mt-1 -mr-1 p-1" aria-label="Descartar aviso">
           <X size={14} />
         </button>
       </div>

@@ -24,8 +24,12 @@ const ICONS: Record<InsightType, ComponentType<{ size?: number; className?: stri
 function PremiumHintBadge() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="absolute top-1.5 right-1.5">
-      <button onClick={() => setOpen((o) => !o)} className="text-amber-500 hover:text-amber-600">
+    <div className="absolute top-0 right-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="min-w-[36px] min-h-[36px] flex items-center justify-center text-amber-500 hover:text-amber-600"
+        aria-label="Más información sobre Premium"
+      >
         <Crown size={14} />
       </button>
       {open && (

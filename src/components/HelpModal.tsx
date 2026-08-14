@@ -82,7 +82,11 @@ export function HelpModal({ onClose, onRestartTour }: HelpModalProps) {
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
       >
         <h1 className="font-serif text-xl tracking-tight">Ayuda</h1>
-        <button onClick={onClose} className="text-stone-300 hover:text-white">
+        <button
+          onClick={onClose}
+          className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-stone-300 hover:text-white"
+          aria-label="Cerrar"
+        >
           <X size={20} />
         </button>
       </header>
@@ -96,9 +100,9 @@ export function HelpModal({ onClose, onRestartTour }: HelpModalProps) {
                 <button onClick={() => toggle(i)} className="w-full text-left px-3 py-3 flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-slate-800">{item.question}</span>
                   {expanded ? (
-                    <ChevronUp size={16} className="text-stone-400 shrink-0" />
+                    <ChevronUp size={16} className="text-stone-500 shrink-0" />
                   ) : (
-                    <ChevronDown size={16} className="text-stone-400 shrink-0" />
+                    <ChevronDown size={16} className="text-stone-500 shrink-0" />
                   )}
                 </button>
                 {expanded && <p className="text-sm text-stone-600 px-3 pb-3 -mt-1">{item.answer}</p>}

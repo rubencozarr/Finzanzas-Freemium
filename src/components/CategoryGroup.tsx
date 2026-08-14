@@ -64,7 +64,7 @@ export function CategoryGroup({ title, total, cats, tone, budget = 0, hideDetail
         interactive={!hideDetail}
       />
       {hasBudget && !isEmpty && (
-        <p className={`text-xs -mt-1 mb-2 ${overBudget ? "text-rose-600 font-medium" : "text-stone-400"}`}>
+        <p className={`text-xs -mt-1 mb-2 ${overBudget ? "text-rose-600 font-medium" : "text-stone-500"}`}>
           {overBudget
             ? `Presupuesto total de variable superado en ${fmt(total - budget)}`
             : `${budgetPct.toFixed(0)}% de tu presupuesto total de variable (${fmt(budget)})`}
@@ -73,7 +73,7 @@ export function CategoryGroup({ title, total, cats, tone, budget = 0, hideDetail
       {!hideDetail &&
         expanded &&
         (cats.length === 0 ? (
-          <p className="text-stone-400 text-xs mb-2">Sin movimientos en este bloque.</p>
+          <p className="text-stone-500 text-xs mb-2">Sin movimientos en este bloque.</p>
         ) : (
           <>
             {compositionData.length > 0 && (

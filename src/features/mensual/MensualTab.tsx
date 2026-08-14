@@ -122,7 +122,11 @@ export function MensualTab({
 
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-stone-500">Desglose por categoría</p>
-        <button onClick={onGoToAjustes} className="text-stone-400 hover:text-slate-700">
+        <button
+          onClick={onGoToAjustes}
+          className="min-w-[44px] min-h-[44px] -m-3 flex items-center justify-center text-stone-500 hover:text-slate-700"
+          aria-label="Ir a Ajustes de categorías"
+        >
           <Settings2 size={16} />
         </button>
       </div>

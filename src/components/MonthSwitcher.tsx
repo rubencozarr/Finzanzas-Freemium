@@ -50,7 +50,8 @@ export function MonthSwitcher({
         <button
           onClick={() => changeMonth(-1)}
           disabled={!canGoBack}
-          className={`p-1.5 rounded-full ${canGoBack ? "hover:bg-stone-200 text-slate-600" : "text-stone-200"}`}
+          className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full ${canGoBack ? "hover:bg-stone-200 text-slate-600" : "text-stone-200"}`}
+          aria-label="Mes anterior"
         >
           <ChevronLeft size={18} />
         </button>
@@ -63,14 +64,18 @@ export function MonthSwitcher({
             className="flex items-center gap-1 font-serif text-base capitalize"
           >
             {MONTHS_FULL[monthIdx]} {year}
-            <ChevronDown size={15} className={`text-stone-400 transition-transform ${open ? "rotate-180" : ""}`} />
+            <ChevronDown size={15} className={`text-stone-500 transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
         ) : (
           <span className="font-serif text-base capitalize">
             {MONTHS_FULL[monthIdx]} {year}
           </span>
         )}
-        <button onClick={() => changeMonth(1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
+        <button
+          onClick={() => changeMonth(1)}
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-200 text-slate-600"
+          aria-label="Mes siguiente"
+        >
           <ChevronRight size={18} />
         </button>
       </div>
@@ -85,12 +90,17 @@ export function MonthSwitcher({
             <button
               onClick={() => changeYear!(-1)}
               disabled={!canGoBackYear}
-              className={`p-1 rounded-full ${canGoBackYear ? "hover:bg-stone-100 text-slate-500" : "text-stone-200"}`}
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full ${canGoBackYear ? "hover:bg-stone-100 text-slate-500" : "text-stone-200"}`}
+              aria-label="Año anterior"
             >
               <ChevronLeft size={16} />
             </button>
             <span className="text-sm font-medium">{year}</span>
-            <button onClick={() => changeYear!(1)} className="p-1 rounded-full hover:bg-stone-100 text-slate-500">
+            <button
+              onClick={() => changeYear!(1)}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 text-slate-500"
+              aria-label="Año siguiente"
+            >
               <ChevronRight size={16} />
             </button>
           </div>
@@ -127,7 +137,7 @@ export function MonthSwitcher({
               );
             })}
           </div>
-          <p className="text-[11px] text-stone-400 mt-2">Verde: positivo · Ámbar: cero · Rojo: negativo</p>
+          <p className="text-[11px] text-stone-500 mt-2">Verde: positivo · Ámbar: cero · Rojo: negativo</p>
           {showLockedNotice && (
             <div className="mt-2">
               <PremiumGate message="Con Premium tienes acceso a todo tu historial" onOpenPremiumScreen={onOpenPremiumScreen} />

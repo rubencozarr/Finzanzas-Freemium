@@ -161,7 +161,7 @@ export function GuidedTour({ step, stepIndex, totalSteps, onNext, onPrev, onSkip
         {arrowStyle && <div className="absolute w-3 h-3 bg-white rotate-45" style={arrowStyle} />}
         <p className="text-sm text-slate-700 mb-4">{step.text}</p>
         <div className="flex items-center justify-between gap-3">
-          <button onClick={onSkip} className="text-xs text-stone-400 shrink-0">
+          <button onClick={onSkip} className="text-xs text-stone-500 shrink-0">
             Omitir tutorial
           </button>
           <div className="flex items-center gap-2 shrink-0">

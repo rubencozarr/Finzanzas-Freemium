@@ -72,7 +72,7 @@ export function ResolveOrphansModal({
       <div className="bg-white rounded-t-2xl w-full max-w-md p-4 max-h-[85dvh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-3">
           <p className="font-serif text-base">Reasignar movimientos</p>
-          <button onClick={onClose} className="text-stone-400">
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] -m-3 flex items-center justify-center text-stone-500" aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
@@ -95,7 +95,7 @@ export function ResolveOrphansModal({
                       <div key={g.key} className="border border-stone-100 rounded-lg p-3 bg-white">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium">
-                            "{g.oldName}" <span className="text-stone-400 font-normal">({g.fixed ? "fijo" : "variable"})</span>
+                            "{g.oldName}" <span className="text-stone-500 font-normal">({g.fixed ? "fijo" : "variable"})</span>
                           </span>
                           <span className="font-mono text-xs text-stone-500">
                             {g.count} mov. · {fmt(g.totalAmount)}
@@ -104,7 +104,7 @@ export function ResolveOrphansModal({
                         <p className="text-xs text-stone-500 mb-2">Reasignar todos a:</p>
                         <div className="flex flex-wrap gap-1.5 mb-2">
                           {pool.length === 0 && (
-                            <span className="text-xs text-stone-400">No hay categorías {g.fixed ? "fijas" : "variables"} creadas.</span>
+                            <span className="text-xs text-stone-500">No hay categorías {g.fixed ? "fijas" : "variables"} creadas.</span>
                           )}
                           {pool.map((c) => (
                             <Chip
@@ -145,7 +145,7 @@ export function ResolveOrphansModal({
                       <div key={g.key} className="border border-stone-100 rounded-lg p-3 bg-white">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium">
-                            "{g.oldSubName}" <span className="text-stone-400 font-normal">({g.categoryName})</span>
+                            "{g.oldSubName}" <span className="text-stone-500 font-normal">({g.categoryName})</span>
                           </span>
                           <span className="font-mono text-xs text-stone-500">
                             {g.count} mov. · {fmt(g.totalAmount)}
@@ -154,7 +154,7 @@ export function ResolveOrphansModal({
                         <p className="text-xs text-stone-500 mb-2">Reasignar todos a:</p>
                         <div className="flex flex-wrap gap-1.5 mb-2">
                           {pool.length === 0 && (
-                            <span className="text-xs text-stone-400">"{g.categoryName}" no tiene subcategorías creadas.</span>
+                            <span className="text-xs text-stone-500">"{g.categoryName}" no tiene subcategorías creadas.</span>
                           )}
                           {pool.map((sc) => (
                             <Chip

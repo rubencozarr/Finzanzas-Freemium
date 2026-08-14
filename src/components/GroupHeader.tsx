@@ -6,7 +6,7 @@ export type GroupTone = "fixed" | "variable" | "ahorro" | "inversion" | "fondos"
 export const GROUP_BADGE: Record<GroupTone, string> = {
   fixed: "bg-slate-700 text-white",
   variable: "bg-rose-600 text-white",
-  ahorro: "bg-amber-600 text-white",
+  ahorro: "bg-amber-700 text-white",
   inversion: "bg-indigo-600 text-white",
   fondos: "bg-teal-700 text-white",
 };
@@ -31,7 +31,7 @@ export function GroupHeader({ title, total, tone, extra, expanded, onToggle, int
       </span>
       <span className="font-mono text-sm">
         {fmt(total)}
-        {extra ? <span className="text-stone-400"> · {extra}</span> : ""}
+        {extra ? <span className="text-stone-500"> · {extra}</span> : ""}
       </span>
     </div>
   );

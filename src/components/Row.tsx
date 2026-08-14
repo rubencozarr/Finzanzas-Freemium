@@ -22,10 +22,10 @@ export function Row({ label, value, bold, tone, muted, pctText }: RowProps) {
   const toneColor = tone ? TONE_COLOR[tone] : "";
   return (
     <div className="flex justify-between">
-      <span className={`${bold ? "font-medium" : muted ? "text-stone-400" : "text-stone-500"} ${toneColor}`}>{label}</span>
-      <span className={`font-mono text-right ${bold ? "font-medium" : ""} ${tone ? toneColor : muted ? "text-stone-400" : ""}`}>
+      <span className={`${bold ? "font-medium" : muted ? "text-stone-500" : "text-stone-500"} ${toneColor}`}>{label}</span>
+      <span className={`font-mono text-right ${bold ? "font-medium" : ""} ${tone ? toneColor : muted ? "text-stone-500" : ""}`}>
         {fmt(value)}
-        {pctText ? <span className="text-stone-400"> · {pctText}</span> : ""}
+        {pctText ? <span className="text-stone-500"> · {pctText}</span> : ""}
       </span>
     </div>
   );

@@ -58,7 +58,7 @@ export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOvervie
             </ResponsiveContainer>
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[8px] text-stone-400 leading-tight">Total</span>
+            <span className="text-[8px] text-stone-500 leading-tight">Total</span>
             <span className="font-mono text-[11px] font-semibold text-slate-700 leading-tight">{fmt(total)}</span>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function CategoryOverviewDonut({ data, title, ingresos }: CategoryOvervie
                     {fmt(d.value)} · {pctGasto}%
                   </span>
                 </div>
-                {pctIng && d.name !== "Uso de ahorro" && <p className="text-[10px] text-stone-400 ml-5 -mt-0.5">{pctIng}% de tus ingresos</p>}
+                {pctIng && d.name !== "Uso de ahorro" && <p className="text-[10px] text-stone-500 ml-5 -mt-0.5">{pctIng}% de tus ingresos</p>}
               </div>
             );
           })}

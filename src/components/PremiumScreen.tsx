@@ -122,7 +122,11 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckou
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
       >
         <h1 className="font-serif text-xl tracking-tight">Premium</h1>
-        <button onClick={onClose} className="text-stone-300 hover:text-white">
+        <button
+          onClick={onClose}
+          className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-stone-300 hover:text-white"
+          aria-label="Cerrar"
+        >
           <X size={20} />
         </button>
       </header>
@@ -159,7 +163,7 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckou
             </button>
           </div>
           <div className="relative border-2 border-amber-500 rounded-lg p-3 bg-amber-50 flex flex-col">
-            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap">
+            <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-900 text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap">
               Más popular · Ahorra 16%
             </span>
             <p className="text-sm font-medium text-slate-800 mt-1">Anual</p>
@@ -168,18 +172,18 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckou
             <button
               onClick={startCheckout}
               disabled={!userId}
-              className="mt-auto w-full bg-amber-500 text-white rounded-lg py-2 text-xs font-medium"
+              className="mt-auto w-full bg-amber-500 text-slate-900 rounded-lg py-2 text-xs font-medium"
             >
               Empieza a ver claro
             </button>
           </div>
         </div>
-        <p className="text-xs text-stone-400 text-center mb-6">Cancela cuando quieras. Tus datos siempre son tuyos.</p>
+        <p className="text-xs text-stone-500 text-center mb-6">Cancela cuando quieras. Tus datos siempre son tuyos.</p>
 
         <div className="bg-white rounded-lg border border-stone-100 overflow-hidden mb-5">
           <button onClick={() => setShowTech((s) => !s)} className="w-full text-left px-3 py-3 flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-slate-800">Ver todo lo que incluye Premium</span>
-            {showTech ? <ChevronUp size={16} className="text-stone-400 shrink-0" /> : <ChevronDown size={16} className="text-stone-400 shrink-0" />}
+            {showTech ? <ChevronUp size={16} className="text-stone-500 shrink-0" /> : <ChevronDown size={16} className="text-stone-500 shrink-0" />}
           </button>
           {showTech && (
             <div className="px-3 pb-3 space-y-3">
@@ -208,9 +212,9 @@ export function PremiumScreen({ isPremium, userId, userEmail, onClose, onCheckou
                 <button onClick={() => toggleFaq(i)} className="w-full text-left px-3 py-3 flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-slate-800">{item.question}</span>
                   {expanded ? (
-                    <ChevronUp size={16} className="text-stone-400 shrink-0" />
+                    <ChevronUp size={16} className="text-stone-500 shrink-0" />
                   ) : (
-                    <ChevronDown size={16} className="text-stone-400 shrink-0" />
+                    <ChevronDown size={16} className="text-stone-500 shrink-0" />
                   )}
                 </button>
                 {expanded && <p className="text-sm text-stone-600 px-3 pb-3 -mt-1">{item.answer}</p>}

@@ -60,7 +60,11 @@ function FundLockBadge({ lockedUntil }: { lockedUntil: string }) {
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex shrink-0">
-      <button onClick={() => setOpen((o) => !o)} className="text-amber-500 hover:text-amber-600">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-amber-500 hover:text-amber-600"
+        aria-label="Más información"
+      >
         <Crown size={13} />
       </button>
       {open && (
@@ -80,7 +84,11 @@ function ConsolidadoInfoBadge() {
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex shrink-0">
-      <button onClick={() => setOpen((o) => !o)} className="text-stone-400 hover:text-stone-200">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-stone-500 hover:text-stone-200"
+        aria-label="Qué es el consolidado"
+      >
         <Info size={11} />
       </button>
       {open && (
@@ -119,6 +127,7 @@ function FundIconPicker({ value, onChange, isPremium }: { value: string; onChang
               className={`w-full min-h-[44px] flex items-center justify-center rounded-lg border ${
                 selected ? "bg-teal-50 border-teal-400 text-teal-700" : locked ? "border-stone-200 text-stone-300" : "border-stone-200 text-stone-700"
               }`}
+              aria-label={`Icono ${icon}${locked ? " (Premium)" : ""}`}
             >
               <Icon size={20} />
             </button>
@@ -283,33 +292,33 @@ export function FondosTab({
       <div className={`bg-slate-800 text-stone-50 rounded-lg px-4 py-3 mb-5 ${isHistorical ? "border-2 border-dashed border-slate-500" : ""}`}>
         <p className="text-xs text-stone-300">Patrimonio total{isHistorical ? ` a cierre de ${mesLabel}` : ""}</p>
         <p className="font-mono text-2xl mt-0.5">{fmt(patrimonioTotal)}</p>
-        <p className="text-xs text-stone-400 mt-1">Ahorro e inversión son cosas distintas: el ahorro no arriesga valor, la inversión sí.</p>
+        <p className="text-xs text-stone-500 mt-1">Ahorro e inversión son cosas distintas: el ahorro no arriesga valor, la inversión sí.</p>
         <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-600">
           <div>
-            <p className="text-xs text-stone-400">Ahorro (libre + fondos)</p>
+            <p className="text-xs text-stone-500">Ahorro (libre + fondos)</p>
             <p className="font-mono text-lg text-teal-400">{fmt(totalAhorro)}</p>
             <div className="text-[11px] mt-2 space-y-1.5">
               <div>
-                <p className="text-stone-400 flex items-center gap-1">
+                <p className="text-stone-500 flex items-center gap-1">
                   Consolidado
                   <ConsolidadoInfoBadge />
                 </p>
                 <p className="font-mono text-stone-50 text-xs">{fmt(consolidado)}</p>
               </div>
               <div>
-                <p className="text-stone-400">{enCursoLabel}</p>
+                <p className="text-stone-500">{enCursoLabel}</p>
                 <p className="font-mono text-stone-50 text-xs">{fmt(enCurso)}</p>
               </div>
               <div>
-                <p className="text-stone-400">Fondos</p>
+                <p className="text-stone-500">Fondos</p>
                 <p className="font-mono text-stone-50 text-xs">{fmt(totalFondosAtDate)}</p>
               </div>
             </div>
           </div>
           <div>
-            <p className="text-xs text-stone-400">Inversión hasta {mesLabelSiempre}</p>
+            <p className="text-xs text-stone-500">Inversión hasta {mesLabelSiempre}</p>
             <p className="font-mono text-lg text-indigo-400">{fmt(totalInvertidoAtDate)}</p>
-            <p className="text-[11px] text-stone-400 mt-1">Sujeta a que suba o baje de valor</p>
+            <p className="text-[11px] text-stone-500 mt-1">Sujeta a que suba o baje de valor</p>
           </div>
         </div>
       </div>
@@ -343,7 +352,8 @@ export function FondosTab({
                 setCreatingFund(false);
                 setAddFundError(null);
               }}
-              className="bg-slate-800 text-white rounded-lg px-3 text-sm"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-slate-800 text-white rounded-lg px-3 text-sm"
+              aria-label="Añadir fondo"
             >
               <Plus size={16} />
             </button>
@@ -356,7 +366,8 @@ export function FondosTab({
                   setCreatingFund(false);
                   setAddFundError(null);
                 }}
-                className="text-stone-400 px-1"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500"
+                aria-label="Cancelar"
               >
                 <X size={18} />
               </button>
@@ -376,7 +387,7 @@ export function FondosTab({
                 placeholder="Saldo inicial (€, opcional)"
                 className="w-full border border-stone-200 rounded-lg px-3 py-2 text-base font-mono bg-white mb-1.5"
               />
-              <p className="text-xs text-stone-400 mb-3">
+              <p className="text-xs text-stone-500 mb-3">
                 Introduce lo que ya tenías ahorrado antes de empezar. Este dinero forma parte del saldo de tu fondo, pero no
                 cuenta como ingreso ni aparece en tus gráficos: es tu punto de partida.
               </p>
@@ -390,7 +401,7 @@ export function FondosTab({
       )}
       {showActiveToggle && (
         <div className="mb-3">
-          <p className="text-xs text-stone-400">
+          <p className="text-xs text-stone-500">
             Elige tus {FREE_MAX_FUNDS} fondos activos para aportaciones. Una vez hagas la primera aportación del mes, la
             selección se mantendrá hasta el mes siguiente.
           </p>
@@ -417,7 +428,7 @@ export function FondosTab({
       )}
       {(!showFundsCollapse || fundsExpanded) && (
       <div className="space-y-3 mb-2">
-        {funds.length === 0 && <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
+        {funds.length === 0 && <p className="text-stone-500 text-sm text-center py-6">Todavía no tienes fondos creados.</p>}
         {fundsAtDate.map((f, i) => {
           const fundLocked = showActiveToggle && f.isActive && fundContributedThisMonth(f.id);
           return (
@@ -449,12 +460,14 @@ export function FondosTab({
                       setRenameFundError(null);
                     }}
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center text-teal-700"
+                    aria-label="Confirmar"
                   >
                     <Check size={16} />
                   </button>
                   <button
                     onClick={() => setEditingFundId(null)}
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-400"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500"
+                    aria-label="Cancelar"
                   >
                     <X size={16} />
                   </button>
@@ -471,7 +484,7 @@ export function FondosTab({
                   placeholder="Saldo inicial (€, opcional)"
                   className="w-full border border-stone-200 rounded-md px-2 py-1 text-base font-mono mb-1.5"
                 />
-                <p className="text-xs text-stone-400 mb-1.5">
+                <p className="text-xs text-stone-500 mb-1.5">
                   Introduce lo que ya tenías ahorrado antes de empezar. Este dinero forma parte del saldo de tu fondo, pero no
                   cuenta como ingreso ni aparece en tus gráficos: es tu punto de partida.
                 </p>
@@ -494,14 +507,16 @@ export function FondosTab({
                       <button
                         onClick={() => updateFundOrder(f.id, -1)}
                         disabled={i === 0}
-                        className={`min-w-[44px] min-h-[44px] -m-1 flex items-center justify-center ${i === 0 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
+                        className={`min-w-[44px] min-h-[44px] -m-1 flex items-center justify-center ${i === 0 ? "text-stone-200" : "text-stone-500 hover:text-slate-700"}`}
+                        aria-label={`Subir ${f.name}`}
                       >
                         <ChevronUp size={18} />
                       </button>
                       <button
                         onClick={() => updateFundOrder(f.id, 1)}
                         disabled={i === fundsAtDate.length - 1}
-                        className={`min-w-[44px] min-h-[44px] -m-1 flex items-center justify-center ${i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-400 hover:text-slate-700"}`}
+                        className={`min-w-[44px] min-h-[44px] -m-1 flex items-center justify-center ${i === fundsAtDate.length - 1 ? "text-stone-200" : "text-stone-500 hover:text-slate-700"}`}
+                        aria-label={`Bajar ${f.name}`}
                       >
                         <ChevronDown size={18} />
                       </button>
@@ -521,7 +536,7 @@ export function FondosTab({
                     ? "bg-teal-50 text-teal-700 border-teal-200"
                     : activeCount >= FREE_MAX_FUNDS
                       ? "text-stone-300 border-stone-100"
-                      : "text-stone-400 border-stone-200"
+                      : "text-stone-500 border-stone-200"
                 } ${fundLocked ? "opacity-50" : ""}`}
               >
                 {f.isActive ? "Fondo activo ✓" : "Marcar como activo"}
@@ -554,12 +569,14 @@ export function FondosTab({
                       setEditingGoalFundId(null);
                     }}
                     className="min-w-[44px] min-h-[44px] flex items-center justify-center text-emerald-700 shrink-0"
+                    aria-label="Confirmar meta"
                   >
                     <Check size={16} />
                   </button>
                   <button
                     onClick={() => setEditingGoalFundId(null)}
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-400 shrink-0"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500 shrink-0"
+                    aria-label="Cancelar"
                   >
                     <X size={16} />
                   </button>
@@ -570,6 +587,7 @@ export function FondosTab({
                         setEditingGoalFundId(null);
                       }}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-300 hover:text-rose-600 shrink-0"
+                      aria-label="Quitar meta"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -581,7 +599,7 @@ export function FondosTab({
                     setEditingGoalFundId(f.id);
                     setGoalAmountInput("");
                   }}
-                  className="min-h-[44px] flex items-center gap-1 text-xs text-stone-400 hover:text-emerald-700 hover:border-emerald-300 border border-dashed border-stone-200 rounded-md px-2 py-1 mb-2"
+                  className="min-h-[44px] flex items-center gap-1 text-xs text-stone-500 hover:text-emerald-700 hover:border-emerald-300 border border-dashed border-stone-200 rounded-md px-2 py-1 mb-2"
                 >
                   <Target size={12} />
                   Poner meta de ahorro
@@ -607,6 +625,7 @@ export function FondosTab({
                               setGoalAmountInput(String(f.goalAmount));
                             }}
                             className="text-stone-300 hover:text-slate-700"
+                            aria-label="Editar meta"
                           >
                             <Pencil size={11} />
                           </button>
@@ -627,7 +646,7 @@ export function FondosTab({
                         </div>
                       </div>
                       {!reached && (
-                        <p className="text-[11px] text-stone-400 mt-1">
+                        <p className="text-[11px] text-stone-500 mt-1">
                           A este ritmo lo alcanzas en {monthsToGoal != null ? `${monthsToGoal} mes${monthsToGoal === 1 ? "" : "es"}` : "—"}
                         </p>
                       )}
@@ -656,7 +675,7 @@ export function FondosTab({
                     <div className="relative">
                       <button
                         onClick={() => setOpenMenuFundId((id) => (id === f.id ? null : f.id))}
-                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-400 hover:text-slate-700"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500 hover:text-slate-700"
                         aria-label="Más opciones"
                       >
                         <MoreVertical size={18} />
@@ -699,7 +718,7 @@ export function FondosTab({
                       )}
                     </div>
                   </div>
-                  {!canContribute && <p className="text-[11px] text-stone-400 mt-1.5">Selecciona este fondo como activo para aportar</p>}
+                  {!canContribute && <p className="text-[11px] text-stone-500 mt-1.5">Selecciona este fondo como activo para aportar</p>}
                 </>
               );
             })()}
@@ -708,12 +727,12 @@ export function FondosTab({
         })}
       </div>
       )}
-      <p className="text-xs text-stone-400 mb-6">Si un gasto lo pagas con dinero de un fondo, márcalo como "pagado con ahorro" al crear ese gasto.</p>
+      <p className="text-xs text-stone-500 mb-6">Si un gasto lo pagas con dinero de un fondo, márcalo como "pagado con ahorro" al crear ese gasto.</p>
 
       <p className="text-sm font-semibold mb-2">Inversión hasta {mesLabelSiempre}</p>
       {isPremium ? (
         <>
-          <p className="text-xs text-stone-400 mb-3">
+          <p className="text-xs text-stone-500 mb-3">
             Gestiona tus activos en{" "}
             <button onClick={onGoToAjustes} className="underline text-indigo-700">
               Ajustes → Inversión
@@ -763,7 +782,7 @@ export function FondosTab({
           {(!showAssetsCollapse || assetsExpanded) && (
           <div className="space-y-3">
             {assets.length === 0 && (
-              <p className="text-stone-400 text-sm text-center py-6">Todavía no tienes activos. Configúralos en Ajustes → Inversión.</p>
+              <p className="text-stone-500 text-sm text-center py-6">Todavía no tienes activos. Configúralos en Ajustes → Inversión.</p>
             )}
             {assetsAtDate.map((a) => {
               const pct = totalInvertidoAtDate ? (a.invertido / totalInvertidoAtDate) * 100 : 0;

@@ -42,7 +42,7 @@ export function ChartCard({ title, explanation, height, children }: ChartCardPro
           {children(resetKey === 0)}
         </div>
       </div>
-      <p className="text-xs text-stone-400 mt-1.5">{explanation}</p>
+      <p className="text-xs text-stone-500 mt-1.5">{explanation}</p>
     </div>
   );
 }

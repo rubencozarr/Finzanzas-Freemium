@@ -15,7 +15,7 @@ function complianceCell(key: string, noData: boolean, over: boolean) {
 export function BudgetComplianceChart({ data, variableBudget, year, compareYear, compareData }: BudgetComplianceChartProps) {
   if (!(variableBudget > 0)) {
     return (
-      <p className="text-xs text-stone-400 bg-white rounded-lg border border-stone-100 p-3">
+      <p className="text-xs text-stone-500 bg-white rounded-lg border border-stone-100 p-3">
         Configura un presupuesto total de gasto variable en Ajustes → Categorías para activar este gráfico.
       </p>
     );
@@ -28,7 +28,7 @@ export function BudgetComplianceChart({ data, variableBudget, year, compareYear,
       {comparing ? (
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] text-stone-400 w-8 shrink-0 text-right">{compareYear}</span>
+            <span className="text-[10px] text-stone-500 w-8 shrink-0 text-right">{compareYear}</span>
             <div className="grid grid-cols-12 gap-1 flex-1">
               {compareData!.map((m, i) =>
                 complianceCell(`cmp-${i}`, m.compareIngresos === 0 && m.compareVariableOrdinario === 0, m.compareVariableOrdinario > variableBudget),
@@ -45,7 +45,7 @@ export function BudgetComplianceChart({ data, variableBudget, year, compareYear,
             <span className="w-8 shrink-0" />
             <div className="grid grid-cols-12 gap-1 flex-1">
               {data.map((m) => (
-                <span key={m.mes} className="text-[9px] text-stone-400 text-center">
+                <span key={m.mes} className="text-[9px] text-stone-500 text-center">
                   {m.mes}
                 </span>
               ))}
@@ -60,7 +60,7 @@ export function BudgetComplianceChart({ data, variableBudget, year, compareYear,
             return (
               <div key={m.mes} className="flex flex-col items-center gap-1">
                 <div className={`w-full aspect-square rounded ${noData ? "bg-stone-100" : over ? "bg-rose-500" : "bg-emerald-500"}`} />
-                <span className="text-[9px] text-stone-400">{m.mes}</span>
+                <span className="text-[9px] text-stone-500">{m.mes}</span>
               </div>
             );
           })}

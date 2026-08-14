@@ -111,11 +111,19 @@ export function AnualTab({
           ella, en vez de un hueco del contenedor que ninguna caja sticky puede cubrir. */}
       <div className="sticky top-0 z-[5] bg-stone-50 pt-4 pb-2 mb-1">
         <div className="flex items-center justify-between">
-          <button onClick={() => changeYear(-1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
+          <button
+            onClick={() => changeYear(-1)}
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-200 text-slate-600"
+            aria-label="Año anterior"
+          >
             <ChevronLeft size={18} />
           </button>
           <span className="font-serif text-base">{year}</span>
-          <button onClick={() => changeYear(1)} className="p-1.5 rounded-full hover:bg-stone-200 text-slate-600">
+          <button
+            onClick={() => changeYear(1)}
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-200 text-slate-600"
+            aria-label="Año siguiente"
+          >
             <ChevronRight size={18} />
           </button>
         </div>
@@ -134,12 +142,12 @@ export function AnualTab({
         <StatCard label="Invertido este año" value={totals.inversion} tone="indigo" />
         <StatCard label="Ahorro utilizado" value={totals.gastosFinanciados} tone="amber" />
       </div>
-      <p className="text-xs text-stone-400 -mt-2 mb-4">
+      <p className="text-xs text-stone-500 -mt-2 mb-4">
         Estos datos son solo de {year}, comparables entre años. Tu posición patrimonial acumulada (cuánto tienes en total) la ves en Fondos e
         inversión.
       </p>
       {!isPremium && (
-        <p className="text-xs text-stone-400 text-center mb-4">
+        <p className="text-xs text-stone-500 text-center mb-4">
           El resumen incluye todos los meses del año, incluidos los anteriores a los últimos 6 meses.
         </p>
       )}
