@@ -90,11 +90,27 @@ export default defineConfig({
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const g = globalThis as any;
               const cache = await g.caches.open('pages');
+              // AbortController + timeout: sin esto, un fetch que se queda colgado (p. ej. un cambio de
+              // red a mitad de petición) deja este await esperando PARA SIEMPRE — como esta regla
+              // intercepta la propia navegación, el navegador no tiene nada que pintar hasta que resuelva,
+              // así que una pestaña con un Service Worker ya activo de una visita anterior podía quedarse
+              // en blanco sin ningún error visible (causa real de un caso reportado de "NO_FCP" en
+              // Lighthouse). Solo reproduce con un SW ya registrado — por eso una visita nueva o el TWA
+              // (que arranca sin SW previo) no lo sufrían: sin SW de por medio, la navegación usa
+              // directamente los timeouts/reintentos normales del navegador, que este handler a medida se
+              // saltaba. 3s, igual que el resto de la lógica de este handler ya documentaba (pero nunca
+              // llegó a implementar).
+              const controller = new g.AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
               try {
-                const networkResponse = await fetch(request);
-                cache.put(request, networkResponse.clone());
+                const networkResponse = await fetch(request, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                // Sin await/catch aquí, este put() rechazado (p. ej. respuesta no-200) quedaba como una
+                // promesa sin gestionar dentro del Service Worker.
+                cache.put(request, networkResponse.clone()).catch(() => {});
                 return networkResponse;
               } catch {
+                clearTimeout(timeoutId);
                 const cached = await cache.match(request);
                 if (cached) return cached;
                 // ignoreSearch: true porque Workbox precachea offline.html bajo una URL con

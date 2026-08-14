@@ -43,6 +43,7 @@ import { Toast } from "./components/Toast";
 import { MilestoneNotice } from "./components/MilestoneNotice";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { LoadingScreen } from "./components/LoadingScreen";
+import { ChunkErrorBoundary } from "./components/ChunkErrorBoundary";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { LoginScreen } from "./components/LoginScreen";
 import { LandingPage } from "./components/LandingPage";
@@ -877,9 +878,13 @@ function App() {
   }
 
   return (
+    // ChunkErrorBoundary: si un import() de los componentes lazy de más abajo falla (pestaña abierta
+    // desde antes de un despliegue, chunk con ese hash ya no existe), esto evita que tumbe toda la app
+    // sin explicación — ver el comentario del propio componente.
     // Suspense: los 5 tabs y los modales/tour de más abajo son todos React.lazy (ver el porqué arriba,
     // junto a esos const). El fallback solo se ve una vez, la primera vez que alguien inicia sesión en
     // esta pestaña — a partir de ahí los chunks ya están en caché del navegador.
+    <ChunkErrorBoundary>
     <Suspense fallback={<LoadingScreen />}>
       {/* h-dvh (no min-h-screen): min-h-screen es solo un SUELO, no un techo — con contenido más alto
           que la pantalla, este contenedor flex crecía más allá del viewport y "arrastraba" a <main> con
@@ -1219,6 +1224,7 @@ function App() {
       {needRefresh && <UpdateBanner onUpdate={() => updateServiceWorker()} onDismiss={() => setNeedRefresh(false)} />}
       </div>
     </Suspense>
+    </ChunkErrorBoundary>
   );
 }
 
