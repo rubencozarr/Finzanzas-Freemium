@@ -18,10 +18,30 @@ import {
 } from "recharts";
 import { ChartCard } from "./ChartCard";
 import { BudgetComplianceChart } from "./BudgetComplianceChart";
-import { fmt } from "../lib/format";
+import { fmt, round2 } from "../lib/format";
 import type { AssetYearBreakdown, YearComparisonPoint, YearMonthData } from "../lib/calculations";
 
 const ASSET_COLORS = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#4f46e5"];
+// Mismo rojo que MonthSwitcher usa para el punto de ahorro real negativo (bg-rose-500) — se reutiliza
+// aquí para que "mes en negativo" se lea con el mismo color en toda la app.
+const NEGATIVE_COLOR = "#f43f5e";
+
+// Recharts no soporta un stroke distinto por tramo en <Line>, así que el punto se colorea con un dot
+// personalizado y el trazo con un <linearGradient> que lleva un stop por mes (mismo color que su punto):
+// el gradiente es sobre la bounding box del propio trazo (primer punto = offset 0, último = offset 1),
+// y como los meses están igualmente espaciados en el eje categórico, cada stop cae justo sobre su punto.
+function TasaAhorroDot(props: { cx?: number; cy?: number; index?: number; value?: number }) {
+  const { cx, cy, index, value } = props;
+  if (cx == null || cy == null) return <g key={`dot-${index}`} />;
+  const negative = round2(value ?? 0) < 0;
+  return <circle key={`dot-${index}`} cx={cx} cy={cy} r={2} fill={negative ? NEGATIVE_COLOR : "#0f766e"} />;
+}
+
+function tasaAhorroGradientStops(values: number[]) {
+  const n = values.length;
+  if (n <= 1) return [{ offset: 0, color: round2(values[0] ?? 0) < 0 ? NEGATIVE_COLOR : "#0f766e" }];
+  return values.map((v, i) => ({ offset: i / (n - 1), color: round2(v) < 0 ? NEGATIVE_COLOR : "#0f766e" }));
+}
 
 interface AssetDonutDatum {
   name: string;
@@ -148,6 +168,13 @@ export function ChartsSection({
                   </LineChart>
                 ) : (
                   <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="tasaAhorroStroke" x1="0" y1="0" x2="1" y2="0">
+                        {tasaAhorroGradientStops(data.map((d) => d.tasaAhorro)).map((s) => (
+                          <stop key={s.offset} offset={s.offset} stopColor={s.color} />
+                        ))}
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                     <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} unit="%" />
@@ -156,9 +183,9 @@ export function ChartsSection({
                     <Line
                       type="monotone"
                       dataKey="tasaAhorro"
-                      stroke="#0f766e"
+                      stroke="url(#tasaAhorroStroke)"
                       strokeWidth={2}
-                      dot={{ r: 2 }}
+                      dot={TasaAhorroDot}
                       name="Tasa de ahorro"
                       isAnimationActive={animate}
                     />
