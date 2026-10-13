@@ -44,7 +44,13 @@ const TECH_GROUPS: { title: string; items: string[] }[] = [
   { title: "Categorías", items: ["Categorías ilimitadas", "Subcategorías", "Presupuestos individuales por categoría con avisos"] },
   {
     title: "Análisis",
-    items: ["Vista anual completa con 6 gráficos", "Comparativa entre años", "Análisis de tendencias", "Sparklines de 6 meses"],
+    items: [
+      "Vista anual completa con 6 gráficos",
+      "Comparativa entre años",
+      "Análisis de tendencias",
+      "Sparklines de 6 meses",
+      "Ingresos por fuente en el análisis anual",
+    ],
   },
   { title: "Inversión", items: ["Gestión de activos con porcentajes de reparto", "Distribución real vs objetivo"] },
   {

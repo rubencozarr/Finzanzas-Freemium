@@ -7,6 +7,7 @@ import { PremiumGate } from "../../components/PremiumGate";
 import { YearComparisonCards } from "../../components/YearComparisonCards";
 import {
   buildAssetYearBreakdown,
+  buildIncomeSourceYearBreakdown,
   buildYearComparison,
   yearTotalsThroughMonth,
   type YearMonthData,
@@ -14,7 +15,7 @@ import {
 } from "../../lib/calculations";
 import { MONTHS_FULL } from "../../lib/constants";
 import { fmt } from "../../lib/format";
-import type { Asset, Transaction } from "../../types";
+import type { Asset, IncomeSource, Transaction } from "../../types";
 
 interface AnualTabProps {
   isPremium: boolean;
@@ -24,6 +25,7 @@ interface AnualTabProps {
   totals: YearTotals;
   transactions: Transaction[];
   assets: Asset[];
+  incomeSources: IncomeSource[];
   variableBudget: number;
   compareYear: number | null;
   onCompareYearChange: (year: number | null) => void;
@@ -38,6 +40,7 @@ export function AnualTab({
   totals,
   transactions,
   assets,
+  incomeSources,
   variableBudget,
   compareYear,
   onCompareYearChange,
@@ -73,6 +76,10 @@ export function AnualTab({
   const compareAssetYearBreakdown = useMemo(
     () => (isPremium && compareYear ? buildAssetYearBreakdown(transactions, assets, compareYear) : []),
     [isPremium, compareYear, transactions, assets],
+  );
+  const incomeSourceYearBreakdown = useMemo(
+    () => (isPremium ? buildIncomeSourceYearBreakdown(transactions, incomeSources, year) : []),
+    [isPremium, transactions, incomeSources, year],
   );
 
   const availableYears = useMemo(() => {
@@ -203,6 +210,7 @@ export function AnualTab({
             variableBudget={variableBudget}
             assetBreakdown={assetYearBreakdown}
             totalInversion={totals.inversion}
+            incomeSourceBreakdown={incomeSourceYearBreakdown}
             year={year}
             compareYear={compareYear}
             compareData={comparisonChartData}

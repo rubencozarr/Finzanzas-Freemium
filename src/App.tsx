@@ -851,7 +851,7 @@ function App() {
   // primera vez que alguien pulsa "Exportar Excel" de verdad.
   const onExportExcel = async () => {
     const { exportToExcel } = await import("./lib/exportExcel");
-    await exportToExcel({ transactions, funds: fundsWithBalance, categories });
+    await exportToExcel({ transactions, funds: fundsWithBalance, categories, incomeSources });
   };
 
   const onImport = async (data: unknown) => {
@@ -1073,6 +1073,7 @@ function App() {
             totals={yearStats}
             transactions={transactions}
             assets={assets}
+            incomeSources={incomeSources}
             variableBudget={variableBudget}
             compareYear={compareYear}
             onCompareYearChange={setCompareYear}

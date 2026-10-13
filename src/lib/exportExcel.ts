@@ -1,7 +1,14 @@
-import { computeMonth, resolveCategoryName, resolveFundDestinoName, resolveSubcategoryName, tasaAhorroPct } from "./calculations";
+import {
+  computeMonth,
+  resolveCategoryName,
+  resolveFundDestinoName,
+  resolveIncomeSourceName,
+  resolveSubcategoryName,
+  tasaAhorroPct,
+} from "./calculations";
 import { AHORRO_LIBRE_ID, MONTHS_FULL } from "./constants";
 import { monthKey, todayISO } from "./format";
-import type { Category, FundWithBalance, Transaction, TransactionType } from "../types";
+import type { Category, FundWithBalance, IncomeSource, Transaction, TransactionType } from "../types";
 
 const TYPE_LABELS: Record<TransactionType, string> = {
   ingreso: "Ingreso",
@@ -24,13 +31,14 @@ interface ExportExcelData {
   transactions: Transaction[];
   funds: FundWithBalance[];
   categories: Category[];
+  incomeSources: IncomeSource[];
 }
 
 /** Exporta todos los datos del usuario a un .xlsx con 4 pestañas, generado 100% en el navegador.
  * Los números del resumen mensual reutilizan computeMonth/tasaAhorroPct de calculations.ts (las
  * mismas funciones que usan Mensual y Anual), para que coincidan exactamente con lo que ve el usuario
  * en la app. */
-export async function exportToExcel({ transactions, funds, categories }: ExportExcelData) {
+export async function exportToExcel({ transactions, funds, categories, incomeSources }: ExportExcelData) {
   // exceljs es pesado y solo lo usa quien exporta a Excel (premium): import() dinámico para que Vite lo
   // separe en su propio chunk, en vez de engordar el bundle inicial de todos los usuarios con él.
   const { default: ExcelJS } = await import("exceljs");
@@ -46,6 +54,7 @@ export async function exportToExcel({ transactions, funds, categories }: ExportE
     { header: "Nota", key: "nota", width: 24 },
     { header: "Pagado con", key: "pagadoCon", width: 18 },
     { header: "Fondo destino", key: "fondoDestino", width: 18 },
+    { header: "Fuente", key: "fuente", width: 18 },
   ];
   [...transactions]
     .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1))
@@ -61,6 +70,7 @@ export async function exportToExcel({ transactions, funds, categories }: ExportE
         nota: t.note ?? "",
         pagadoCon: fundedByLabel(t, funds),
         fondoDestino: t.type === "transferencia" ? resolveFundDestinoName(t, funds) : "",
+        fuente: t.type === "ingreso" ? (resolveIncomeSourceName(t, incomeSources) ?? "") : "",
       });
     });
 

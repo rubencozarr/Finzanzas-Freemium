@@ -1102,6 +1102,12 @@ export function buildIncomeBySource(transactions: Transaction[], sources: Income
   return groupIncomeBySource(monthIncome, sources);
 }
 
+/** Igual que buildIncomeBySource pero para un año completo (no acumulado), para el donut de Anual. */
+export function buildIncomeSourceYearBreakdown(transactions: Transaction[], sources: IncomeSource[], year: number): IncomeSourceBreakdown[] {
+  const yearTx = transactions.filter((t) => t.type === "ingreso" && t.date.slice(0, 4) === String(year));
+  return groupIncomeBySource(yearTx, sources);
+}
+
 // ---------------------------------------------------------------------------
 // Fusión de gastos divididos (splitId) para la lista de movimientos
 // ---------------------------------------------------------------------------

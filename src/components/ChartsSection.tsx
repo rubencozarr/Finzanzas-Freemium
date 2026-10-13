@@ -19,7 +19,7 @@ import {
 import { ChartCard } from "./ChartCard";
 import { BudgetComplianceChart } from "./BudgetComplianceChart";
 import { fmt, round2 } from "../lib/format";
-import type { AssetYearBreakdown, YearComparisonPoint, YearMonthData } from "../lib/calculations";
+import type { AssetYearBreakdown, IncomeSourceBreakdown, YearComparisonPoint, YearMonthData } from "../lib/calculations";
 
 const ASSET_COLORS = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#4f46e5"];
 // Mismo rojo que MonthSwitcher usa para el punto de ahorro real negativo (bg-rose-500) — se reutiliza
@@ -89,6 +89,7 @@ interface ChartsSectionProps {
   variableBudget: number;
   assetBreakdown: AssetYearBreakdown[];
   totalInversion: number;
+  incomeSourceBreakdown: IncomeSourceBreakdown[];
   year: number;
   compareYear?: number | null;
   compareData?: YearComparisonPoint[] | null;
@@ -101,6 +102,7 @@ export function ChartsSection({
   variableBudget,
   assetBreakdown,
   totalInversion,
+  incomeSourceBreakdown,
   year,
   compareYear,
   compareData,
@@ -120,6 +122,14 @@ export function ChartsSection({
     name: a.name,
     value: a.total,
     color: colorByAssetName[a.name],
+  }));
+  // Mismo tono (ASSET_COLORS) que el donut de inversión por activo: no se muestran los dos donuts a la
+  // vez en la misma vista (cada uno aparece bajo su propio título más abajo), así que no hay riesgo de
+  // confusión por reutilizar la paleta.
+  const incomeSourceDonutData: AssetDonutDatum[] = incomeSourceBreakdown.map((s, i) => ({
+    name: s.name,
+    value: s.total,
+    color: ASSET_COLORS[i % ASSET_COLORS.length],
   }));
 
   return (
@@ -422,6 +432,17 @@ export function ChartsSection({
                 {(animate) => <AssetDonut data={assetDonutData} total={totalInversion} animate={animate} />}
               </ChartCard>
             )
+          )}
+
+          {/* Solo año sin comparar, por ahora: igual que el resto de donuts, no tiene sentido mostrar
+              dos a la vez con años distintos salvo que se pida explícitamente más adelante. */}
+          {!comparing && incomeSourceDonutData.length > 0 && (
+            <ChartCard
+              title={`Ingresos por fuente en ${year}`}
+              explanation="Cómo se reparte el dinero que has ingresado este año según su origen. Te ayuda a ver de dónde viene tu dinero y si dependes demasiado de una sola fuente."
+            >
+              {(animate) => <AssetDonut data={incomeSourceDonutData} total={incomeSourceBreakdown.reduce((s, i) => s + i.total, 0)} animate={animate} />}
+            </ChartCard>
           )}
         </div>
       )}
