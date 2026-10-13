@@ -18,6 +18,7 @@ import {
   type TrendPoint,
 } from "../../lib/calculations";
 import { fmt } from "../../lib/format";
+import { INCOME_CATS } from "../../lib/constants";
 import type { Asset, Category, FundWithBalance, IncomeSource, Transaction } from "../../types";
 
 interface MensualTabProps {
@@ -77,10 +78,31 @@ export function MensualTab({
     [monthTx, categories, isPremium],
   );
   const mKey = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
-  const incomeBySource = useMemo(() => buildIncomeBySource(monthTx, incomeSources, mKey), [monthTx, incomeSources, mKey]);
+  // Tres subgrupos por el campo que ya distingue fijo/extra en el ingreso (t.category): "Otros ingresos"
+  // es un cajón de respaldo para cualquier valor que no sea exactamente uno de los dos de INCOME_CATS
+  // (no debería pasar con datos creados desde la app, pero así fijos + extra + otros siempre suma
+  // exactamente stats.ingresos sin dejar ningún ingreso del mes fuera de los tres subgrupos). Una misma
+  // fuente puede aparecer repetida en varios subgrupos si se usó tanto en un ingreso fijo como en uno
+  // extra ese mes: cada subgrupo se calcula sobre su propio subconjunto de movimientos, de forma
+  // independiente. El % de cada fuente se calcula sobre stats.ingresos (el total del mes completo), no
+  // sobre el subtotal de su subgrupo — por eso IncomeSourceBreakdownList recibe `total` por separado.
+  const incomeSubgroups = useMemo(() => {
+    const monthIncome = monthTx.filter((t) => t.type === "ingreso");
+    const groups = [
+      { label: "Ingresos fijos", tx: monthIncome.filter((t) => t.category === INCOME_CATS[0]) },
+      { label: "Ingresos extra", tx: monthIncome.filter((t) => t.category === INCOME_CATS[1]) },
+      { label: "Otros ingresos", tx: monthIncome.filter((t) => !(INCOME_CATS as readonly string[]).includes(t.category)) },
+    ];
+    return groups
+      .map((g) => {
+        const sources = buildIncomeBySource(g.tx, incomeSources, mKey);
+        return { label: g.label, total: sources.reduce((s, b) => s + b.total, 0), sources };
+      })
+      .filter((g) => g.total > 0);
+  }, [monthTx, incomeSources, mKey]);
   // Si ningún ingreso del mes tiene fuente asignada (ni viva ni de una ya borrada), el bloque no se
   // renderiza — mostrar "Ingresos" con un único "Sin clasificar" no aportaría nada. Distinto de mirar
-  // incomeBySource directamente: ahí un grupo con id null puede ser una fuente borrada (sí cuenta como
+  // incomeSubgroups directamente: ahí un grupo con id null puede ser una fuente borrada (sí cuenta como
   // clasificado) o el cajón "Sin clasificar" (no cuenta), así que se comprueba sobre los movimientos.
   const hasAnyClassifiedIncome = monthTx.some((t) => t.type === "ingreso" && (t.incomeSourceId || t.incomeSourceName));
   const fundUsage = useMemo(() => {
@@ -148,11 +170,11 @@ export function MensualTab({
         </button>
       </div>
 
+      {hasAnyClassifiedIncome && <IncomeSourceGroup total={stats.ingresos} subgroups={incomeSubgroups} />}
       <CategoryGroup title="Gasto fijo" total={stats.fixedOrdinario} cats={fixedCats} tone="fixed" />
       <CategoryGroup title="Gasto variable" total={stats.variableOrdinario} cats={variableCats} tone="variable" budget={variableBudget} />
       <CategoryGroup title="Inversión" total={stats.inversion} cats={isPremium ? assetCats : []} tone="inversion" hideDetail={!isPremium} />
       <FundUsageGroup total={stats.gastosFinanciados} funds={fundUsage} />
-      {hasAnyClassifiedIncome && <IncomeSourceGroup total={stats.ingresos} sources={incomeBySource} />}
 
       <SparklineTrend data={trend6Meses} isPremium={isPremium} />
     </div>

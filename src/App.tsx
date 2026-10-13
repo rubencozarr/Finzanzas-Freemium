@@ -977,6 +977,7 @@ function App() {
             stats={monthStats}
             funds={fundsWithBalance}
             categories={categories}
+            incomeSources={incomeSources}
             deleteTransaction={deleteTransaction}
             onAdd={() => {
               setFormPreset(null);

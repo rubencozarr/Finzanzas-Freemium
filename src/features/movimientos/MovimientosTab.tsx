@@ -10,13 +10,14 @@ import {
   resolveCategoryName,
   resolveFundDestinoName,
   resolveFundName,
+  resolveIncomeSourceName,
   resolveSubcategoryName,
   type DisplayTransactionItem,
   type MonthStats,
 } from "../../lib/calculations";
 import { AHORRO_LIBRE_ID, TYPE_META } from "../../lib/constants";
 import { fmt, formatDateEs } from "../../lib/format";
-import type { Category, FundWithBalance, Transaction, TransactionType } from "../../types";
+import type { Category, FundWithBalance, IncomeSource, Transaction, TransactionType } from "../../types";
 
 const FILTER_OPTIONS: [TransactionType, string][] = [
   ["ingreso", "Ingresos"],
@@ -65,6 +66,7 @@ interface MovimientosTabProps {
   stats: MonthStats;
   funds: FundWithBalance[];
   categories: Category[];
+  incomeSources: IncomeSource[];
   deleteTransaction: (id: string) => void;
   onAdd: () => void;
   onEdit: (tx: Transaction) => void;
@@ -92,6 +94,7 @@ export function MovimientosTab({
   stats,
   funds,
   categories,
+  incomeSources,
   deleteTransaction,
   onAdd,
   onEdit,
@@ -127,11 +130,12 @@ export function MovimientosTab({
           (!q ||
             (t.category || "").toLowerCase().includes(q) ||
             (t.subcategory || "").toLowerCase().includes(q) ||
-            (t.note || "").toLowerCase().includes(q)),
+            (t.note || "").toLowerCase().includes(q) ||
+            (t.type === "ingreso" && (resolveIncomeSourceName(t, incomeSources) || "").toLowerCase().includes(q))),
       )
       .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1))
       .slice(0, 50);
-  }, [search, filterType, allTransactions, orphanTx]);
+  }, [search, filterType, allTransactions, orphanTx, incomeSources]);
 
   const searching = search.trim().length > 0 || !!filterType;
   const selectedIds = Object.entries(selected)
@@ -182,6 +186,10 @@ export function MovimientosTab({
           ? resolveFundName(t, funds)
           : resolveCategoryName(t, categories);
     const displaySubcategory = resolveSubcategoryName(t, categories);
+    // t.raw siempre existe para un ingreso (nunca lleva splitId, así que mergeSplitDisplay nunca lo hace
+    // pasar por la rama de fusión que omite "raw"): resolveIncomeSourceName necesita incomeSourceId/
+    // incomeSourceName, que no están en DisplayTransactionItem pero sí en el movimiento original.
+    const incomeSourceLabel = t.type === "ingreso" ? resolveIncomeSourceName(t.raw!, incomeSources) : null;
     const orphan = isOrphanGasto(t, categories);
     const orphanSub = !orphan && isOrphanSubcategory(t, categories);
     // Resolución en vivo primero (un fondo renombrado debe mostrar el nombre actual); el snapshot
@@ -199,6 +207,7 @@ export function MovimientosTab({
       <div className="min-w-0 flex-1">
         <p className="text-sm truncate">
           {displayCategory}
+          {incomeSourceLabel ? ` · ${incomeSourceLabel}` : ""}
           {orphan && <span className="text-amber-700"> · sin categoría válida</span>}
           {displaySubcategory ? ` · ${displaySubcategory}` : ""}
           {orphanSub && <span className="text-amber-700"> (sin subcategoría válida)</span>}

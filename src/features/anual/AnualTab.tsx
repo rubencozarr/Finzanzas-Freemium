@@ -13,7 +13,7 @@ import {
   type YearMonthData,
   type YearTotals,
 } from "../../lib/calculations";
-import { MONTHS_FULL } from "../../lib/constants";
+import { INCOME_CATS, MONTHS_FULL } from "../../lib/constants";
 import { fmt } from "../../lib/format";
 import type { Asset, IncomeSource, Transaction } from "../../types";
 
@@ -81,6 +81,25 @@ export function AnualTab({
     () => (isPremium ? buildIncomeSourceYearBreakdown(transactions, incomeSources, year) : []),
     [isPremium, transactions, incomeSources, year],
   );
+  // Mismos tres subgrupos (fijos/extra/otros) que MensualTab, construidos sobre `transactions` del año
+  // en vez de monthTx del mes: mismo criterio (t.category, el campo que ya distingue fijo/extra), mismo
+  // cajón de respaldo "Otros ingresos" para cualquier valor que no sea uno de los dos de INCOME_CATS, y
+  // mismo filtrado de subgrupos en 0. buildIncomeSourceYearBreakdown ya filtra por año internamente.
+  const incomeSourceSubgroups = useMemo(() => {
+    if (!isPremium) return [];
+    const yearIncome = transactions.filter((t) => t.type === "ingreso" && t.date.slice(0, 4) === String(year));
+    const groups = [
+      { label: "Ingresos fijos", tx: yearIncome.filter((t) => t.category === INCOME_CATS[0]) },
+      { label: "Ingresos extra", tx: yearIncome.filter((t) => t.category === INCOME_CATS[1]) },
+      { label: "Otros ingresos", tx: yearIncome.filter((t) => !(INCOME_CATS as readonly string[]).includes(t.category)) },
+    ];
+    return groups
+      .map((g) => {
+        const sources = buildIncomeSourceYearBreakdown(g.tx, incomeSources, year);
+        return { label: g.label, total: sources.reduce((s, b) => s + b.total, 0), sources };
+      })
+      .filter((g) => g.total > 0);
+  }, [isPremium, transactions, incomeSources, year]);
 
   const availableYears = useMemo(() => {
     const years = new Set(transactions.map((t) => Number(t.date.slice(0, 4))));
@@ -211,6 +230,8 @@ export function AnualTab({
             assetBreakdown={assetYearBreakdown}
             totalInversion={totals.inversion}
             incomeSourceBreakdown={incomeSourceYearBreakdown}
+            incomeSourceSubgroups={incomeSourceSubgroups}
+            totalIngresos={totals.ingresos}
             year={year}
             compareYear={compareYear}
             compareData={comparisonChartData}

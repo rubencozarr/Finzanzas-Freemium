@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { ChartCard } from "./ChartCard";
 import { BudgetComplianceChart } from "./BudgetComplianceChart";
+import { IncomeSourceBreakdownList, type IncomeSourceSubgroup } from "./IncomeSourceBreakdownList";
 import { fmt, round2 } from "../lib/format";
 import type { AssetYearBreakdown, IncomeSourceBreakdown, YearComparisonPoint, YearMonthData } from "../lib/calculations";
 
@@ -90,6 +91,8 @@ interface ChartsSectionProps {
   assetBreakdown: AssetYearBreakdown[];
   totalInversion: number;
   incomeSourceBreakdown: IncomeSourceBreakdown[];
+  incomeSourceSubgroups: IncomeSourceSubgroup[];
+  totalIngresos: number;
   year: number;
   compareYear?: number | null;
   compareData?: YearComparisonPoint[] | null;
@@ -103,6 +106,8 @@ export function ChartsSection({
   assetBreakdown,
   totalInversion,
   incomeSourceBreakdown,
+  incomeSourceSubgroups,
+  totalIngresos,
   year,
   compareYear,
   compareData,
@@ -142,6 +147,32 @@ export function ChartsSection({
       </button>
       {expanded && (
         <div>
+          {/* Primer gráfico de la sección: "de dónde viene tu dinero" es la pregunta más directa antes
+              de entrar en tendencias/gastos. Al comparar dos años no tiene sentido (las fuentes no se
+              reparten "por año" de forma comparable como sí lo hacen barras/líneas mes a mes), así que
+              se sustituye por un aviso breve en vez de desaparecer sin explicación. */}
+          {comparing ? (
+            <p className="text-xs text-stone-500 bg-stone-100 rounded-lg px-3 py-2.5 mb-4">
+              El desglose de ingresos por fuente no está disponible comparando dos años. Quita la comparación para verlo.
+            </p>
+          ) : (
+            incomeSourceBreakdown.length > 0 && (
+              <ChartCard
+                title={`Ingresos por fuente en ${year}`}
+                explanation="Cómo se reparte el dinero que has ingresado este año según su origen. Te ayuda a ver de dónde viene tu dinero y si dependes demasiado de una sola fuente."
+              >
+                {(animate) => (
+                  <div>
+                    <AssetDonut data={incomeSourceDonutData} total={totalIngresos} animate={animate} />
+                    <div className="mt-3 pt-3 border-t border-stone-100">
+                      <IncomeSourceBreakdownList total={totalIngresos} subgroups={incomeSourceSubgroups} />
+                    </div>
+                  </div>
+                )}
+              </ChartCard>
+            )
+          )}
+
           <ChartCard
             title="Tasa de ahorro mensual"
             explanation="Qué % de tus ingresos ahorras cada mes. Es la referencia más directa de si tu gestión mejora o empeora."
@@ -432,17 +463,6 @@ export function ChartsSection({
                 {(animate) => <AssetDonut data={assetDonutData} total={totalInversion} animate={animate} />}
               </ChartCard>
             )
-          )}
-
-          {/* Solo año sin comparar, por ahora: igual que el resto de donuts, no tiene sentido mostrar
-              dos a la vez con años distintos salvo que se pida explícitamente más adelante. */}
-          {!comparing && incomeSourceDonutData.length > 0 && (
-            <ChartCard
-              title={`Ingresos por fuente en ${year}`}
-              explanation="Cómo se reparte el dinero que has ingresado este año según su origen. Te ayuda a ver de dónde viene tu dinero y si dependes demasiado de una sola fuente."
-            >
-              {(animate) => <AssetDonut data={incomeSourceDonutData} total={incomeSourceBreakdown.reduce((s, i) => s + i.total, 0)} animate={animate} />}
-            </ChartCard>
           )}
         </div>
       )}
