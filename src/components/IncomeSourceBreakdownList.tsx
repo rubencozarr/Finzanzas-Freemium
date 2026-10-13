@@ -83,14 +83,16 @@ function ProportionBar({ subgroups, total }: { subgroups: IncomeSourceSubgroup[]
           />
         ))}
       </div>
-      <p className="flex items-center gap-x-2.5 gap-y-1 flex-wrap mt-1.5 text-xs text-stone-500">
+      <p className="flex items-center gap-1.5 flex-wrap mt-1.5 text-xs text-stone-500">
         {subgroups.map((g, i) => {
           const Icon = SUBGROUP_STYLE[g.kind].Icon;
           const shortLabel = g.label.replace(/^Ingresos? /, "");
+          const capitalized = shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1);
           return (
             <span key={g.kind} className="flex items-center gap-1">
+              {i > 0 && <span className="text-stone-300">·</span>}
               <Icon size={11} className={SUBGROUP_STYLE[g.kind].legendIconClass} />
-              {shortLabel} {roundedPcts[i]}%
+              {capitalized} {roundedPcts[i]}%
             </span>
           );
         })}
@@ -99,25 +101,25 @@ function ProportionBar({ subgroups, total }: { subgroups: IncomeSourceSubgroup[]
   );
 }
 
+// Misma estructura que las filas de categoría/subcategoría de Gasto variable (CategoryCard.tsx): nombre
+// a la izquierda, "importe · %" junto en una sola línea a la derecha, barra fina debajo a todo el ancho
+// de la fila (sin el % repetido aparte junto a la barra).
 function SourceRow({ source, total, barColorClass }: { source: IncomeSourceBreakdown; total: number; barColorClass: string }) {
   const isSinClasificar = source.id === null && source.name === RESERVED_INCOME_SOURCE_NAME;
   const pct = total ? (source.total / total) * 100 : 0;
   return (
     <div>
-      <div className="flex justify-between items-baseline gap-2">
-        <span className={`text-sm truncate min-w-0 flex-1 ${isSinClasificar ? "text-stone-500" : "text-slate-700"}`}>
-          {source.name}
+      <div className="flex justify-between gap-2 text-sm">
+        <span className={`truncate min-w-0 flex-1 ${isSinClasificar ? "text-stone-500" : "text-slate-700"}`}>{source.name}</span>
+        <span className="font-mono tabular-nums shrink-0">
+          {fmt(source.total)} · {pct.toFixed(0)}%
         </span>
-        <span className="font-mono tabular-nums text-sm shrink-0">{fmt(source.total)}</span>
       </div>
-      <div className="flex items-center gap-2 mt-1">
-        <div className="flex-1 h-1 rounded-full bg-stone-100 overflow-hidden">
-          <div
-            className={`h-full rounded-full ${isSinClasificar ? SIN_CLASIFICAR_BAR_CLASS : barColorClass}`}
-            style={{ width: `${Math.min(100, pct)}%` }}
-          />
-        </div>
-        <span className="text-[11px] text-stone-400 shrink-0 w-7 text-right">{pct.toFixed(0)}%</span>
+      <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden mt-1">
+        <div
+          className={`h-full rounded-full ${isSinClasificar ? SIN_CLASIFICAR_BAR_CLASS : barColorClass}`}
+          style={{ width: `${Math.min(100, pct)}%` }}
+        />
       </div>
     </div>
   );
