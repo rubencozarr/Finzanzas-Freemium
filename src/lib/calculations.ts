@@ -687,6 +687,20 @@ export function incomeSourceNameExists(sources: IncomeSource[], name: string, ex
   return sources.some((s) => s.id !== excludeId && s.name.trim().toLowerCase() === name.trim().toLowerCase());
 }
 
+// "Sin clasificar" es el texto que groupIncomeBySource sintetiza para los ingresos sin fuente (ver más
+// abajo): si una fuente real pudiera llamarse así, SubgroupCard (presentación) no podría distinguir por
+// nombre un ingreso de verdad "sin clasificar" de uno con una fuente que se llama literalmente igual.
+// Reservar el nombre en creación y renombrado (las dos únicas vías para que exista una fuente con ese
+// texto) es lo que hace segura esa detección por nombre.
+export const RESERVED_INCOME_SOURCE_NAME = "Sin clasificar";
+
+/** Mismo criterio que incomeSourceNameExists (sin distinguir mayúsculas ni espacios): reutilizado por
+ * createIncomeSource (App.tsx, compartida entre Ajustes y "+ Nueva fuente") y por el renombrado en
+ * IncomeSourcesEditor.tsx. */
+export function isReservedIncomeSourceName(name: string): boolean {
+  return name.trim().toLowerCase() === RESERVED_INCOME_SOURCE_NAME.toLowerCase();
+}
+
 export interface FundedRecurringPlan {
   recurringId: string;
   fundId: string;
@@ -1089,7 +1103,7 @@ function groupIncomeBySource(incomeTx: Transaction[], sources: IncomeSource[]): 
     sinClasificar += t.amount;
   });
   const result = Array.from(groups.values()).sort((a, b) => b.total - a.total);
-  if (sinClasificar > 0) result.push({ id: null, name: "Sin clasificar", total: sinClasificar });
+  if (sinClasificar > 0) result.push({ id: null, name: RESERVED_INCOME_SOURCE_NAME, total: sinClasificar });
   return result;
 }
 

@@ -29,6 +29,7 @@ import {
   groupOrphanCategories,
   groupOrphanSubcategories,
   incomeSourceNameExists,
+  isReservedIncomeSourceName,
   matchesCategory,
   matchesSubcategory,
   planFundedRecurringApplications,
@@ -506,6 +507,9 @@ function App() {
   // mayúsculas) antes de insertar, para que las dos entradas de creación nunca puedan divergir.
   const createIncomeSource = async (name: string): Promise<{ id: string; name: string } | { error: string }> => {
     const trimmed = name.trim();
+    if (isReservedIncomeSourceName(trimmed)) {
+      return { error: "Ese nombre está reservado." };
+    }
     if (incomeSourceNameExists(incomeSources, trimmed)) {
       return { error: "Ya existe una fuente con este nombre." };
     }

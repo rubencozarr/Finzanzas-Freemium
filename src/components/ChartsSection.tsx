@@ -20,12 +20,30 @@ import { ChartCard } from "./ChartCard";
 import { BudgetComplianceChart } from "./BudgetComplianceChart";
 import { IncomeSourceBreakdownList, type IncomeSourceSubgroup } from "./IncomeSourceBreakdownList";
 import { fmt, round2 } from "../lib/format";
+import { RESERVED_INCOME_SOURCE_NAME } from "../lib/calculations";
 import type { AssetYearBreakdown, IncomeSourceBreakdown, YearComparisonPoint, YearMonthData } from "../lib/calculations";
 
 const ASSET_COLORS = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#4f46e5"];
 // Mismo rojo que MonthSwitcher usa para el punto de ahorro real negativo (bg-rose-500) — se reutiliza
 // aquí para que "mes en negativo" se lea con el mismo color en toda la app.
 const NEGATIVE_COLOR = "#f43f5e";
+
+// Paleta categórica propia para el donut de ingresos por fuente (distinta de ASSET_COLORS, que sigue
+// siendo solo para "Inversión por activo"): validada con la skill de dataviz (6 checks: banda de
+// luminosidad, suelo de croma, separación CVD, suelo de visión normal, contraste — ver
+// node scripts/validate_palette.js). Sin verde (ya lo "ocupan" los subgrupos fijos/extra de
+// IncomeSourceBreakdownList) y sin rojo (en la app rosa/rojo siempre significa gasto, nunca debe
+// etiquetar un ingreso). "aqua" se queda a pesar de ser verde-azulado: sin ella en esa posición ningún
+// orden de los colores restantes supera el suelo de visión normal (comprobado), y es claramente más
+// turquesa que el verde esmeralda de los subgrupos, así que no se confunden entre sí.
+const INCOME_SOURCE_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#6250d6", "#92400e"];
+// Más de 7 fuentes individuales: a partir de la 8ª se agrupan en una única porción gris ("Otras
+// fuentes"), en vez de repetir colores de la paleta (que ya no distinguirían nada) o generar tonos
+// nuevos sin validar. "Sin clasificar" nunca entra en este recuento ni consume un color de la paleta:
+// siempre es la MISMA porción gris, resuelta aparte.
+const MAX_INCOME_SOURCE_COLORS = 7;
+const OTRAS_FUENTES_COLOR = "#d6d3d1"; // stone-300, gris claro
+const SIN_CLASIFICAR_COLOR = "#a8a29e"; // stone-400, gris algo más oscuro para distinguirlo de "Otras fuentes"
 
 // Recharts no soporta un stroke distinto por tramo en <Line>, así que el punto se colorea con un dot
 // personalizado y el trazo con un <linearGradient> que lleva un stop por mes (mismo color que su punto):
@@ -128,14 +146,26 @@ export function ChartsSection({
     value: a.total,
     color: colorByAssetName[a.name],
   }));
-  // Mismo tono (ASSET_COLORS) que el donut de inversión por activo: no se muestran los dos donuts a la
-  // vez en la misma vista (cada uno aparece bajo su propio título más abajo), así que no hay riesgo de
-  // confusión por reutilizar la paleta.
-  const incomeSourceDonutData: AssetDonutDatum[] = incomeSourceBreakdown.map((s, i) => ({
-    name: s.name,
-    value: s.total,
-    color: ASSET_COLORS[i % ASSET_COLORS.length],
-  }));
+  // "Sin clasificar" (si existe, siempre al final por construcción de groupIncomeBySource) nunca
+  // consume un color de la paleta: se separa primero y se añade ella sola, en gris, al final de todo.
+  // Del resto (fuentes reales, ya ordenadas de mayor a menor), solo las primeras MAX_INCOME_SOURCE_COLORS
+  // reciben un color propio; a partir de ahí se agregan en una única porción "Otras fuentes" — así la
+  // lista de debajo (IncomeSourceBreakdownList) puede seguir mostrando cada fuente individual sin límite,
+  // mientras el donut no intenta repartir más colores de los que la paleta puede distinguir.
+  const sinClasificarEntry = incomeSourceBreakdown.find(
+    (s) => s.id === null && s.name === RESERVED_INCOME_SOURCE_NAME,
+  );
+  const namedSources = incomeSourceBreakdown.filter((s) => s !== sinClasificarEntry);
+  const coloredSources = namedSources.slice(0, MAX_INCOME_SOURCE_COLORS);
+  const overflowSources = namedSources.slice(MAX_INCOME_SOURCE_COLORS);
+  const overflowTotal = overflowSources.reduce((s, b) => s + b.total, 0);
+  const incomeSourceDonutData: AssetDonutDatum[] = [
+    ...coloredSources.map((s, i) => ({ name: s.name, value: s.total, color: INCOME_SOURCE_COLORS[i] })),
+    ...(overflowTotal > 0 ? [{ name: "Otras fuentes", value: overflowTotal, color: OTRAS_FUENTES_COLOR }] : []),
+    ...(sinClasificarEntry && sinClasificarEntry.total > 0
+      ? [{ name: sinClasificarEntry.name, value: sinClasificarEntry.total, color: SIN_CLASIFICAR_COLOR }]
+      : []),
+  ];
 
   return (
     <div className="mb-5">

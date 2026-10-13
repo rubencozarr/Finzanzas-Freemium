@@ -89,14 +89,18 @@ export function MensualTab({
   const incomeSubgroups = useMemo(() => {
     const monthIncome = monthTx.filter((t) => t.type === "ingreso");
     const groups = [
-      { label: "Ingresos fijos", tx: monthIncome.filter((t) => t.category === INCOME_CATS[0]) },
-      { label: "Ingresos extra", tx: monthIncome.filter((t) => t.category === INCOME_CATS[1]) },
-      { label: "Otros ingresos", tx: monthIncome.filter((t) => !(INCOME_CATS as readonly string[]).includes(t.category)) },
+      { kind: "fijo" as const, label: "Ingresos fijos", tx: monthIncome.filter((t) => t.category === INCOME_CATS[0]) },
+      { kind: "extra" as const, label: "Ingresos extra", tx: monthIncome.filter((t) => t.category === INCOME_CATS[1]) },
+      {
+        kind: "otros" as const,
+        label: "Otros ingresos",
+        tx: monthIncome.filter((t) => !(INCOME_CATS as readonly string[]).includes(t.category)),
+      },
     ];
     return groups
       .map((g) => {
         const sources = buildIncomeBySource(g.tx, incomeSources, mKey);
-        return { label: g.label, total: sources.reduce((s, b) => s + b.total, 0), sources };
+        return { kind: g.kind, label: g.label, total: sources.reduce((s, b) => s + b.total, 0), sources };
       })
       .filter((g) => g.total > 0);
   }, [monthTx, incomeSources, mKey]);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
+import { isReservedIncomeSourceName } from "../../lib/calculations";
 import type { IncomeSource } from "../../types";
 
 interface IncomeSourcesEditorProps {
@@ -49,11 +50,16 @@ export function IncomeSourcesEditor({
     setRenameError(null);
   };
 
-  // El nombre no puede repetirse (sin distinguir mayúsculas): misma validación que createIncomeSource
-  // usa para crear, aquí aplicada al renombrar (excluyendo la propia fuente que se está editando).
+  // El nombre no puede repetirse (sin distinguir mayúsculas) ni ser el reservado "Sin clasificar": misma
+  // validación que createIncomeSource usa para crear, aquí aplicada al renombrar (excluyendo la propia
+  // fuente que se está editando en el caso de duplicados).
   const confirmRename = async (id: string) => {
     const name = editName.trim();
     if (!name) return;
+    if (isReservedIncomeSourceName(name)) {
+      setRenameError("Ese nombre está reservado.");
+      return;
+    }
     if (sources.some((s) => s.id !== id && s.name.trim().toLowerCase() === name.toLowerCase())) {
       setRenameError("Ya existe una fuente con este nombre.");
       return;

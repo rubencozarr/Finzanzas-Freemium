@@ -89,14 +89,18 @@ export function AnualTab({
     if (!isPremium) return [];
     const yearIncome = transactions.filter((t) => t.type === "ingreso" && t.date.slice(0, 4) === String(year));
     const groups = [
-      { label: "Ingresos fijos", tx: yearIncome.filter((t) => t.category === INCOME_CATS[0]) },
-      { label: "Ingresos extra", tx: yearIncome.filter((t) => t.category === INCOME_CATS[1]) },
-      { label: "Otros ingresos", tx: yearIncome.filter((t) => !(INCOME_CATS as readonly string[]).includes(t.category)) },
+      { kind: "fijo" as const, label: "Ingresos fijos", tx: yearIncome.filter((t) => t.category === INCOME_CATS[0]) },
+      { kind: "extra" as const, label: "Ingresos extra", tx: yearIncome.filter((t) => t.category === INCOME_CATS[1]) },
+      {
+        kind: "otros" as const,
+        label: "Otros ingresos",
+        tx: yearIncome.filter((t) => !(INCOME_CATS as readonly string[]).includes(t.category)),
+      },
     ];
     return groups
       .map((g) => {
         const sources = buildIncomeSourceYearBreakdown(g.tx, incomeSources, year);
-        return { label: g.label, total: sources.reduce((s, b) => s + b.total, 0), sources };
+        return { kind: g.kind, label: g.label, total: sources.reduce((s, b) => s + b.total, 0), sources };
       })
       .filter((g) => g.total > 0);
   }, [isPremium, transactions, incomeSources, year]);
