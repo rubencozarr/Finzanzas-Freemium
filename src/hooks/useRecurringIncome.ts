@@ -61,6 +61,7 @@ export function useRecurringIncome(userId: string | undefined) {
         amount: r.amount,
         note: r.note,
         day: r.day,
+        income_source_id: r.incomeSourceId ?? null,
       });
       if (error) throw error;
       await refetch();
@@ -102,6 +103,23 @@ export function useRecurringIncome(userId: string | undefined) {
     [refetch],
   );
 
+  const updateRecurringIncomeSource = useCallback(
+    async (id: string, incomeSourceId: string | null) => {
+      if (isLocalBackend) {
+        setRecurringIncome((prev) => {
+          const next = prev.map((r) => (r.id === id ? { ...r, incomeSourceId } : r));
+          writeLocal(LOCAL_KEY, next);
+          return next;
+        });
+        return;
+      }
+      const { error } = await getSupabase().from("recurring_income").update({ income_source_id: incomeSourceId }).eq("id", id);
+      if (error) throw error;
+      await refetch();
+    },
+    [refetch],
+  );
+
   return {
     recurringIncome,
     loading,
@@ -109,6 +127,7 @@ export function useRecurringIncome(userId: string | undefined) {
     addRecurringIncome,
     removeRecurringIncome,
     updateRecurringIncomeAmount,
+    updateRecurringIncomeSource,
     refetch,
   };
 }

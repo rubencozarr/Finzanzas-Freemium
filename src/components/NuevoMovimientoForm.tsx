@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Crown, X } from "lucide-react";
+import { Crown, Plus, X } from "lucide-react";
 import { Chip } from "./Chip";
 import { AHORRO_LIBRE_ID, FREE_MAX_CATEGORIES, FREE_MAX_FUNDS, INCOME_CATS } from "../lib/constants";
 import { matchesCategory } from "../lib/calculations";
 import { fmt, formatDateEs, monthKey, round2 } from "../lib/format";
 import type { NewTransaction } from "../hooks/useTransactions";
-import type { AssetWithTotal, Category, FundWithBalance, Transaction, TransactionType } from "../types";
+import type { AssetWithTotal, Category, FundWithBalance, IncomeSource, Transaction, TransactionType } from "../types";
 
 export interface FormPreset {
   type: TransactionType;
@@ -20,6 +20,8 @@ interface NuevoMovimientoFormProps {
   getAhorroLibreDisponibleParaMes: (mKey: string) => number;
   categories: Category[];
   assets: AssetWithTotal[];
+  incomeSources: IncomeSource[];
+  createIncomeSource: (name: string) => Promise<{ id: string; name: string } | { error: string }>;
   defaultDate: string;
   ahorroRealDisponible: number;
   monthTx: Transaction[];
@@ -70,6 +72,8 @@ export function NuevoMovimientoForm({
   getAhorroLibreDisponibleParaMes,
   categories,
   assets,
+  incomeSources,
+  createIncomeSource,
   defaultDate,
   ahorroRealDisponible,
   monthTx,
@@ -95,6 +99,12 @@ export function NuevoMovimientoForm({
     return editingTx?.subcategory || "";
   });
   const [incomeCat, setIncomeCat] = useState(editingTx?.type === "ingreso" ? editingTx.category : INCOME_CATS[0]);
+  const [incomeSourceId, setIncomeSourceId] = useState<string | null>(
+    editingTx?.type === "ingreso" ? editingTx.incomeSourceId ?? null : null,
+  );
+  const [addingSource, setAddingSource] = useState(false);
+  const [newSourceName, setNewSourceName] = useState("");
+  const [newSourceError, setNewSourceError] = useState<string | null>(null);
   const [fundId, setFundId] = useState(() => {
     if (editingTx && (editingTx.type === "aportacion" || editingTx.type === "retiro"))
       return editingTx.fundId || funds[0]?.id || "";
@@ -203,9 +213,30 @@ export function NuevoMovimientoForm({
   const shortfallFund = fundingOptions.find((f) => f.id === shortfallFundId);
   const shortfallExcede = !!shortfallFund && round2(shortfall) > round2(shortfallFund.balance);
 
+  // "+ Nueva fuente" reutiliza exactamente la misma función (validación de duplicados + creación) que
+  // usa Ajustes → Ingresos (IncomeSourcesEditor.tsx) — createIncomeSource viene de App.tsx, no hay
+  // lógica propia de validación aquí. La fuente recién creada queda seleccionada al momento.
+  const confirmNewSource = async () => {
+    const name = newSourceName.trim();
+    if (!name) {
+      setAddingSource(false);
+      return;
+    }
+    const result = await createIncomeSource(name);
+    if ("error" in result) {
+      setNewSourceError(result.error);
+      return;
+    }
+    setIncomeSourceId(result.id);
+    setAddingSource(false);
+    setNewSourceName("");
+    setNewSourceError(null);
+  };
+
   const buildBase = (): Omit<Transaction, "id" | "amount"> => {
     const fund = funds.find((f) => f.id === fundId);
     const asset = assets.find((a) => a.id === assetId);
+    const selectedSource = incomeSources.find((s) => s.id === incomeSourceId);
     return {
       type,
       date,
@@ -222,6 +253,8 @@ export function NuevoMovimientoForm({
       // conserva de todos modos con qué se pagó (ver MovimientosTab, que cae a este campo cuando la
       // búsqueda en vivo contra funds ya no encuentra el fondo).
       fundedByName: type === "gasto" && fundedByFund ? fundedFund?.name ?? null : null,
+      incomeSourceId: type === "ingreso" ? incomeSourceId : null,
+      incomeSourceName: type === "ingreso" && incomeSourceId ? selectedSource?.name ?? null : null,
     };
   };
 
@@ -414,6 +447,47 @@ export function NuevoMovimientoForm({
                 <Chip key={c} label={c} active={incomeCat === c} onClick={() => setIncomeCat(c)} />
               ))}
             </div>
+          </div>
+        )}
+
+        {type === "ingreso" && (
+          <div className="mb-4">
+            <p className="text-xs text-stone-500 mb-1.5">Fuente (opcional)</p>
+            <div className="flex flex-wrap gap-1.5">
+              <Chip label="Sin fuente" active={incomeSourceId === null} onClick={() => setIncomeSourceId(null)} />
+              {incomeSources.map((s) => (
+                <Chip key={s.id} label={s.name} active={incomeSourceId === s.id} onClick={() => setIncomeSourceId(s.id)} />
+              ))}
+              {addingSource ? (
+                <input
+                  value={newSourceName}
+                  onChange={(e) => {
+                    setNewSourceName(e.target.value);
+                    setNewSourceError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") confirmNewSource();
+                    if (e.key === "Escape") {
+                      setAddingSource(false);
+                      setNewSourceName("");
+                      setNewSourceError(null);
+                    }
+                  }}
+                  onBlur={confirmNewSource}
+                  placeholder="Nombre de la fuente"
+                  className="min-h-[44px] border border-stone-200 rounded-full px-3 text-base"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  onClick={() => setAddingSource(true)}
+                  className="min-h-[44px] flex items-center gap-1 border border-dashed border-stone-300 text-stone-500 rounded-full px-3 text-xs"
+                >
+                  <Plus size={12} /> Nueva fuente
+                </button>
+              )}
+            </div>
+            {newSourceError && <p className="text-xs text-rose-600 mt-1.5">{newSourceError}</p>}
           </div>
         )}
 

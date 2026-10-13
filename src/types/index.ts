@@ -24,6 +24,11 @@ export interface Transaction {
   splitId?: string | null; // gastos divididos entre ingreso y fondo
   recurringId?: string | null;
   recurringIncomeId?: string | null;
+  incomeSourceId?: string | null; // solo ingresos: referencia estable a IncomeSource.id
+  // Nombre de la fuente en el momento de registrar/editar el ingreso, congelado como snapshot. Si la
+  // fuente se borra después, incomeSourceId queda apuntando a un id que ya no existe en `incomeSources`;
+  // este campo es lo único que permite seguir mostrando de qué fuente venía ese ingreso histórico.
+  incomeSourceName?: string | null;
   // Solo presente en movimientos leídos de Supabase (fromTransactionRow); un movimiento recién creado
   // en memoria no lo tiene todavía (lo asigna la base de datos al insertar). Se usa para desempatar el
   // orden de movimientos del mismo día y para preservar ese orden al exportar/reimportar un backup.
@@ -86,6 +91,13 @@ export interface RecurringIncome {
   amount: number;
   note: string;
   day: number | null;
+  incomeSourceId?: string | null;
+}
+
+export interface IncomeSource {
+  id: string;
+  name: string;
+  sortOrder: number;
 }
 
 export interface Asset {

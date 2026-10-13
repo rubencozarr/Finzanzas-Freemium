@@ -18,6 +18,7 @@ import type {
   Category,
   Fund,
   FundWithBalance,
+  IncomeSource,
   InvestmentConfig,
   Recurring,
   RecurringIncome,
@@ -661,6 +662,31 @@ export function resolveFundDestinoName(t: FundDestinoMatchable, funds: Fund[]): 
   return t.fundIdDestinoName || "un fondo eliminado";
 }
 
+/** Subconjunto mínimo para resolver el nombre "en vivo" de la fuente de un ingreso. */
+export interface IncomeSourceMatchable {
+  incomeSourceId?: string | null;
+  incomeSourceName?: string | null;
+}
+
+/** Nombre "en vivo" de la fuente de un ingreso: en vivo primero (una fuente renombrada debe mostrar el
+ * nombre actual), snapshot incomeSourceName como red de seguridad si la fuente ya no existe (se borró:
+ * removeIncomeSource en useIncomeSources.ts actualiza ese snapshot al nombre vigente justo antes de
+ * borrar, así que aquí siempre refleja el último nombre que tuvo). null si el ingreso no tiene fuente. */
+export function resolveIncomeSourceName(t: IncomeSourceMatchable, sources: IncomeSource[]): string | null {
+  if (t.incomeSourceId) {
+    const source = sources.find((s) => s.id === t.incomeSourceId);
+    if (source) return source.name;
+  }
+  return t.incomeSourceName ?? null;
+}
+
+/** El nombre de una fuente no puede repetirse entre las fuentes del usuario (sin distinguir
+ * mayúsculas) — misma validación reutilizada por Ajustes → Ingresos y por "+ Nueva fuente" en el
+ * formulario de movimiento, para no divergir entre los dos sitios donde se puede crear/renombrar una. */
+export function incomeSourceNameExists(sources: IncomeSource[], name: string, excludeId?: string): boolean {
+  return sources.some((s) => s.id !== excludeId && s.name.trim().toLowerCase() === name.trim().toLowerCase());
+}
+
 export interface FundedRecurringPlan {
   recurringId: string;
   fundId: string;
@@ -1025,6 +1051,55 @@ export function buildAssetYearBreakdown(transactions: Transaction[], assets: Ass
     .map((a) => ({ name: a.name, total: yearTx.filter((t) => t.category === a.name).reduce((s, t) => s + t.amount, 0) }))
     .filter((a) => a.total > 0)
     .sort((a, b) => b.total - a.total);
+}
+
+export interface IncomeSourceBreakdown {
+  // null para fuentes resueltas por snapshot (ya borradas) o para "Sin clasificar" — solo las fuentes
+  // todavía vivas llevan id, porque solo esas se pueden seguir usando/editando desde la UI.
+  id: string | null;
+  name: string;
+  total: number;
+}
+
+/** Agrupa un conjunto de ingresos por fuente: las fuentes vivas se agrupan por su id (fuente de verdad,
+ * estable frente a renombrados); las de una fuente ya borrada se agrupan por el nombre guardado en el
+ * snapshot (incomeSourceName, actualizado al nombre vigente justo antes de borrar — ver
+ * removeIncomeSource en useIncomeSources.ts), para no mezclar dos fuentes borradas que compartieran
+ * nombre con otra cosa; los ingresos sin ninguna fuente van a "Sin clasificar". Se reutiliza tal cual
+ * desde buildIncomeBySource (Mensual) y buildIncomeSourceYearBreakdown (Anual) para no divergir. */
+function groupIncomeBySource(incomeTx: Transaction[], sources: IncomeSource[]): IncomeSourceBreakdown[] {
+  const groups = new Map<string, { id: string | null; name: string; total: number }>();
+  let sinClasificar = 0;
+  incomeTx.forEach((t) => {
+    const liveSource = t.incomeSourceId ? sources.find((s) => s.id === t.incomeSourceId) : undefined;
+    if (liveSource) {
+      const g = groups.get(liveSource.id) ?? { id: liveSource.id, name: liveSource.name, total: 0 };
+      g.name = liveSource.name;
+      g.total += t.amount;
+      groups.set(liveSource.id, g);
+      return;
+    }
+    if (t.incomeSourceName) {
+      const key = `name:${t.incomeSourceName}`;
+      const g = groups.get(key) ?? { id: null, name: t.incomeSourceName, total: 0 };
+      g.total += t.amount;
+      groups.set(key, g);
+      return;
+    }
+    sinClasificar += t.amount;
+  });
+  const result = Array.from(groups.values()).sort((a, b) => b.total - a.total);
+  if (sinClasificar > 0) result.push({ id: null, name: "Sin clasificar", total: sinClasificar });
+  return result;
+}
+
+/** Ingresos del mes agrupados por fuente, de mayor a menor importe ("Sin clasificar" al final si lo
+ * hay). Solo cuenta type === "ingreso" (nunca retiro ni transferencia, que no son ingresos nuevos): la
+ * fuente es puramente una etiqueta de visualización, así que sum(resultado) === computeMonth(...).ingresos
+ * siempre, por construcción (mismo filtro exacto, partición sin solapamiento ni omisión). */
+export function buildIncomeBySource(transactions: Transaction[], sources: IncomeSource[], mKey: string): IncomeSourceBreakdown[] {
+  const monthIncome = transactions.filter((t) => t.type === "ingreso" && monthKey(t.date) === mKey);
+  return groupIncomeBySource(monthIncome, sources);
 }
 
 // ---------------------------------------------------------------------------

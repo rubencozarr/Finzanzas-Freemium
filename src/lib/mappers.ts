@@ -2,6 +2,7 @@ import type {
   AssetRow,
   CategoryRow,
   FundRow,
+  IncomeSourceRow,
   InvestmentConfigRow,
   RecurringIncomeRow,
   RecurringRow,
@@ -14,6 +15,7 @@ import type {
   Asset,
   Category,
   Fund,
+  IncomeSource,
   InvestmentConfig,
   Recurring,
   RecurringIncome,
@@ -41,6 +43,8 @@ export function fromTransactionRow(row: TransactionRow): Transaction {
     splitId: row.split_id,
     recurringId: row.recurring_id,
     recurringIncomeId: row.recurring_income_id,
+    incomeSourceId: row.income_source_id,
+    incomeSourceName: row.income_source_name,
     createdAt: row.created_at,
   };
 }
@@ -65,6 +69,8 @@ export function toTransactionInsert(userId: string, tx: Omit<Transaction, "id">)
     split_id: tx.splitId ?? null,
     recurring_id: tx.recurringId ?? null,
     recurring_income_id: tx.recurringIncomeId ?? null,
+    income_source_id: tx.incomeSourceId ?? null,
+    income_source_name: tx.incomeSourceName ?? null,
   };
 }
 
@@ -87,6 +93,10 @@ export function toTransactionUpdate(updates: Partial<Transaction>) {
   if (updates.splitId !== undefined) row.split_id = updates.splitId;
   if (updates.recurringId !== undefined) row.recurring_id = updates.recurringId;
   if (updates.recurringIncomeId !== undefined) row.recurring_income_id = updates.recurringIncomeId;
+  // !== undefined (no truthiness): permite guardar explícitamente income_source_id = null al volver a
+  // "Sin fuente" al editar un ingreso, distinto de no tocar el campo si no viene en updates.
+  if (updates.incomeSourceId !== undefined) row.income_source_id = updates.incomeSourceId;
+  if (updates.incomeSourceName !== undefined) row.income_source_name = updates.incomeSourceName;
   return row;
 }
 
@@ -135,7 +145,12 @@ export function fromRecurringIncomeRow(row: RecurringIncomeRow): RecurringIncome
     amount: Number(row.amount),
     note: row.note,
     day: row.day,
+    incomeSourceId: row.income_source_id,
   };
+}
+
+export function fromIncomeSourceRow(row: IncomeSourceRow): IncomeSource {
+  return { id: row.id, name: row.name, sortOrder: row.sort_order };
 }
 
 export function fromAssetRow(row: AssetRow): Asset {

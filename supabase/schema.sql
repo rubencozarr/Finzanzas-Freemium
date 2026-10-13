@@ -71,6 +71,32 @@ create table if not exists public.recurring (
 );
 
 -- =========================================================
+-- INCOME_SOURCES (fuentes de ingreso, para clasificar ingresos)
+-- Tabla propia con RLS + grants explícitos (más estricta que el resto: aquí no se concede nada a anon).
+-- =========================================================
+create table if not exists public.income_sources (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_income_sources_user on public.income_sources (user_id, sort_order);
+
+alter table public.income_sources enable row level security;
+drop policy if exists "select_own" on public.income_sources;
+drop policy if exists "insert_own" on public.income_sources;
+drop policy if exists "update_own" on public.income_sources;
+drop policy if exists "delete_own" on public.income_sources;
+create policy "select_own" on public.income_sources for select using (auth.uid() = user_id);
+create policy "insert_own" on public.income_sources for insert with check (auth.uid() = user_id);
+create policy "update_own" on public.income_sources for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "delete_own" on public.income_sources for delete using (auth.uid() = user_id);
+
+revoke all on public.income_sources from anon;
+grant select, insert, update, delete on public.income_sources to authenticated, service_role;
+
+-- =========================================================
 -- RECURRING_INCOME (ingresos recurrentes)
 -- =========================================================
 create table if not exists public.recurring_income (
@@ -83,6 +109,10 @@ create table if not exists public.recurring_income (
   day smallint check (day between 1 and 31),
   created_at timestamptz not null default now()
 );
+-- Fuente de ingreso opcional asignada al ingreso recurrente (ver sección INCOME_SOURCES arriba). Columna
+-- añadida después del release inicial de esta tabla: alter table ... add column if not exists en vez de
+-- dentro del create table, para que también se aplique a bases de datos que ya tenían esta tabla creada.
+alter table public.recurring_income add column if not exists income_source_id uuid references public.income_sources (id) on delete set null;
 
 -- =========================================================
 -- ASSETS (activos de inversión)
@@ -215,6 +245,15 @@ create table if not exists public.transactions (
 --   alter table public.transactions drop constraint if exists transactions_type_check;
 --   alter table public.transactions add constraint transactions_type_check
 --     check (type in ('ingreso', 'gasto', 'aportacion', 'retiro', 'inversion', 'transferencia'));
+
+-- Fuente de ingreso opcional (solo type = 'ingreso') + snapshot de su nombre en el momento del ingreso,
+-- igual que funded_by_name para fondos: si la fuente se borra después, income_source_id queda apuntando
+-- a un id inexistente y este snapshot es lo único que permite seguir mostrando de dónde venía. A
+-- diferencia de las migraciones de arriba, estas sí se ejecutan al pegar el archivo (add column if not
+-- exists es seguro de repetir), para que una base de datos ya existente quede al día sin pasos manuales.
+alter table public.transactions add column if not exists income_source_id uuid references public.income_sources (id) on delete set null;
+alter table public.transactions add column if not exists income_source_name text;
+create index if not exists idx_transactions_income_source_id on public.transactions (income_source_id) where income_source_id is not null;
 
 -- =========================================================
 -- ÍNDICES

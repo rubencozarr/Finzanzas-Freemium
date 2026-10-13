@@ -4,12 +4,21 @@ import { MonthSwitcher } from "../../components/MonthSwitcher";
 import { CategoryOverviewDonut, type DonutDatum } from "../../components/CategoryOverviewDonut";
 import { CategoryGroup } from "../../components/CategoryGroup";
 import { FundUsageGroup } from "../../components/FundUsageGroup";
+import { IncomeSourceGroup } from "../../components/IncomeSourceGroup";
 import { SparklineTrend } from "../../components/SparklineTrend";
 import { MonthlyInsights } from "../../components/MonthlyInsights";
 import { Row } from "../../components/Row";
-import { buildAssetBreakdown, buildBreakdown, buildFundUsage, buildMonthlyInsights, type MonthStats, type TrendPoint } from "../../lib/calculations";
+import {
+  buildAssetBreakdown,
+  buildBreakdown,
+  buildFundUsage,
+  buildIncomeBySource,
+  buildMonthlyInsights,
+  type MonthStats,
+  type TrendPoint,
+} from "../../lib/calculations";
 import { fmt } from "../../lib/format";
-import type { Asset, Category, FundWithBalance, Transaction } from "../../types";
+import type { Asset, Category, FundWithBalance, IncomeSource, Transaction } from "../../types";
 
 interface MensualTabProps {
   isPremium: boolean;
@@ -25,6 +34,7 @@ interface MensualTabProps {
   categories: Category[];
   funds: FundWithBalance[];
   assets: Asset[];
+  incomeSources: IncomeSource[];
   transactions: Transaction[];
   variableBudget: number;
   trend6Meses: TrendPoint[];
@@ -46,6 +56,7 @@ export function MensualTab({
   categories,
   funds,
   assets,
+  incomeSources,
   transactions,
   variableBudget,
   trend6Meses,
@@ -66,6 +77,12 @@ export function MensualTab({
     [monthTx, categories, isPremium],
   );
   const mKey = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
+  const incomeBySource = useMemo(() => buildIncomeBySource(monthTx, incomeSources, mKey), [monthTx, incomeSources, mKey]);
+  // Si ningún ingreso del mes tiene fuente asignada (ni viva ni de una ya borrada), el bloque no se
+  // renderiza — mostrar "Ingresos" con un único "Sin clasificar" no aportaría nada. Distinto de mirar
+  // incomeBySource directamente: ahí un grupo con id null puede ser una fuente borrada (sí cuenta como
+  // clasificado) o el cajón "Sin clasificar" (no cuenta), así que se comprueba sobre los movimientos.
+  const hasAnyClassifiedIncome = monthTx.some((t) => t.type === "ingreso" && (t.incomeSourceId || t.incomeSourceName));
   const fundUsage = useMemo(() => {
     const usage = buildFundUsage(monthTx, transactions, funds, mKey);
     // Mismo criterio que stripPremiumOnly de arriba: subcategorías son premium-only.
@@ -135,6 +152,7 @@ export function MensualTab({
       <CategoryGroup title="Gasto variable" total={stats.variableOrdinario} cats={variableCats} tone="variable" budget={variableBudget} />
       <CategoryGroup title="Inversión" total={stats.inversion} cats={isPremium ? assetCats : []} tone="inversion" hideDetail={!isPremium} />
       <FundUsageGroup total={stats.gastosFinanciados} funds={fundUsage} />
+      {hasAnyClassifiedIncome && <IncomeSourceGroup total={stats.ingresos} sources={incomeBySource} />}
 
       <SparklineTrend data={trend6Meses} isPremium={isPremium} />
     </div>

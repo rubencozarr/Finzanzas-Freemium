@@ -6,6 +6,7 @@ import { useFunds } from "./hooks/useFunds";
 import { useCategories } from "./hooks/useCategories";
 import { useRecurring } from "./hooks/useRecurring";
 import { useRecurringIncome } from "./hooks/useRecurringIncome";
+import { useIncomeSources } from "./hooks/useIncomeSources";
 import { useAssets } from "./hooks/useAssets";
 import { useInvestmentConfig } from "./hooks/useInvestmentConfig";
 import { useVariableBudget } from "./hooks/useVariableBudget";
@@ -27,6 +28,7 @@ import {
   fundsWithBalance as computeFundsWithBalance,
   groupOrphanCategories,
   groupOrphanSubcategories,
+  incomeSourceNameExists,
   matchesCategory,
   matchesSubcategory,
   planFundedRecurringApplications,
@@ -157,8 +159,17 @@ function App() {
     addRecurringIncome,
     removeRecurringIncome,
     updateRecurringIncomeAmount,
+    updateRecurringIncomeSource,
     refetch: refetchRecurringIncome,
   } = useRecurringIncome(userId);
+  const {
+    incomeSources,
+    addIncomeSource,
+    renameIncomeSource,
+    removeIncomeSource,
+    updateIncomeSourceOrder,
+    refetch: refetchIncomeSources,
+  } = useIncomeSources(userId);
   const { assets, addAsset, renameAsset, updateAssetPct, removeAsset, refetch: refetchAssets } = useAssets(userId);
   const { investmentConfig, setGlobalPct, refetch: refetchInvestmentConfig } = useInvestmentConfig(userId);
   const { variableBudget, updateVariableBudget, refetch: refetchVariableBudget } = useVariableBudget(userId);
@@ -487,6 +498,24 @@ function App() {
     if (!cat || !sub) return 0;
     return transactions.filter((t) => t.type === "gasto" && matchesCategory(t, cat) && matchesSubcategory(t, sub)).length;
   };
+  const getIncomeSourceUsageCount = (sourceId: string) =>
+    transactions.filter((t) => t.type === "ingreso" && t.incomeSourceId === sourceId).length;
+
+  // Única función de creación de fuentes, usada tanto por Ajustes → Ingresos (IncomeSourcesEditor)
+  // como por "+ Nueva fuente" en NuevoMovimientoForm: valida el nombre duplicado (sin distinguir
+  // mayúsculas) antes de insertar, para que las dos entradas de creación nunca puedan divergir.
+  const createIncomeSource = async (name: string): Promise<{ id: string; name: string } | { error: string }> => {
+    const trimmed = name.trim();
+    if (incomeSourceNameExists(incomeSources, trimmed)) {
+      return { error: "Ya existe una fuente con este nombre." };
+    }
+    try {
+      const created = await addIncomeSource(trimmed);
+      return { id: created.id, name: created.name };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "No se pudo crear la fuente." };
+    }
+  };
   const yearData = useMemo(() => yearMonthsData(transactions, year), [transactions, year]);
   const yearStats = useMemo(() => yearTotals(yearData), [yearData]);
 
@@ -652,6 +681,8 @@ function App() {
         subcategory: tpl.name && tpl.name !== tpl.incomeCat ? tpl.name : null,
         note: tpl.note || "",
         recurringIncomeId: tpl.id,
+        incomeSourceId: tpl.incomeSourceId ?? null,
+        incomeSourceName: tpl.incomeSourceId ? incomeSources.find((s) => s.id === tpl.incomeSourceId)?.name ?? null : null,
       });
     }
     const plans = planFundedRecurringApplications(
@@ -800,7 +831,17 @@ function App() {
 
   const onExport = () => {
     downloadBackup(
-      buildBackup({ transactions, funds, categories, recurring, recurringIncome, assets, investmentConfig, variableBudget }),
+      buildBackup({
+        transactions,
+        funds,
+        categories,
+        recurring,
+        recurringIncome,
+        incomeSources,
+        assets,
+        investmentConfig,
+        variableBudget,
+      }),
     );
   };
 
@@ -822,6 +863,7 @@ function App() {
         refetchCategories(),
         refetchRecurring(),
         refetchRecurringIncome(),
+        refetchIncomeSources(),
         refetchAssets(),
         refetchInvestmentConfig(),
         refetchVariableBudget(),
@@ -1012,6 +1054,7 @@ function App() {
             categories={categories}
             funds={fundsForUsageDisplay}
             assets={assets}
+            incomeSources={incomeSources}
             transactions={transactions}
             variableBudget={variableBudget}
             trend6Meses={trend6Meses}
@@ -1068,6 +1111,13 @@ function App() {
             addRecurringIncome={addRecurringIncome}
             removeRecurringIncome={removeRecurringIncome}
             updateRecurringIncomeAmount={updateRecurringIncomeAmount}
+            updateRecurringIncomeSource={updateRecurringIncomeSource}
+            incomeSources={incomeSources}
+            createIncomeSource={createIncomeSource}
+            renameIncomeSource={renameIncomeSource}
+            removeIncomeSource={removeIncomeSource}
+            updateIncomeSourceOrder={updateIncomeSourceOrder}
+            getIncomeSourceUsageCount={getIncomeSourceUsageCount}
             assets={assets}
             addAsset={addAsset}
             renameAsset={renameAsset}
@@ -1096,6 +1146,8 @@ function App() {
           getAhorroLibreDisponibleParaMes={getAhorroLibreDisponibleParaMes}
           categories={categories}
           assets={assetsWithTotal}
+          incomeSources={incomeSources}
+          createIncomeSource={createIncomeSource}
           ahorroRealDisponible={monthStats.ahorroReal}
           monthTx={monthTx}
           initial={formPreset}

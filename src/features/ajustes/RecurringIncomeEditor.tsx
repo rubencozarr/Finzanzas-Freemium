@@ -2,35 +2,48 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Chip } from "../../components/Chip";
 import { INCOME_CATS } from "../../lib/constants";
-import type { IncomeCategory, RecurringIncome } from "../../types";
+import type { IncomeCategory, IncomeSource, RecurringIncome } from "../../types";
 
 interface RecurringIncomeEditorProps {
   recurringIncome: RecurringIncome[];
+  incomeSources: IncomeSource[];
   addRecurringIncome: (r: Omit<RecurringIncome, "id">) => void;
   removeRecurringIncome: (id: string) => void;
   updateRecurringIncomeAmount: (id: string, amount: number) => void;
+  updateRecurringIncomeSource: (id: string, incomeSourceId: string | null) => void;
 }
 
 export function RecurringIncomeEditor({
   recurringIncome,
+  incomeSources,
   addRecurringIncome,
   removeRecurringIncome,
   updateRecurringIncomeAmount,
+  updateRecurringIncomeSource,
 }: RecurringIncomeEditorProps) {
   const [incomeCat, setIncomeCat] = useState<IncomeCategory>(INCOME_CATS[0]);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [day, setDay] = useState("");
+  const [incomeSourceId, setIncomeSourceId] = useState<string | null>(null);
 
   const add = () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return;
-    addRecurringIncome({ incomeCat, name: name.trim() || incomeCat, amount: amt, note, day: parseInt(day) || null });
+    addRecurringIncome({
+      incomeCat,
+      name: name.trim() || incomeCat,
+      amount: amt,
+      note,
+      day: parseInt(day) || null,
+      incomeSourceId,
+    });
     setName("");
     setAmount("");
     setNote("");
     setDay("");
+    setIncomeSourceId(null);
   };
 
   return (
@@ -41,33 +54,50 @@ export function RecurringIncomeEditor({
       <div className="space-y-2 mb-4">
         {recurringIncome.length === 0 && <p className="text-stone-500 text-sm text-center py-4">Todavía no tienes ingresos recurrentes.</p>}
         {recurringIncome.map((r) => (
-          <div key={r.id} className="flex items-center justify-between gap-2 bg-white border border-stone-100 rounded-lg px-3 py-2">
-            <div className="min-w-0">
-              <p className="text-sm truncate">
-                {r.name}
-                {r.day ? ` · día ${r.day}` : ""}
-              </p>
-              <p className="text-xs text-stone-500 truncate">
-                {r.incomeCat}
-                {r.note ? ` · ${r.note}` : ""}
-              </p>
+          <div key={r.id} className="bg-white border border-stone-100 rounded-lg px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-sm truncate">
+                  {r.name}
+                  {r.day ? ` · día ${r.day}` : ""}
+                </p>
+                <p className="text-xs text-stone-500 truncate">
+                  {r.incomeCat}
+                  {r.note ? ` · ${r.note}` : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <input
+                  type="number"
+                  value={r.amount}
+                  onChange={(e) => updateRecurringIncomeAmount(r.id, parseFloat(e.target.value) || 0)}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  className="w-20 border border-stone-200 rounded-md px-1.5 py-1 text-base font-mono text-right"
+                />
+                <button
+                  onClick={() => removeRecurringIncome(r.id)}
+                  className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-stone-300 hover:text-rose-600"
+                  aria-label="Eliminar ingreso recurrente"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <input
-                type="number"
-                value={r.amount}
-                onChange={(e) => updateRecurringIncomeAmount(r.id, parseFloat(e.target.value) || 0)}
-                onWheel={(e) => e.currentTarget.blur()}
-                className="w-20 border border-stone-200 rounded-md px-1.5 py-1 text-base font-mono text-right"
-              />
-              <button
-                onClick={() => removeRecurringIncome(r.id)}
-                className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-stone-300 hover:text-rose-600"
-                aria-label="Eliminar ingreso recurrente"
+            {incomeSources.length > 0 && (
+              <select
+                value={r.incomeSourceId ?? ""}
+                onChange={(e) => updateRecurringIncomeSource(r.id, e.target.value || null)}
+                className="w-full mt-2 min-h-[44px] border border-stone-200 rounded-md px-2 text-base bg-white"
+                aria-label={`Fuente de ${r.name}`}
               >
-                <Trash2 size={15} />
-              </button>
-            </div>
+                <option value="">Sin fuente</option>
+                {incomeSources.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         ))}
       </div>
@@ -82,6 +112,14 @@ export function RecurringIncomeEditor({
             <Chip key={c} label={c} active={incomeCat === c} onClick={() => setIncomeCat(c)} />
           ))}
         </div>
+        {incomeSources.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <Chip label="Sin fuente" active={incomeSourceId === null} onClick={() => setIncomeSourceId(null)} />
+            {incomeSources.map((s) => (
+              <Chip key={s.id} label={s.name} active={incomeSourceId === s.id} onClick={() => setIncomeSourceId(s.id)} />
+            ))}
+          </div>
+        )}
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}

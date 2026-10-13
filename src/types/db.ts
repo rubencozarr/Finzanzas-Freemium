@@ -23,6 +23,8 @@ export interface TransactionRow {
   split_id: string | null;
   recurring_id: string | null;
   recurring_income_id: string | null;
+  income_source_id: string | null;
+  income_source_name: string | null;
   created_at: string;
 }
 
@@ -71,6 +73,15 @@ export interface RecurringIncomeRow {
   amount: number;
   note: string;
   day: number | null;
+  income_source_id: string | null;
+  created_at: string;
+}
+
+export interface IncomeSourceRow {
+  id: string;
+  user_id: string;
+  name: string;
+  sort_order: number;
   created_at: string;
 }
 

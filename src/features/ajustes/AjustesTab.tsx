@@ -3,9 +3,20 @@ import { Check, Crown, Download, FileSpreadsheet, LogOut, Trash2, Upload } from 
 import { CategoriasEditor } from "./CategoriasEditor";
 import { RecurringEditor } from "./RecurringEditor";
 import { RecurringIncomeEditor } from "./RecurringIncomeEditor";
+import { IncomeSourcesEditor } from "./IncomeSourcesEditor";
 import { InvestmentEditor } from "./InvestmentEditor";
 import { PremiumGate } from "../../components/PremiumGate";
-import type { Asset, Category, CategoryType, FundWithBalance, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../../types";
+import type {
+  Asset,
+  Category,
+  CategoryType,
+  FundWithBalance,
+  IncomeSource,
+  InvestmentConfig,
+  Recurring,
+  RecurringIncome,
+  Transaction,
+} from "../../types";
 
 // Datos de muestra para que un free vea cómo se vería la sección de Inversión funcionando, sin exponer
 // nunca datos reales suyos (aunque los tenga de cuando era premium). InvestmentEditor los recibe con
@@ -88,6 +99,14 @@ interface AjustesTabProps {
   addRecurringIncome: (r: Omit<RecurringIncome, "id">) => void;
   removeRecurringIncome: (id: string) => void;
   updateRecurringIncomeAmount: (id: string, amount: number) => void;
+  updateRecurringIncomeSource: (id: string, incomeSourceId: string | null) => void;
+
+  incomeSources: IncomeSource[];
+  createIncomeSource: (name: string) => Promise<{ id: string; name: string } | { error: string }>;
+  renameIncomeSource: (id: string, name: string) => void;
+  removeIncomeSource: (id: string, name: string) => void;
+  updateIncomeSourceOrder: (id: string, direction: -1 | 1) => void;
+  getIncomeSourceUsageCount: (sourceId: string) => number;
 
   assets: Asset[];
   addAsset: (name: string) => void;
@@ -167,6 +186,13 @@ export function AjustesTab({
   addRecurringIncome,
   removeRecurringIncome,
   updateRecurringIncomeAmount,
+  updateRecurringIncomeSource,
+  incomeSources,
+  createIncomeSource,
+  renameIncomeSource,
+  removeIncomeSource,
+  updateIncomeSourceOrder,
+  getIncomeSourceUsageCount,
   assets,
   addAsset,
   renameAsset,
@@ -288,12 +314,24 @@ export function AjustesTab({
         />
       )}
       {section === "ingresos" && (
-        <RecurringIncomeEditor
-          recurringIncome={recurringIncome}
-          addRecurringIncome={addRecurringIncome}
-          removeRecurringIncome={removeRecurringIncome}
-          updateRecurringIncomeAmount={updateRecurringIncomeAmount}
-        />
+        <div>
+          <IncomeSourcesEditor
+            sources={incomeSources}
+            createIncomeSource={createIncomeSource}
+            renameIncomeSource={renameIncomeSource}
+            removeIncomeSource={removeIncomeSource}
+            updateIncomeSourceOrder={updateIncomeSourceOrder}
+            getIncomeSourceUsageCount={getIncomeSourceUsageCount}
+          />
+          <RecurringIncomeEditor
+            recurringIncome={recurringIncome}
+            incomeSources={incomeSources}
+            addRecurringIncome={addRecurringIncome}
+            removeRecurringIncome={removeRecurringIncome}
+            updateRecurringIncomeAmount={updateRecurringIncomeAmount}
+            updateRecurringIncomeSource={updateRecurringIncomeSource}
+          />
+        </div>
       )}
       {section === "inversion" && (
         <div data-tour="ajustes-inversion-section">

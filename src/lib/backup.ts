@@ -3,7 +3,7 @@ import { writeLocal } from "./localStore";
 import { getSupabase } from "./supabaseClient";
 import { todayISO } from "./format";
 import { AHORRO_LIBRE_ID } from "./constants";
-import type { Asset, Category, Fund, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../types";
+import type { Asset, Category, Fund, IncomeSource, InvestmentConfig, Recurring, RecurringIncome, Transaction } from "../types";
 
 export interface BackupData {
   version: number;
@@ -13,6 +13,7 @@ export interface BackupData {
   categories: Category[];
   recurring: Recurring[];
   recurringIncome: RecurringIncome[];
+  incomeSources: IncomeSource[];
   assets: Asset[];
   investmentConfig: InvestmentConfig;
   variableBudget: number;
@@ -50,6 +51,7 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
   await run(supabase.from("transactions").delete().eq("user_id", userId));
   await run(supabase.from("recurring").delete().eq("user_id", userId));
   await run(supabase.from("recurring_income").delete().eq("user_id", userId));
+  await run(supabase.from("income_sources").delete().eq("user_id", userId));
   await run(supabase.from("assets").delete().eq("user_id", userId));
   await run(supabase.from("funds").delete().eq("user_id", userId));
   await run(supabase.from("categories").delete().eq("user_id", userId));
@@ -68,6 +70,23 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
   const fundIdMap = new Map<string, string>();
   const recurringIdMap = new Map<string, string>();
   const recurringIncomeIdMap = new Map<string, string>();
+  const incomeSourceIdMap = new Map<string, string>();
+
+  // income_sources se inserta antes que recurring_income y transactions (ambas lo referencian), para
+  // poder remapear su income_source_id al nuevo id. Un backup sin incomeSources (de antes de que
+  // existiera este campo) simplemente no entra en este bloque y el resto sigue igual: recurring_income/
+  // transactions caen a income_source_id: null más abajo, sin ningún error.
+  if (raw.incomeSources?.length) {
+    await run(
+      supabase.from("income_sources").insert(
+        raw.incomeSources.map((s) => {
+          const id = crypto.randomUUID();
+          incomeSourceIdMap.set(s.id, id);
+          return { id, user_id: userId, name: s.name, sort_order: s.sortOrder };
+        }),
+      ),
+    );
+  }
 
   if (raw.categories?.length) {
     await run(
@@ -143,6 +162,7 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
             amount: r.amount,
             note: r.note,
             day: r.day,
+            income_source_id: r.incomeSourceId ? (incomeSourceIdMap.get(r.incomeSourceId) ?? null) : null,
           };
         }),
       ),
@@ -182,6 +202,8 @@ async function importToSupabase(userId: string, raw: Partial<BackupData>) {
           split_id: t.splitId ?? null,
           recurring_id: t.recurringId ? (recurringIdMap.get(t.recurringId) ?? null) : null,
           recurring_income_id: t.recurringIncomeId ? (recurringIncomeIdMap.get(t.recurringIncomeId) ?? null) : null,
+          income_source_id: t.incomeSourceId ? (incomeSourceIdMap.get(t.incomeSourceId) ?? null) : null,
+          income_source_name: t.incomeSourceName ?? null,
           // Si el backup trae su created_at original (exportado tras este fix), se preserva: si no se
           // pasa, todas las filas de este insert en lote comparten el mismo now() de Supabase y se
           // pierde el orden relativo entre movimientos del mismo día (bug original). Backups antiguos,
@@ -204,6 +226,7 @@ export async function importBackup(userId: string | undefined, data: unknown): P
     if (Array.isArray(raw.categories)) writeLocal("categories", raw.categories);
     if (Array.isArray(raw.recurring)) writeLocal("recurring", raw.recurring);
     if (Array.isArray(raw.recurringIncome)) writeLocal("recurringIncome", raw.recurringIncome);
+    if (Array.isArray(raw.incomeSources)) writeLocal("incomeSources", raw.incomeSources);
     if (Array.isArray(raw.assets)) writeLocal("assets", raw.assets);
     if (raw.investmentConfig) writeLocal("investmentConfig", raw.investmentConfig);
     if (raw.variableBudget != null) writeLocal("variableBudget", raw.variableBudget);
